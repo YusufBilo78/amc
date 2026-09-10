@@ -2,6 +2,9 @@
 
 *Tek sayfa. Toplantıda ekranda tut, okumak için değil göz atmak için.*
 
+*İngilizce bloklar söyleyeceğin cümleler; altlarındaki italik Türkçe sadece anlamı
+tutasın diye — onu okumuyorsun, İngilizcesini söylüyorsun.*
+
 **Bu toplantı ne değil:** Tez savunması değil, sonuç sunumu değil. Adam seninle
 görüşmek istedi. Konuşmanın yarısını muhtemelen o yapacak.
 
@@ -23,6 +26,8 @@ tanıştırayım."** Bu kayıp değil. Dekanın tanıştırdığı öğrenci, so
 >
 > Everything I've done is simulated, though. What I want is to do it with real
 > radios."
+
+*Modülasyon sınıflandırma üzerine çalışıyorum — bir modele, vericisi hakkında hiçbir şey bilmeden bir sinyali tanıtmak. Standart veri setinde çalışıyor, verici değişince dağılıyor. Yazı nedenini bulmakla geçirdim, ve sanırım sebep vericinin spektral parmak izi. Ama yaptığım her şey simülasyonda. İstediğim şey bunu gerçek radyolarla yapmak.*
 
 Dur. Nefes al. Soru sorsun.
 
@@ -65,6 +70,20 @@ Dur. Nefes al. Soru sorsun.
 > all summer — because if it survives a change of model, it isn't my model. It's
 > the problem."
 
+*Modülasyon sınıflandırma dışarıdan bakınca bitmiş görünüyor. Standart bir veri seti, herkes onunla eğitiyor, herkes %99 raporluyor.*
+
+*Sonra kendi vericimi yazılımda kurdum, aynı modülasyonları ürettim, aynı eğitilmiş modele verdim. %99, %80 oldu. Ve dağınık değildi — toplanmıştı. Bir sınıf uçurumdan düşerken diğerleri neredeyse hiç kıpırdamadı.*
+
+*Beni yakalayan kısım bu. Bir model kazara böyle bozulmaz. Rastgele bozulma gürültü demektir. Yapılı bozulma, spesifik bir şey öğrendiği ve benim ona beklemediği spesifik bir şey verdiğim anlamına gelir.*
+
+*Ben de sayıyı iyileştirmeye çalışmayı bırakıp açıklamaya çalışmaya başladım. Aklıma gelen her açıklamayı yazdım — bant genişliği, takımyıldız yoğunluğu, sembol zamanlaması, kanal etkileri — ve her biri için iki türlü de sonuçlanabilecek bir test tasarladım. Hepsi olumsuz döndü. Dört çıkmaz sokak, ve dördünü de sakladım, çünkü beşincinin bir anlam taşıdığını çıkmaz sokaklardan bilirsin.*
+
+*Beşincisi vericinin kendi spektral imzasıydı. Parmak izi. Sinyalle ilgili her şeyi sabit tutup sadece onu değiştirebiliyordum, ve modelin cevabı onu takip ediyordu. Onunla ilişkili çıkmıyordu — takip ediyordu. Ondan sonra çözüm kendini yazdı: parmak izini, model sinyali görmeden önce sil.*
+
+*Ve şimdi sizin bulmanızdansa benim anlatmayı tercih ettiğim kısım. Yarı yolda kendi ağımdan şüphelendim ve düzgün bir ağa karşı koşturdum. Benimki ezberliyordu — eğitim doğruluğu yüzde yüze çakılı, test doğruluğu çok uzakta. Attım ve ölçümlere baştan başladım.*
+
+*Ama asıl mesele şu. Başarısızlık geri geldi. Farklı mimari, farklı aile, aynı çöküş, aynı sınıf. Ve bu bütün yaz aldığım en iyi haberdi — çünkü model değişikliğinden sağ çıkıyorsa, o benim modelim değil. Problemin kendisi.*
+
 **Sözün kesilirse taşıyıcı dört cümle bunlar:**
 
 1. "It wasn't spread out, it was concentrated." → tesadüf değil, yapı var
@@ -75,6 +94,8 @@ Dur. Nefes al. Soru sorsun.
 **Anlatamazsan benzetme:**
 > "It's like training something to recognise a language, and it quietly learns
 > the microphone instead. Works perfectly until you change the microphone."
+
+*Biraz şuna benziyor: bir şeye dil tanımayı öğretiyorsun, o da sessizce mikrofonu öğreniyor. Mikrofonu değiştirene kadar kusursuz çalışıyor.*
 
 ---
 
@@ -87,6 +108,8 @@ Bunu anlatının **sonuna** koy, başına değil.
 > after I graduate. This summer was mostly me finding out whether I actually
 > like the work, and I do. I like the part where you don't know the answer yet."
 
+*Görüşmek istememin sebebi bu projeden fazlası. Araştırma yapmak istiyorum — araştırma asistanı olarak çalışmak isterim, ve mezuniyet sonrası doktoraya yöneliyorum. Bu yaz büyük ölçüde bu işi gerçekten sevip sevmediğimi anlamakla geçti, ve seviyorum. Cevabı henüz bilmediğin kısmını seviyorum.*
+
 **Ve bu cümle — kartın en değerli cümlesi:**
 
 > "And I want to be clear that I'm not attached to my own topic. If there's
@@ -95,11 +118,15 @@ Bunu anlatının **sonuna** koy, başına değil.
 > working on a real problem someone else is already invested in than from
 > defending mine."
 
+*Ve kendi konuma bağlı olmadığımı netleştirmek istiyorum. Grubunuzda halihazırda yürüyen ve bir çift ele ihtiyaç duyan bir şey varsa, kendi projemi korumaktansa orada faydalı olmayı tercih ederim. Başkasının zaten emek verdiği gerçek bir problem üzerinde çalışmaktan, kendiminkini savunmaktan öğrendiğimden fazlasını öğrenirim.*
+
 ---
 
 ## 4. SORACAKLARIN
 
 1. > "Is this something worth pursuing here, and who should I be talking to?"
+
+   *Bu, burada peşine düşülmeye değer bir şey mi, ve kiminle konuşmalıyım?*
 
    Hazır isimler: **Abdi, Kliewer, Haimovich.** "I've looked at these three —
    which is closest to this?" Somut isim vermen onun işini kolaylaştırır.
@@ -108,9 +135,13 @@ Bunu anlatının **sonuna** koy, başına değil.
    > that would actually make a difference when I apply? I'd rather hear it now
    > than find out later."
 
+   *Doktora konusunda ciddiysem — önümüzdeki iki yılda başvururken gerçekten fark yaratacak ne yapmalıyım? Bunu sonradan öğrenmektense şimdi duymayı tercih ederim.*
+
    Muhtemelen en uzun konuşacağı yer burası. Bırak konuşsun, **not al.**
 
 3. > "How does an undergraduate here get access to RF measurement equipment?"
+
+   *Burada bir lisans öğrencisi RF ölçüm ekipmanına nasıl erişebiliyor?*
 
    Somut istek. Dekanın gerçekten verebileceği türden bir şey.
 
@@ -121,6 +152,8 @@ Bunu anlatının **sonuna** koy, başına değil.
 > "Whatever you think the right next step is — I'll take it. If that's a
 > different professor, a different topic, or reading a semester's worth of
 > things I haven't read, that's fine. I just want to be doing this."
+
+*Sizce doğru bir sonraki adım neyse — yaparım. Bu başka bir hoca, başka bir konu, ya da okumadığım bir dönemlik şeyi okumak olsun, sorun değil. Sadece bu işi yapıyor olmak istiyorum.*
 
 ---
 
@@ -134,16 +167,22 @@ Sen açmıyorsun. Sorarsa açıyorsun.
 > myself. Right now one side of my comparison is my own generator, and that's
 > the weakest part of it."
 
+*Hayır — ve sıradaki isteğimin gerçek kayıtlar olmasının sebebi tam olarak bu. Ama ondan önce daha ucuz bir adım var: kendimin üretmediği üçüncü bir açık veri seti. Şu an karşılaştırmamın bir tarafı kendi ürettecim, ve en zayıf kısmı da o.*
+
 ### "That's just spectral whitening — that's known."
 > "It is. WhiteNet got there before me, on real captures, which is the part I
 > can't match yet. What I don't think is standard is how I *found* it — by
 > intervening on one property and holding everything else fixed."
+
+*Öyle. WhiteNet benden önce ulaşmış, üstelik gerçek kayıtlarla — henüz eşleyemediğim kısım o. Standart olduğunu düşünmediğim şey onu nasıl bulduğum: tek bir özelliğe müdahale edip diğer her şeyi sabit tutarak.*
 
 ### "How did you do all this so fast?"
 > "I made the research decisions — what to test, what to rule out, when to stop
 > patching and start diagnosing. I used AI tooling heavily for the
 > implementation. I can explain every experiment and why it was designed that
 > way."
+
+*Araştırma kararlarını ben verdim — neyi test edeceğimi, neyi eleyeceğimi, ne zaman yamalamayı bırakıp teşhis koymaya başlayacağımı. Uygulama için yoğun şekilde yapay zeka aracı kullandım. Her deneyi ve neden o şekilde tasarlandığını açıklayabilirim.*
 
 ### "Would a new architecture fix it?"
 > "My own results say no. I changed backbones entirely and the failure was
@@ -153,6 +192,8 @@ Sen açmıyorsun. Sorarsa açıyorsun.
 > tuned once, and I already know partial beats full — so one fixed number for
 > every signal is almost certainly wrong."
 
+*Kendi sonuçlarım hayır diyor. Omurgayı tamamen değiştirdim ve başarısızlık değişmedi — dört farklı tümevarım yanlılığı, aynı davranış. Gerçek olduğunu düşündüğüm mimari sorusu, değişmezliği modele cıvatalamak yerine içine inşa etmek: çözümüm, bir kere ayarladığım sabit bir güçle yapılan bir ön işleme, ve kısminin tamı yendiğini zaten biliyorum — yani her sinyal için tek bir sabit sayı neredeyse kesin yanlış.*
+
 ### "Multiple receivers?" — *köprü, sen kurabilirsin*
 > "Everything I did assumes one receiver making one decision. If several
 > receivers observe the same transmitter, each produces a local decision — and
@@ -160,6 +201,8 @@ Sen açmıyorsun. Sorarsa açıyorsun.
 > characteristics, which is precisely what I showed causes the failure. That
 > looks like your problem applied to mine. I don't know how much has been done
 > there, and it's one of the things I'd most like to ask you."
+
+*Yaptığım her şey tek alıcının tek karar verdiğini varsayıyor. Birden fazla alıcı aynı vericiyi gözlerse, her biri yerel bir karar üretir — ve bu kararlar korelasyonludur, çünkü vericinin karakteristiklerini paylaşırlar ki başarısızlığa sebep olduğunu gösterdiğim şey tam olarak o. Bu, sizin probleminizin benimkine uygulanmış hali gibi görünüyor. Orada ne kadar iş yapıldığını bilmiyorum, ve size en çok sormak istediğim şeylerden biri bu.*
 
 ⚠️ İddia olarak değil, **soru olarak** kur. "Burada boşluk var" deme.
 
@@ -178,6 +221,8 @@ Emin değilsen:
 > "I'd rather not quote that from memory — half my numbers changed when I
 > switched backbones and I don't want to give you a stale one. I can send you
 > the current table after this."
+
+*Bunu ezberden aktarmamayı tercih ederim — omurgayı değiştirdiğimde sayılarımın yarısı değişti ve size eski bir tane vermek istemem. Güncel tabloyu sonrasında gönderebilirim.*
 
 ---
 
