@@ -21,6 +21,14 @@ bidirectional LSTM, additive attention, 786k parameters.
 those. It also contains legacy scaffolding from an earlier backbone; do not
 reach into it for models.
 
+For plain modulation classification -- "how well does the backbone classify?",
+with no domain gap involved -- use `train_backbone.py`, which runs both
+datasets through one protocol: `--data rml2018` (24 classes, native 1024
+samples) or `--data rml2016` (11 classes, 128 samples). Do **not** use
+`cnn.py`'s own `main()` for this: it still builds `cnn.IQNet` on a two-way
+split, so its numbers are neither the current backbone nor the current
+protocol.
+
 Two scripts instantiate models directly on purpose, because they compare
 architectures: `overfit_2x2.py` and `sink_across_architectures.py`.
 `compare_methods.py` exposes the choice through `--arch` and defaults correctly.

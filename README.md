@@ -77,11 +77,13 @@ converted once by `convert_radioml.py`, falling back to pure-Python pyfive.
 ```
 src/modem.py            baseband IQ generator, 11 modulation classes
 src/radioml.py          RadioML 2018.01A loader
+src/rml2016.py          RML2016.10a loader, same interface as radioml.py
 src/domains.py          domain abstraction: RadioML, synthetic, capture
 src/features.py         cumulants and instantaneous features
 src/augment.py          augmentation transforms, including whitening
 src/model_zoo.py        ICRNNA, ResNet1D, GRU, Transformer, backbone()
 src/cnn.py              training loop, splits, evaluation
+src/train_backbone.py   plain classification on 2018 or 2016, current backbone
 src/crossdomain.py      the central train-on-A / test-on-B experiment
 src/whitening_*.py      whitening and its alpha sweep
 src/compare_methods.py  whitening against the literature baseline
@@ -229,5 +231,9 @@ also where re-measurement matters most.
 5. Validate `colab/icrnna_faithful_2016.py` against 63.24% — needs
    `RML2016.10a_dict.pkl`, not on this machine
 6. Add RadioML 2016.10a as a third domain (still synthetic, so it only partly
-   addresses the weakness above)
+   addresses the weakness above). `rml2016.py` loads it and
+   `train_backbone.py` trains on it; what does not exist yet is an
+   `RML2016Domain` for the cross-domain scripts, because 2016's 128-sample
+   frames and 2018's 1024 have to be reconciled first and that is a decision,
+   not a detail
 7. Real SDR capture when hardware and lab access allow
