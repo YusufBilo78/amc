@@ -70,15 +70,22 @@ def find_file() -> pathlib.Path:
 class RadioML:
     """Indexed access to the dataset without loading all 21 GB."""
 
-    def __init__(self, path: pathlib.Path | None = None):
+    def __init__(self, path: pathlib.Path | None = None,
+                 search_dir: pathlib.Path | str | None = None):
         """
         Prefers the converted .npy files, which are memory-mapped and need no
         HDF5 library. Falls back to reading the original HDF5 through pyfive
         (pure Python, so nothing for the security policy to block) and finally
         to h5py if it happens to work.
+
+        `search_dir` is tried before SEARCH_DIRS. It exists so the dataset can
+        live somewhere this module has no business knowing about -- a mounted
+        Drive in Colab, a staging directory on a runner's local disk -- without
+        editing a module-level constant per environment. Everything else is
+        unchanged, so passing nothing behaves exactly as before.
         """
         self._file = None
-        npy = self._find_npy()
+        npy = self._find_npy(search_dir)
         if npy is not None:
             x_path, y_path, z_path = npy
             self.path = x_path
@@ -97,8 +104,11 @@ class RadioML:
         self.n_classes = int(self.labels.max()) + 1
 
     @staticmethod
-    def _find_npy():
-        for directory in SEARCH_DIRS:
+    def _find_npy(search_dir=None):
+        directories = list(SEARCH_DIRS)
+        if search_dir is not None:
+            directories.insert(0, pathlib.Path(search_dir))
+        for directory in directories:
             x = directory / "radioml_X.npy"
             y = directory / "radioml_y.npy"
             z = directory / "radioml_z.npy"

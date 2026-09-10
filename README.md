@@ -70,6 +70,11 @@ on battery the GPU is capped near 35 W and runs about 5× slower, measured.
 unsigned DLLs in a user-writable venv. `radioml.py` reads `.npy` memmaps
 converted once by `convert_radioml.py`, falling back to pure-Python pyfive.
 
+Training can also run on Colab: `colab/run_training.py` is a single cell that
+clones this branch, finds the dataset in Drive, stages it to local disk and runs
+`train_backbone.py` with `--out-dir` pointing back at Drive, so results survive
+the runtime being reclaimed and a rerun resumes rather than restarts.
+
 ---
 
 ## Layout
@@ -88,7 +93,8 @@ src/crossdomain.py      the central train-on-A / test-on-B experiment
 src/whitening_*.py      whitening and its alpha sweep
 src/compare_methods.py  whitening against the literature baseline
 src/sink_*.py           where an unseen modulation lands
-colab/                  paper-faithful ICRNNA, for calibration on 2016.10a
+colab/run_training.py   run train_backbone.py on Colab
+colab/icrnna_faithful_2016.py  paper-faithful ICRNNA, for calibration
 ```
 
 ---

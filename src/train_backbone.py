@@ -119,7 +119,7 @@ def load_dataset(name: str, frames_per_cell: int, data_path: str | None,
     if name == "rml2018":
         import radioml
 
-        with radioml.RadioML() as ds:
+        with radioml.RadioML(search_dir=data_path) as ds:
             data = ds.load(frames_per_cell=frames_per_cell,
                            test_fraction=0.0, seed=seed)
         class_names = radioml.CLASSES
@@ -189,9 +189,12 @@ def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--data", choices=("rml2018", "rml2016"), default="rml2018")
     p.add_argument("--data-path", default=None,
-                   help="directory or file holding the dataset; only needed "
-                        "when it is not in the loader's search path (e.g. a "
-                        "mounted Drive in Colab)")
+                   help="directory holding the dataset, tried before the "
+                        "loader's own search path. Needed wherever the data is "
+                        "not where the loader expects -- a mounted Drive in "
+                        "Colab, a staging directory on a runner's local disk. "
+                        "For rml2018 the directory must hold the radioml_X/y/z "
+                        ".npy triple; for rml2016, the .pkl")
     p.add_argument("--frames-per-cell", type=int, default=512,
                    help="frames drawn per (class, SNR) cell. 2018 has 4096 "
                         "available and 2016 has 1000. 512 measures at about "
@@ -205,17 +208,24 @@ def main() -> None:
     p.add_argument("--tag", default="",
                    help="appended to the output filenames, so a run with "
                         "different settings does not overwrite an earlier one")
+    p.add_argument("--out-dir", default=None,
+                   help="where results, checkpoints and figures are written. "
+                        "Defaults to the repository root. Point it at durable "
+                        "storage when the machine running this is not durable "
+                        "-- a mounted Drive in Colab, where the runtime is "
+                        "reclaimed after 12 hours and the per-seed .npz is "
+                        "what makes a restart a resume rather than a restart")
     args = p.parse_args()
 
     seeds = list(range(args.seeds))
     suffix = f"_{args.tag}" if args.tag else ""
     stem = f"train_backbone_{args.data}_f{args.frames_per_cell}{suffix}"
-    npz_path = ROOT / f"{stem}.npz"
 
-    if args.data_path and args.data == "rml2018":
-        print("note: --data-path is only used by the 2016 loader. The 2018 "
-              "loader finds its .npy memmaps through radioml.SEARCH_DIRS; "
-              "edit that list to move them.\n")
+    out_dir = pathlib.Path(args.out_dir) if args.out_dir else ROOT
+    fig_dir = out_dir / "figures" if args.out_dir else FIGURES
+    out_dir.mkdir(parents=True, exist_ok=True)
+    fig_dir.mkdir(parents=True, exist_ok=True)
+    npz_path = out_dir / f"{stem}.npz"
 
     print(f"loading {args.data} ({args.frames_per_cell} frames per cell) ...")
     t0 = time.time()
@@ -268,7 +278,7 @@ def main() -> None:
         print(f"  test {acc:.4f} overall, {acc_high:.4f} at SNR >= {HIGH_SNR} dB"
               f"   ({(time.time() - t_seed) / 60:.1f} min)\n")
         save()
-        torch.save(model.state_dict(), ROOT / f"{stem}_seed{seed}.pt")
+        torch.save(model.state_dict(), out_dir / f"{stem}_seed{seed}.pt")
         del model
         torch.cuda.empty_cache()
 
@@ -307,7 +317,7 @@ def main() -> None:
     ax.set_title(f"ICRNNA on {args.data}, {n} classes, {len(seeds)} seed(s)"
                  + (" (band = 1 s.d.)" if len(seeds) > 1 else ""))
     fig.tight_layout()
-    fig.savefig(FIGURES / f"29_{stem}_accuracy.png", dpi=140)
+    fig.savefig(fig_dir / f"29_{stem}_accuracy.png", dpi=140)
     plt.close(fig)
 
     cm = confusions.sum(axis=0).astype(float)
@@ -332,12 +342,12 @@ def main() -> None:
                             color="white" if cm[r, c] > 0.5 else "black")
     fig.colorbar(im, ax=ax, fraction=0.046)
     fig.tight_layout()
-    fig.savefig(FIGURES / f"30_{stem}_confusion.png", dpi=140)
+    fig.savefig(fig_dir / f"30_{stem}_confusion.png", dpi=140)
     plt.close(fig)
 
-    print(f"\nwrote {npz_path.name}")
-    print(f"wrote figures/29_{stem}_accuracy.png")
-    print(f"wrote figures/30_{stem}_confusion.png")
+    print(f"\nwrote {npz_path}")
+    print(f"wrote {fig_dir / f'29_{stem}_accuracy.png'}")
+    print(f"wrote {fig_dir / f'30_{stem}_confusion.png'}")
 
 
 if __name__ == "__main__":
