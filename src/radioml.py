@@ -54,6 +54,42 @@ CLASSES: tuple[str, ...] = (
 )
 
 
+def select_cell_balanced(labels, snrs, frames_per_cell: int,
+                         seed: int = 42) -> "np.ndarray":
+    """
+    Row indices for `frames_per_cell` frames from every (class, SNR) cell.
+
+    Lives here rather than in the scripts that use it because two of them --
+    `export_subset.py` on the machine that holds the data, and the Colab cell
+    that stages it -- have to agree exactly. Two copies of this that drift
+    apart would silently produce two different subsets under the same name.
+
+    Three properties the runs depend on:
+
+      - **Every cell contributes equally.** Subsampling the file at random
+        instead would leave the per-SNR curve resting on uneven support, and
+        that curve is the output.
+      - **The choice is reproducible.** A Colab runtime can die mid-run and a
+        re-stage has to pick the same frames, or the seeds finished before the
+        crash are no longer measured on the same data as the ones after it.
+        Hence a fixed seed rather than fresh entropy.
+      - **Cells with fewer frames than asked for are taken whole**, not padded
+        and not dropped.
+
+    Returned sorted: reads on sorted indices are much faster than on scattered
+    ones, for both HDF5 and a memmap.
+    """
+    rng = np.random.default_rng(seed)
+    picks = []
+    for class_id in range(int(labels.max()) + 1):
+        for snr in np.unique(snrs):
+            idx = np.flatnonzero((labels == class_id) & (snrs == snr))
+            if len(idx) > frames_per_cell:
+                idx = rng.choice(idx, frames_per_cell, replace=False)
+            picks.append(idx)
+    return np.sort(np.concatenate(picks))
+
+
 def find_file() -> pathlib.Path:
     """Locate the HDF5 file, with a useful error if it is not there yet."""
     for directory in SEARCH_DIRS:

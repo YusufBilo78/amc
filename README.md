@@ -73,7 +73,12 @@ converted once by `convert_radioml.py`, falling back to pure-Python pyfive.
 Training can also run on Colab: `colab/run_training.py` is a single cell that
 clones this branch, finds the dataset in Drive, stages it to local disk and runs
 `train_backbone.py` with `--out-dir` pointing back at Drive, so results survive
-the runtime being reclaimed and a rerun resumes rather than restarts.
+the runtime being reclaimed and a rerun resumes rather than restarts. The 21 GB
+file does not have to be in Drive, and does not fit in a free one: no run reads
+all of it, so `export_subset.py` carves out exactly the frames a given
+`--frames-per-cell` would use — 2.6 GB at 512 — and both sides select those
+frames with the same function at the same seed, so the two subsets hold the same
+frames rather than merely the same number of them.
 
 ---
 
@@ -83,6 +88,7 @@ the runtime being reclaimed and a rerun resumes rather than restarts.
 src/modem.py            baseband IQ generator, 11 modulation classes
 src/radioml.py          RadioML 2018.01A loader
 src/rml2016.py          RML2016.10a loader, same interface as radioml.py
+src/export_subset.py    carve an uploadable subset out of 2018
 src/domains.py          domain abstraction: RadioML, synthetic, capture
 src/features.py         cumulants and instantaneous features
 src/augment.py          augmentation transforms, including whitening

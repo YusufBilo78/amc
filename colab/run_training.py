@@ -20,6 +20,13 @@ prone to failing on file operations Drive does not fully support.
 array once at startup, and the Drive mount is slow enough that 2.6 GB of it is
 worth copying to /content first.
 
+**If the 21 GB file is not in Drive**, it does not have to be. No run reads all
+of it: `src/export_subset.py` carves out exactly the frames a given
+--frames-per-cell would use -- 2.6 GB at 512 -- as a `radioml_X/y/z.npy` triple
+that this cell then finds directly. Both sides call the same selection function
+at the same seed, so the two subsets hold the same frames, not merely the same
+number of them.
+
 **2018 from HDF5 is subsampled during staging.** The full file is 21 GB and
 Colab has neither the local disk headroom nor the patience for it over FUSE.
 Only the frames the run will actually use are extracted, cell by cell, so the
@@ -66,36 +73,6 @@ H5_HINTS = ("RadioML2018/GOLD_XYZ_OSC.0001_1024.hdf5",
             "GOLD_XYZ_OSC.0001_1024.hdf5",
             "RadioML/GOLD_XYZ_OSC.0001_1024.hdf5")
 NPY_HINTS = ("amc-data", "RadioML2018", "RadioML", ".")
-
-
-def select_cell_balanced(y_all, z_all, frames_per_cell, seed=42):
-    """
-    Row indices for `frames_per_cell` frames from every (class, SNR) cell.
-
-    Two properties the run depends on:
-
-      - **Every cell contributes equally.** Subsampling the file at random
-        instead would leave the per-SNR curve resting on uneven support, and
-        that curve is the output.
-      - **The choice is reproducible.** A Colab runtime can die mid-run; the
-        re-stage that follows has to pick the same frames, or the seeds
-        finished before the crash are no longer measured on the same data as
-        the ones after it. Hence a fixed seed rather than fresh entropy.
-
-    Returned sorted, because HDF5 reads on sorted indices are much faster than
-    on scattered ones.
-    """
-    import numpy as np
-
-    rng = np.random.default_rng(seed)
-    picks = []
-    for cls in range(int(y_all.max()) + 1):
-        for snr in np.unique(z_all):
-            idx = np.flatnonzero((y_all == cls) & (z_all == snr))
-            if len(idx) > frames_per_cell:
-                idx = rng.choice(idx, frames_per_cell, replace=False)
-            picks.append(idx)
-    return np.sort(np.concatenate(picks))
 
 
 def first_existing(hints, predicate):
@@ -212,7 +189,13 @@ def main():
                     "Neither radioml_X/y/z.npy nor GOLD_XYZ_OSC.0001_1024.hdf5 "
                     f"found in Drive.\nLooked under {DRIVE} at:\n  "
                     + "\n  ".join(list(NPY_HINTS) + list(H5_HINTS))
-                    + "\nUpload one, or add the path to NPY_HINTS / H5_HINTS.")
+                    + "\n\nThe 21 GB file does not fit in a free Drive and "
+                      "does not need to. On the\nmachine that holds the data, "
+                      "run:\n    cd src && python export_subset.py "
+                      f"--frames-per-cell {FRAMES_PER_CELL_2018}\n"
+                      "and upload the resulting directory to MyDrive/amc-data "
+                      "(2.6 GB), which is\nalready searched -- or add wherever "
+                      "you put it to NPY_HINTS above.")
             print(f"found HDF5: {h5}  ({h5.stat().st_size / 1e9:.0f} GB)")
 
             import numpy as np
@@ -242,7 +225,14 @@ def main():
                     print(f"    {len(y_all):,} rows, {y_all.max() + 1} classes, "
                           f"SNR {z_all.min()}..{z_all.max()}")
 
-                    sel = select_cell_balanced(y_all, z_all, FRAMES_PER_CELL_2018)
+                    # radioml.select_cell_balanced is the single definition
+                    # of this selection, shared with src/export_subset.py, so a
+                    # subset staged here and one exported on the machine that
+                    # holds the data hold the same frames.
+                    import radioml
+
+                    sel = radioml.select_cell_balanced(
+                        y_all, z_all, FRAMES_PER_CELL_2018)
                     print(f"    selected {len(sel):,} of {len(y_all):,} frames")
 
                     out = np.lib.format.open_memmap(
