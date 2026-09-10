@@ -42,7 +42,12 @@ DATASET = "rml2016"       # "rml2016" (11 classes, fast) or "rml2018" (24)
 SEEDS = 3
 EPOCHS = 60
 PATIENCE = 20
-FRAMES_PER_CELL = 512     # 2018: 4096 available. 2016: 1000, so 1000 is "all"
+# Frames drawn per (class, SNR) cell, per dataset -- they are not comparable
+# quantities. 2018 has 4096 available and each frame costs 4.2x a 2016 one, so
+# 512 is the affordable setting there. 2016 has 1000 and is cheap enough to use
+# all of them, which is also what the paper this backbone comes from does.
+FRAMES_PER_CELL_2018 = 512
+FRAMES_PER_CELL_2016 = 1000
 TAG = "colab"
 
 BRANCH = "claude/iacs-modulation-classification-gwwv4m"
@@ -186,7 +191,7 @@ def main():
             pkl = found[0]
         print(f"found: {pkl}  ({pkl.stat().st_size / 1e6:.0f} MB)")
         data_path = str(pkl.parent)
-        frames_per_cell = min(FRAMES_PER_CELL, 1000)   # 2016 has 1000 per cell
+        frames_per_cell = FRAMES_PER_CELL_2016
 
     else:
         # Case A: the .npy triple is already in Drive -- read it once, directly.
@@ -197,7 +202,7 @@ def main():
         if npy_dir is not None:
             print(f"found the .npy triple in {npy_dir}")
             data_path = str(npy_dir)
-            frames_per_cell = FRAMES_PER_CELL
+            frames_per_cell = FRAMES_PER_CELL_2018
         else:
             # Case B: only the HDF5. Extract the frames this run needs onto local
             # disk, keeping every (class, SNR) cell equally represented.
@@ -214,20 +219,20 @@ def main():
 
             STAGE_DIR.mkdir(parents=True, exist_ok=True)
             x_out = STAGE_DIR / "radioml_X.npy"
-            marker = STAGE_DIR / f"staged_{FRAMES_PER_CELL}.txt"
+            marker = STAGE_DIR / f"staged_{FRAMES_PER_CELL_2018}.txt"
 
             if marker.exists() and x_out.exists():
-                print(f"already staged at {FRAMES_PER_CELL} frames/cell, reusing")
+                print(f"already staged at {FRAMES_PER_CELL_2018} frames/cell, reusing")
             else:
                 import h5py
 
-                need_gb = 24 * 26 * FRAMES_PER_CELL * 1024 * 2 * 4 / 1e9
-                print(f"staging {FRAMES_PER_CELL} frames per cell "
+                need_gb = 24 * 26 * FRAMES_PER_CELL_2018 * 1024 * 2 * 4 / 1e9
+                print(f"staging {FRAMES_PER_CELL_2018} frames per cell "
                       f"(~{need_gb:.1f} GB) to {STAGE_DIR}")
                 if free_gb < need_gb * 1.3:
                     raise SystemExit(
                         f"only {free_gb:.0f} GB free locally, need ~{need_gb:.1f}. "
-                        "Lower FRAMES_PER_CELL.")
+                        "Lower FRAMES_PER_CELL_2018.")
 
                 t0 = time.time()
                 with h5py.File(h5, "r") as f:
@@ -237,7 +242,7 @@ def main():
                     print(f"    {len(y_all):,} rows, {y_all.max() + 1} classes, "
                           f"SNR {z_all.min()}..{z_all.max()}")
 
-                    sel = select_cell_balanced(y_all, z_all, FRAMES_PER_CELL)
+                    sel = select_cell_balanced(y_all, z_all, FRAMES_PER_CELL_2018)
                     print(f"    selected {len(sel):,} of {len(y_all):,} frames")
 
                     out = np.lib.format.open_memmap(
@@ -258,11 +263,11 @@ def main():
 
                 np.save(STAGE_DIR / "radioml_y.npy", y_all[sel])
                 np.save(STAGE_DIR / "radioml_z.npy", z_all[sel])
-                marker.write_text(f"{FRAMES_PER_CELL}\n")
+                marker.write_text(f"{FRAMES_PER_CELL_2018}\n")
                 print(f"  staged in {(time.time() - t0) / 60:.1f} min")
 
             data_path = str(STAGE_DIR)
-            frames_per_cell = FRAMES_PER_CELL
+            frames_per_cell = FRAMES_PER_CELL_2018
 
 
     # ==========================================================================
