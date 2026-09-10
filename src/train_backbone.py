@@ -39,15 +39,33 @@ trainers:
   - one training run per seed, results written after each seed and skipped on
     restart
 
-Cost, because this is a laptop. The BiLSTM runs over L/4 timesteps and
-recurrence does not parallelise over time, so 2018 at 1024 samples costs 8x
-per frame what 2016 does at 128. `--frames-per-cell` is the lever: 256 gives
-24 x 26 x 256 = 159,744 frames and a first answer in a few hours; raising it
-raises both accuracy and wall-clock roughly linearly. Keep the machine on
-mains power -- on battery the GPU is capped near 35 W and runs about 5x slower.
+Cost, measured on the RTX 3070 Laptop rather than reasoned about. The BiLSTM
+runs over L/4 timesteps and recurrence does not parallelise over time, so a
+1024-sample frame was expected to cost 8x a 128-sample one. It costs **4.2x**:
+7.7 ms per batch of 256 at 128 samples against 32.2 ms at 1024. The conv front
+end and the dense head do not scale with sequence length, and a 256-step LSTM
+keeps the GPU better fed than a 32-step one, which amortises kernel launch.
+
+Those are ceiling numbers -- data already resident on the GPU, no evaluation
+pass. Real training measures about half that throughput (~3,900 frames/s at
+1024 samples), so double any estimate taken from a synthetic benchmark:
+
+    24 classes, 512 frames/cell, 1024 samples   223,641 train frames
+                                                ~1 min/epoch, ~1 h for 60 epochs
+    11 classes, all 1000/cell, 128 samples      154,000 train frames
+                                                ~0.2 min/epoch, ~12 min for 60
+
+`--frames-per-cell` is the lever, and 512 is affordable, which is why it is the
+default. 1024 doubles it (~2 min/epoch) and is an overnight run. Keep the
+machine on mains power -- on battery the GPU is capped near 35 W and runs about
+5x slower.
+
+Peak VRAM at 1024 samples and batch 256 is 1.4 GB, so the 8 GB budget is not
+the binding constraint; the host-side array is (24 x 26 x fpc, 2, 1024) float32,
+2.6 GB at fpc=512.
 
 Run:
-    cd src && python train_backbone.py --data rml2018 --frames-per-cell 256
+    cd src && python train_backbone.py --data rml2018
     cd src && python train_backbone.py --data rml2016 --data-path /content/drive/MyDrive
 """
 
@@ -174,10 +192,11 @@ def main() -> None:
                    help="directory or file holding the dataset; only needed "
                         "when it is not in the loader's search path (e.g. a "
                         "mounted Drive in Colab)")
-    p.add_argument("--frames-per-cell", type=int, default=256,
+    p.add_argument("--frames-per-cell", type=int, default=512,
                    help="frames drawn per (class, SNR) cell. 2018 has 4096 "
-                        "available and 2016 has 1000; the default keeps a "
-                        "first run affordable")
+                        "available and 2016 has 1000. 512 measures at about "
+                        "1 min/epoch on 2018; see the cost note in the module "
+                        "docstring")
     p.add_argument("--epochs", type=int, default=60)
     p.add_argument("--patience", type=int, default=20)
     p.add_argument("--batch-size", type=int, default=256)

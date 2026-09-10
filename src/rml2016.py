@@ -52,8 +52,12 @@ SEARCH_DIRS = (
 FILENAME = "RML2016.10a_dict.pkl"
 
 # What the standard 10a file contains, sorted as `sorted(set(...))` returns it.
-# Checked against the file at load time; a mismatch is reported rather than
-# silently accepted, because a wrong name list means wrong class labels in
+#
+# **Unverified against an actual file.** The .pkl is not on this machine (a scan
+# of the user profile found nothing), so this list and TO_2018 below come from
+# the dataset's published description, not from reading the data. The first
+# successful load settles it: `__main__` below reports a mismatch rather than
+# accepting it silently, because a wrong name list means wrong class labels in
 # every figure downstream.
 EXPECTED_CLASSES: tuple[str, ...] = (
     "8PSK", "AM-DSB", "AM-SSB", "BPSK", "CPFSK", "GFSK", "PAM4",
