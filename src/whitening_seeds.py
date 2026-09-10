@@ -1,0 +1,178 @@
+"""
+whitening_seeds.py -- repeat the whitening sweep with error bars.
+
+whitening_sweep.py ran one model per alpha and found alpha=0.75 best, with the
+gap falling from 0.158 to 0.052. But alpha=0.25 came out non-monotonic
+(cross-domain 0.793, 16QAM 0.035) and with a single run there is no way to tell
+a real effect from seed noise.
+
+Nothing about the shape of that curve is claimable until it is repeated. This
+runs every alpha across several seeds, varying both the train/test split and
+the weight initialisation, and reports mean +- standard deviation.
+
+Two questions to settle:
+
+  1. Is the alpha=0.75 improvement larger than run-to-run variation?
+  2. Is the alpha=0.25 dip real, or was it one unlucky model?
+
+Whitening is deterministic given alpha, so it is computed once per alpha and
+reused across seeds -- only the split and the initialisation change.
+"""
+
+from __future__ import annotations
+
+import pathlib
+import sys
+import time
+
+sys.stdout.reconfigure(line_buffering=True)
+
+import matplotlib
+
+matplotlib.use("Agg")
+
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+
+import cnn
+import domains
+from whitening_sweep import accuracy_by_snr, spectral_whiten, to_model_input
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+FIGURES = ROOT / "figures"
+
+CLASSES = list(domains.SHARED_CLASSES)
+SNRS = list(range(-20, 31, 2))
+ALPHAS = [0.0, 0.25, 0.50, 0.75, 1.0]
+SEEDS = [0, 1, 2, 3]
+EPOCHS = 15
+
+
+def main() -> None:
+    print(f"{len(ALPHAS)} alphas x {len(SEEDS)} seeds = "
+          f"{len(ALPHAS) * len(SEEDS)} models\n")
+
+    src = domains.RadioMLDomain()
+    a = src.load(CLASSES, SNRS, frames_per_cell=768, seed=0)
+    src.close()
+    dst = domains.SyntheticDomain()
+    b = dst.load(CLASSES, SNRS, frames_per_cell=400, seed=1)
+
+    a_iq = (a["X"][:, 0] + 1j * a["X"][:, 1]).astype(np.complex64)
+    b_iq = (b["X"][:, 0] + 1j * b["X"][:, 1]).astype(np.complex64)
+
+    high = np.array(SNRS) >= 10
+    q = CLASSES.index("16QAM")
+
+    # [alpha, seed] -> metric
+    in_domain = np.full((len(ALPHAS), len(SEEDS)), np.nan)
+    cross = np.full((len(ALPHAS), len(SEEDS)), np.nan)
+    qam16 = np.full((len(ALPHAS), len(SEEDS)), np.nan)
+
+    header = (f"{'alpha':>6} {'seed':>5} {'in-dom':>8} {'cross':>8} "
+              f"{'gap':>8} {'16QAM':>8} {'time':>7}")
+    print(header)
+    print("-" * len(header))
+
+    t_start = time.time()
+    for i, alpha in enumerate(ALPHAS):
+        # Whitening depends only on alpha, so do it once and reuse.
+        Xa = to_model_input(spectral_whiten(a_iq, alpha))
+        Xb = to_model_input(spectral_whiten(b_iq, alpha))
+
+        for j, seed in enumerate(SEEDS):
+            t0 = time.time()
+            torch.manual_seed(seed)
+            np.random.seed(seed)
+
+            tr, te = cnn.split(a["X"], a["y"], a["z"], test_fraction=0.3, seed=seed)
+            model = cnn.IQNet(len(CLASSES))
+            model = cnn.train_model(model, Xa[tr], a["y"][tr], Xa[te],
+                                    a["y"][te], epochs=EPOCHS)
+
+            pred_in = cnn.predict(model, Xa[te])
+            pred_cross = cnn.predict(model, Xb)
+            acc_in = accuracy_by_snr(pred_in, a["y"][te], a["z"][te], SNRS)
+            acc_cross = accuracy_by_snr(pred_cross, b["y"], b["z"], SNRS)
+
+            mask = (b["z"] >= 10) & (b["y"] == q)
+            in_domain[i, j] = float(np.nanmean(acc_in[high]))
+            cross[i, j] = float(np.nanmean(acc_cross[high]))
+            qam16[i, j] = float((pred_cross[mask] == q).mean())
+
+            print(f"{alpha:>6.2f} {seed:>5} {in_domain[i,j]:>8.3f} "
+                  f"{cross[i,j]:>8.3f} {in_domain[i,j]-cross[i,j]:>+8.3f} "
+                  f"{qam16[i,j]:>8.3f} {time.time()-t0:>6.0f}s")
+
+            np.savez(ROOT / "whitening_seeds.npz", alphas=np.array(ALPHAS),
+                     seeds=np.array(SEEDS), in_domain=in_domain,
+                     cross=cross, qam16=qam16)
+        print()
+
+    print(f"total {(time.time()-t_start)/60:.1f} min\n")
+
+    # ------------------------------------------------------------- summary
+    gap = in_domain - cross
+    print(f"{'alpha':>6} {'in-domain':>16} {'cross-domain':>16} "
+          f"{'gap':>16} {'16QAM':>16}")
+    print("-" * 74)
+    for i, alpha in enumerate(ALPHAS):
+        print(f"{alpha:>6.2f} "
+              f"{in_domain[i].mean():>9.3f} +-{in_domain[i].std():<5.3f} "
+              f"{cross[i].mean():>9.3f} +-{cross[i].std():<5.3f} "
+              f"{gap[i].mean():>+9.3f} +-{gap[i].std():<5.3f} "
+              f"{qam16[i].mean():>9.3f} +-{qam16[i].std():<5.3f}")
+
+    # ------------------------------------------------------------------ plot
+    fig, axes = plt.subplots(1, 3, figsize=(18, 5.5))
+
+    for ax, data, title, color in [
+        (axes[0], cross, "cross-domain accuracy", "tab:red"),
+        (axes[1], gap, "generalization gap", "tab:purple"),
+        (axes[2], qam16, "16QAM, cross-domain", "tab:green"),
+    ]:
+        mean, std = data.mean(axis=1), data.std(axis=1)
+        ax.errorbar(ALPHAS, mean, yerr=std, fmt="o-", lw=2, capsize=5,
+                    color=color, markersize=7)
+        for j in range(len(SEEDS)):
+            ax.plot(ALPHAS, data[:, j], "o", ms=3, alpha=0.35, color="gray")
+        ax.set_xlabel(r"whitening strength  $\alpha$")
+        ax.set_title(title, fontsize=12, fontweight="bold")
+        ax.grid(alpha=0.3)
+
+    axes[0].plot(ALPHAS, in_domain.mean(axis=1), "s--", lw=1.5, color="tab:blue",
+                 alpha=0.7, label="in-domain (for reference)")
+    axes[0].legend(fontsize=9)
+    axes[0].set_ylabel("accuracy at SNR >= 10 dB")
+    axes[1].axhline(0, ls=":", color="gray", lw=1)
+
+    fig.suptitle(
+        f"Spectral whitening, {len(SEEDS)} seeds per point "
+        "(bars = 1 s.d., grey dots = individual runs)",
+        fontsize=13,
+    )
+    fig.tight_layout(rect=(0, 0, 1, 0.93))
+    fig.savefig(FIGURES / "16_whitening_seeds.png", dpi=140)
+    plt.close(fig)
+
+    # ------------------------------------------------------------- verdict
+    base, best_i = 0, int(cross.mean(axis=1).argmax())
+    diff = cross[best_i].mean() - cross[base].mean()
+    pooled = np.sqrt((cross[best_i].std() ** 2 + cross[base].std() ** 2) / 2)
+    print("\n" + "=" * 70)
+    print(f"best alpha = {ALPHAS[best_i]}")
+    print(f"cross-domain: {cross[base].mean():.3f} +-{cross[base].std():.3f}"
+          f"  ->  {cross[best_i].mean():.3f} +-{cross[best_i].std():.3f}"
+          f"   ({diff:+.3f})")
+    print(f"effect size vs run-to-run spread: {diff / (pooled + 1e-9):.1f} "
+          f"pooled standard deviations")
+    print(f"\nalpha=0.25 question: cross-domain "
+          f"{cross[1].mean():.3f} +-{cross[1].std():.3f} vs "
+          f"alpha=0 {cross[0].mean():.3f} +-{cross[0].std():.3f}")
+    print("=" * 70)
+    print("\nwrote figures/16_whitening_seeds.png")
+
+
+if __name__ == "__main__":
+    main()

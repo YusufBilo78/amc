@@ -1,0 +1,386 @@
+{
+  "OOK": {
+    "true_family": "ASK",
+    "top1_family": "APSK",
+    "top1_correct": false,
+    "mass_family": "APSK",
+    "mass_correct": false,
+    "correct_family_mass": 0.2216498702764511,
+    "all_mass": {
+      "ASK": 0.2216498702764511,
+      "PSK": 0.00015689160500187427,
+      "APSK": 0.7778682112693787,
+      "QAM": 0.00030221216729842126,
+      "analog": 1.2209178748889826e-05,
+      "other": 9.289211448049173e-06
+    }
+  },
+  "4ASK": {
+    "true_family": "ASK",
+    "top1_family": "ASK",
+    "top1_correct": true,
+    "mass_family": "ASK",
+    "mass_correct": true,
+    "correct_family_mass": 0.9840748906135559,
+    "all_mass": {
+      "ASK": 0.9840748906135559,
+      "PSK": 0.0002511342172510922,
+      "APSK": 0.000836481514852494,
+      "QAM": 0.014694505371153355,
+      "analog": 0.00013080307689961046,
+      "other": 1.3463729374052491e-05
+    }
+  },
+  "8ASK": {
+    "true_family": "ASK",
+    "top1_family": "ASK",
+    "top1_correct": true,
+    "mass_family": "ASK",
+    "mass_correct": true,
+    "correct_family_mass": 0.9997201561927795,
+    "all_mass": {
+      "ASK": 0.9997201561927795,
+      "PSK": 2.1914403987466358e-05,
+      "APSK": 8.993376468424685e-06,
+      "QAM": 7.416657899739221e-05,
+      "analog": 0.0001822493941290304,
+      "other": 3.036195266759023e-06
+    }
+  },
+  "BPSK": {
+    "true_family": "PSK",
+    "top1_family": "other",
+    "top1_correct": false,
+    "mass_family": "other",
+    "mass_correct": false,
+    "correct_family_mass": 0.12495607137680054,
+    "all_mass": {
+      "ASK": 0.00021819997346028686,
+      "PSK": 0.12495607137680054,
+      "APSK": 0.00027633432182483375,
+      "QAM": 0.0005707125528715551,
+      "analog": 0.00023447195417247713,
+      "other": 0.8737443089485168
+    }
+  },
+  "QPSK": {
+    "true_family": "PSK",
+    "top1_family": "PSK",
+    "top1_correct": true,
+    "mass_family": "PSK",
+    "mass_correct": true,
+    "correct_family_mass": 0.9980177879333496,
+    "all_mass": {
+      "ASK": 0.00021025245951022953,
+      "PSK": 0.9980177879333496,
+      "APSK": 0.00045394920744001865,
+      "QAM": 0.0005904306890442967,
+      "analog": 0.0003916878195013851,
+      "other": 0.0003357286914251745
+    }
+  },
+  "8PSK": {
+    "true_family": "PSK",
+    "top1_family": "PSK",
+    "top1_correct": true,
+    "mass_family": "PSK",
+    "mass_correct": true,
+    "correct_family_mass": 0.9982326626777649,
+    "all_mass": {
+      "ASK": 4.81019051221665e-05,
+      "PSK": 0.9982326626777649,
+      "APSK": 0.0003784864384215325,
+      "QAM": 0.0007010086555965245,
+      "analog": 0.0005330726271495223,
+      "other": 0.00010776995623018593
+    }
+  },
+  "16PSK": {
+    "true_family": "PSK",
+    "top1_family": "PSK",
+    "top1_correct": true,
+    "mass_family": "PSK",
+    "mass_correct": true,
+    "correct_family_mass": 0.9991719722747803,
+    "all_mass": {
+      "ASK": 8.707399501872715e-06,
+      "PSK": 0.9991719722747803,
+      "APSK": 0.00020651088561862707,
+      "QAM": 0.0003914225089829415,
+      "analog": 0.00019180955132469535,
+      "other": 2.9545793950092047e-05
+    }
+  },
+  "32PSK": {
+    "true_family": "PSK",
+    "top1_family": "PSK",
+    "top1_correct": true,
+    "mass_family": "PSK",
+    "mass_correct": true,
+    "correct_family_mass": 0.9988844990730286,
+    "all_mass": {
+      "ASK": 1.509551475464832e-05,
+      "PSK": 0.9988844990730286,
+      "APSK": 0.0001934179599629715,
+      "QAM": 0.0006718131480738521,
+      "analog": 0.00020130761549808085,
+      "other": 3.360780101502314e-05
+    }
+  },
+  "16APSK": {
+    "true_family": "APSK",
+    "top1_family": "QAM",
+    "top1_correct": false,
+    "mass_family": "QAM",
+    "mass_correct": false,
+    "correct_family_mass": 0.0018404489383101463,
+    "all_mass": {
+      "ASK": 0.00012295805208850652,
+      "PSK": 0.1036398857831955,
+      "APSK": 0.0018404489383101463,
+      "QAM": 0.8848603963851929,
+      "analog": 0.0001097536733141169,
+      "other": 0.009425644762814045
+    }
+  },
+  "32APSK": {
+    "true_family": "APSK",
+    "top1_family": "APSK",
+    "top1_correct": true,
+    "mass_family": "APSK",
+    "mass_correct": true,
+    "correct_family_mass": 0.9372686147689819,
+    "all_mass": {
+      "ASK": 3.5247740015620366e-05,
+      "PSK": 1.7308732367382618e-06,
+      "APSK": 0.9372686147689819,
+      "QAM": 0.06268613785505295,
+      "analog": 7.04135391060845e-06,
+      "other": 7.79551101004472e-07
+    }
+  },
+  "64APSK": {
+    "true_family": "APSK",
+    "top1_family": "APSK",
+    "top1_correct": true,
+    "mass_family": "QAM",
+    "mass_correct": false,
+    "correct_family_mass": 0.4792885184288025,
+    "all_mass": {
+      "ASK": 0.00017601593572180718,
+      "PSK": 1.8633281797519885e-05,
+      "APSK": 0.4792885184288025,
+      "QAM": 0.5204542875289917,
+      "analog": 5.829160363646224e-05,
+      "other": 3.5790392303169938e-06
+    }
+  },
+  "128APSK": {
+    "true_family": "APSK",
+    "top1_family": "APSK",
+    "top1_correct": true,
+    "mass_family": "QAM",
+    "mass_correct": false,
+    "correct_family_mass": 0.48726192116737366,
+    "all_mass": {
+      "ASK": 0.0004330163064878434,
+      "PSK": 3.0587757464672904e-06,
+      "APSK": 0.48726192116737366,
+      "QAM": 0.5122226476669312,
+      "analog": 7.862300844863057e-05,
+      "other": 2.774840481833962e-07
+    }
+  },
+  "16QAM": {
+    "true_family": "QAM",
+    "top1_family": "QAM",
+    "top1_correct": true,
+    "mass_family": "QAM",
+    "mass_correct": true,
+    "correct_family_mass": 0.9566112160682678,
+    "all_mass": {
+      "ASK": 0.0006825459422543645,
+      "PSK": 2.777532245090697e-05,
+      "APSK": 0.04263641685247421,
+      "QAM": 0.9566112160682678,
+      "analog": 3.2104253477882594e-05,
+      "other": 9.330555258202367e-06
+    }
+  },
+  "32QAM": {
+    "true_family": "QAM",
+    "top1_family": "QAM",
+    "top1_correct": true,
+    "mass_family": "QAM",
+    "mass_correct": true,
+    "correct_family_mass": 0.667593240737915,
+    "all_mass": {
+      "ASK": 0.0006701613892801106,
+      "PSK": 0.0008416387718170881,
+      "APSK": 0.33045074343681335,
+      "QAM": 0.667593240737915,
+      "analog": 0.0003235936746932566,
+      "other": 0.0001204453146783635
+    }
+  },
+  "64QAM": {
+    "true_family": "QAM",
+    "top1_family": "QAM",
+    "top1_correct": true,
+    "mass_family": "QAM",
+    "mass_correct": true,
+    "correct_family_mass": 0.9644554853439331,
+    "all_mass": {
+      "ASK": 0.0004452749853953719,
+      "PSK": 3.12709053105209e-05,
+      "APSK": 0.0349784791469574,
+      "QAM": 0.9644554853439331,
+      "analog": 8.093180076684803e-05,
+      "other": 7.985118827491533e-06
+    }
+  },
+  "128QAM": {
+    "true_family": "QAM",
+    "top1_family": "QAM",
+    "top1_correct": true,
+    "mass_family": "QAM",
+    "mass_correct": true,
+    "correct_family_mass": 0.8699221611022949,
+    "all_mass": {
+      "ASK": 0.0008177312556654215,
+      "PSK": 7.78029570938088e-05,
+      "APSK": 0.12893295288085938,
+      "QAM": 0.8699221611022949,
+      "analog": 0.0002446919388603419,
+      "other": 4.122140126128215e-06
+    }
+  },
+  "256QAM": {
+    "true_family": "QAM",
+    "top1_family": "QAM",
+    "top1_correct": true,
+    "mass_family": "QAM",
+    "mass_correct": true,
+    "correct_family_mass": 0.9522436261177063,
+    "all_mass": {
+      "ASK": 0.0005364497192203999,
+      "PSK": 1.0612125151965301e-05,
+      "APSK": 0.0471305176615715,
+      "QAM": 0.9522436261177063,
+      "analog": 7.72083512856625e-05,
+      "other": 1.2561520179588115e-06
+    }
+  },
+  "AM-SSB-WC": {
+    "true_family": "analog",
+    "top1_family": "analog",
+    "top1_correct": true,
+    "mass_family": "analog",
+    "mass_correct": true,
+    "correct_family_mass": 0.9990931153297424,
+    "all_mass": {
+      "ASK": 0.00014508055755868554,
+      "PSK": 0.0005186330527067184,
+      "APSK": 4.2527106415946037e-05,
+      "QAM": 0.00011801390064647421,
+      "analog": 0.9990931153297424,
+      "other": 8.43854941194877e-05
+    }
+  },
+  "AM-SSB-SC": {
+    "true_family": "analog",
+    "top1_family": "analog",
+    "top1_correct": true,
+    "mass_family": "analog",
+    "mass_correct": true,
+    "correct_family_mass": 0.9996266961097717,
+    "all_mass": {
+      "ASK": 9.410659549757838e-05,
+      "PSK": 8.112403156701475e-05,
+      "APSK": 5.952807987341657e-05,
+      "QAM": 8.329417323693633e-05,
+      "analog": 0.9996266961097717,
+      "other": 5.465288268169388e-05
+    }
+  },
+  "AM-DSB-WC": {
+    "true_family": "analog",
+    "top1_family": "analog",
+    "top1_correct": true,
+    "mass_family": "analog",
+    "mass_correct": true,
+    "correct_family_mass": 0.999742865562439,
+    "all_mass": {
+      "ASK": 2.9505759812309407e-05,
+      "PSK": 0.00011264672502875328,
+      "APSK": 4.506297773332335e-05,
+      "QAM": 1.889287705125753e-05,
+      "analog": 0.999742865562439,
+      "other": 5.839424557052553e-05
+    }
+  },
+  "AM-DSB-SC": {
+    "true_family": "analog",
+    "top1_family": "analog",
+    "top1_correct": true,
+    "mass_family": "analog",
+    "mass_correct": true,
+    "correct_family_mass": 0.9938645958900452,
+    "all_mass": {
+      "ASK": 0.0004271439975127578,
+      "PSK": 0.0005578213022090495,
+      "APSK": 0.00023044715635478497,
+      "QAM": 0.004857929423451424,
+      "analog": 0.9938645958900452,
+      "other": 6.619610940106213e-05
+    }
+  },
+  "FM": {
+    "true_family": "analog",
+    "top1_family": "other",
+    "top1_correct": false,
+    "mass_family": "other",
+    "mass_correct": false,
+    "correct_family_mass": 0.09380123019218445,
+    "all_mass": {
+      "ASK": 1.6872483683982864e-05,
+      "PSK": 0.024016518145799637,
+      "APSK": 0.014761066064238548,
+      "QAM": 0.005974713712930679,
+      "analog": 0.09380123019218445,
+      "other": 0.8614293336868286
+    }
+  },
+  "GMSK": {
+    "true_family": "other",
+    "top1_family": "PSK",
+    "top1_correct": false,
+    "mass_family": "PSK",
+    "mass_correct": false,
+    "correct_family_mass": 1.140792420528669e-07,
+    "all_mass": {
+      "ASK": 0.0016971379518508911,
+      "PSK": 0.8209383487701416,
+      "APSK": 0.1536184847354889,
+      "QAM": 0.0018204865045845509,
+      "analog": 0.021925102919340134,
+      "other": 1.140792420528669e-07
+    }
+  },
+  "OQPSK": {
+    "true_family": "other",
+    "top1_family": "APSK",
+    "top1_correct": false,
+    "mass_family": "QAM",
+    "mass_correct": false,
+    "correct_family_mass": 1.0942117114609573e-06,
+    "all_mass": {
+      "ASK": 0.0016664635622873902,
+      "PSK": 0.28195610642433167,
+      "APSK": 0.34793195128440857,
+      "QAM": 0.3661249279975891,
+      "analog": 0.0023198954295367002,
+      "other": 1.0942117114609573e-06
+    }
+  }
+}

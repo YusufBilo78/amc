@@ -1,0 +1,32 @@
+# Datasets. These live outside the repo in C:\Users\yusuf\amc-data -- around
+# 40 GB across the original HDF5 and the .npy memmaps converted from it. Not
+# ours to redistribute, and far past what git should hold.
+*.npy
+*.hdf5
+*.h5
+*.pkl
+
+# Trained weights. Regenerable by rerunning the scripts, and a fresh binary
+# blob on every run, so committing them would bloat the history with churn
+# that nobody ever reads a diff of.
+*.pt
+
+# Papers. Copyrighted PDFs and the text/figures extracted from them -- fine to
+# keep on disk for reference, not to publish in a repository.
+papers/
+
+# Run logs. Raw stdout, superseded by the .json and .npz result files that the
+# scripts write alongside them.
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.bak
+
+# What is deliberately NOT ignored, since the reasoning matters:
+#   *.npz, *.json   experiment results -- small (about 100 KB in total) and
+#                   the actual record of what was measured. A result nobody
+#                   can look up later is a result nobody can check.
+#   figures/        the plots are the output of this project, not a build
+#                   artifact, and they are what gets read first.
