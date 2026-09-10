@@ -13,39 +13,21 @@ the generalization gap between the training domain and an independent one.
 
 ---
 
-## Status — read this before quoting any number
+## Status
 
-The project changed backbone. `cnn.IQNet`, a plain VGG-style 1-D CNN written
-for this project, was replaced by `model_zoo.ICRNNA` (conv → BiLSTM → additive
-attention) after a controlled comparison. On RadioML, five classes, 512 frames
-per cell (`overfit_2x2.py`):
+The backbone is `model_zoo.ICRNNA` — convolutional front end, bidirectional
+LSTM, additive attention, 786k parameters. Call it through
+`model_zoo.backbone(n_classes)` rather than by name, so the default lives in one
+place.
 
-| backbone | final train | final test | gap | memorisation starts |
-|---|---|---|---|---|
-| IQNet | 0.9998 | 0.6750 | **+0.325** | epoch 21 |
-| ICRNNA | 0.7188 | 0.7100 | **+0.009** | never |
+**Measurements are being redone on this backbone.** Everything below describes
+methods, controls and findings that are established in approach but whose
+numbers are being re-measured. Only the table immediately following is current.
 
-IQNet carries one dropout, immediately before its output layer, and memorises
-the training set from about epoch 20. ICRNNA regularises after every block, does
-not memorise, and scores higher on test with fewer parameters (786k vs 894k).
-The training recipe was varied on the same 2×2 — OneCycle at fixed length
-against ReduceLROnPlateau with early stopping — and made no difference
-(+0.325 vs +0.317), which is what makes this an architecture effect.
-
-That matters beyond tidiness. Almost every number here is a **difference**
-between two accuracies, and a backbone that memorises 30% of its training set is
-a poor instrument for measuring one.
-
-**Consequence: the measurements are being redone.** Everything below describes
-methods, controls and findings whose numbers came from IQNet and are being
-re-measured on ICRNNA. The IQNet-era results are preserved in
-`archive_iqnet/` (untracked) rather than deleted, including the previous
-917-line README with every table intact.
-
-### What is currently measured on ICRNNA
+### Currently measured
 
 `compare_methods.py --arch ICRNNA --seeds 5 --epochs 60 --patience 20`,
-17 of 20 cells done (`compare_methods_ICRNNA_es.npz`):
+17 of 20 cells complete (`compare_methods_ICRNNA_es.npz`):
 
 | method | in-domain | cross-domain | gap | 16QAM |
 |---|---|---|---|---|
@@ -54,17 +36,17 @@ re-measured on ICRNNA. The IQNet-era results are preserved in
 | whitening α=0.75 | 1.000 | **0.993** | **+0.007** | **0.991** |
 | whitening + standard (2/5 seeds) | 0.999 | 0.990 | +0.008 | 0.996 |
 
-Three things follow, and the second was not expected:
+Three readings:
 
-1. **The gap is not an artifact of one network.** IQNet measured +0.182, ICRNNA
-   measures +0.195 — on a model that is better in-domain and does not memorise.
-2. **The literature augmentation set does nothing here.** Rotation, conjugate
-   flip and additive noise (arXiv:1912.03026) moved the gap by 0.001. On IQNet
-   the same transforms gave +0.182 → +0.141, a real if modest gain. The most
-   likely reading is that their apparent benefit was compensating for IQNet's
-   overfitting rather than addressing domain shift.
-3. **Whitening costs nothing in-domain any more.** On IQNet it traded 0.993 →
-   0.965; here in-domain stays at 1.000.
+1. **The gap is real and large.** A model at 0.999 in-domain drops to 0.804 on
+   an independently generated domain, and 16QAM — the class the whole diagnosis
+   centres on — collapses to 0.060.
+2. **The literature augmentation set does not address it.** Rotation, conjugate
+   flip and additive Gaussian noise (arXiv:1912.03026) moved the gap by 0.001.
+   Whatever these transforms are good for, this failure mode is not it.
+3. **Whitening costs nothing in-domain.** In-domain accuracy stays at 1.000
+   while the gap falls to +0.007, so the recovery is not bought by trading away
+   benchmark performance.
 
 A cross-domain accuracy of 0.993 sits close enough to the ceiling that it
 deserves a sceptical pass of its own before it goes in a report.
@@ -98,19 +80,14 @@ src/radioml.py          RadioML 2018.01A loader
 src/domains.py          domain abstraction: RadioML, synthetic, capture
 src/features.py         cumulants and instantaneous features
 src/augment.py          augmentation transforms, including whitening
-src/cnn.py              IQNet (superseded), training loop, splits
-src/model_zoo.py        ResNet1D, GRU, Transformer, ICRNNA, backbone()
+src/model_zoo.py        ICRNNA, ResNet1D, GRU, Transformer, backbone()
+src/cnn.py              training loop, splits, evaluation
 src/crossdomain.py      the central train-on-A / test-on-B experiment
 src/whitening_*.py      whitening and its alpha sweep
 src/compare_methods.py  whitening against the literature baseline
 src/sink_*.py           where an unseen modulation lands
-src/overfit_2x2.py      architecture vs recipe as a cause of memorisation
 colab/                  paper-faithful ICRNNA, for calibration on 2016.10a
-archive_iqnet/          superseded results and the IQNet-era README
 ```
-
-Call `model_zoo.backbone(n_classes)` rather than naming a class, so the default
-is one edit rather than twenty.
 
 ---
 
@@ -134,7 +111,7 @@ is one edit rather than twenty.
 
 ## The diagnosis — attribution by intervention
 
-The gap concentrated almost entirely in one cell: 16QAM read as 64QAM. Four
+The gap concentrates almost entirely in one cell: 16QAM read as 64QAM. Four
 explanations were tested and each refuted by controlled experiment:
 
 | # | hypothesis | test | outcome |
@@ -156,9 +133,8 @@ claim rather than a correlational one. Combined with the four refutations, the
 cause is the **transmitter's spectral envelope**, chiefly its pulse-shaping
 roll-off.
 
-*(The specific accuracies these conclusions rested on were measured with IQNet
-and are pending re-measurement; the interventions themselves are signal-level
-and do not depend on the classifier.)*
+The interventions themselves are signal-level and do not depend on the
+classifier; the accuracies attached to them are pending re-measurement.
 
 ---
 
@@ -173,11 +149,11 @@ frame's spectrum by a smoothed estimate of its own magnitude envelope,
 `X / smooth(|X|)^α`, with a circular moving average so the wrap-around is not a
 discontinuity.
 
-α is swept from 0 to 1. **Partial whitening beat full whitening on IQNet**
-(α=0.75 against α=1.0), which is a concrete, measurable disagreement with
+α is swept from 0 to 1. **Partial whitening beat full whitening** in the earlier
+sweep (α=0.75 against α=1.0), which is a concrete, measurable disagreement with
 WhiteNet's choice of full whitening — on a different task, so not a
-contradiction, but worth reporting. **The sweep has not yet been rerun on
-ICRNNA, so α=0.75 is currently unverified for the present backbone.**
+contradiction, but worth reporting. **The sweep has not yet been rerun, so
+α=0.75 is currently unverified for the present backbone.**
 
 ### What the mechanism is not
 
@@ -212,9 +188,9 @@ Made useful by family recovery (`family_recovery.py`): even when the exact class
 is unrecoverable, summing prediction mass over each family recovers the correct
 family well above chance.
 
-**All of it was measured on IQNet and none of it has been rerun on ICRNNA.**
-This is the most expensive thread to redo — 24-class leave-one-out — and the
-most novel, so it is also the one where re-measurement matters most.
+**None of this has been rerun on the current backbone.** It is the most
+expensive thread to redo — 24-class leave-one-out — and the most novel, so it is
+also where re-measurement matters most.
 
 ---
 
@@ -234,11 +210,11 @@ most novel, so it is also the one where re-measurement matters most.
   attention dropout or LayerNorm, and one dense layer of 128 at dropout 0.5 vs
   two of 128 and 64 at 0.3. A faithful build is in
   `colab/icrnna_faithful_2016.py`, unvalidated until run against the paper's
-  63.24% on RML2016.10a. **Do not call the current ICRNNA "the published
+  63.24% on RML2016.10a. **Do not call the current model "the published
   architecture".**
-- **DANN still runs on IQNet.** `dann.py` reaches into an IQNet-specific
-  attribute and has not been ported, so its numbers are not comparable to the
-  rest until it is.
+- **`dann.py` has not been ported.** It builds on a legacy feature extractor
+  with no equivalent in the current backbone, so its numbers are not comparable
+  to the rest until it is rewritten.
 - **Open-set recognition is the adjacent field** for the sink work, and a few
   searches do not cover it. The novelty question there is genuinely open.
 
@@ -247,10 +223,9 @@ most novel, so it is also the one where re-measurement matters most.
 ## Open work
 
 1. Finish the last 3 cells of `compare_methods --arch ICRNNA`
-2. Rerun the α sweep on ICRNNA — α=0.75 is unverified for this backbone
-3. Rerun the sink/family thread on ICRNNA (24-class leave-one-out, the expensive
-   one), and add ICRNNA to `sink_across_architectures.py`
-4. Port `dann.py` off IQNet, or drop the comparison
+2. Rerun the α sweep — α=0.75 is unverified for the current backbone
+3. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
+4. Port `dann.py` to the current backbone, or drop the comparison
 5. Validate `colab/icrnna_faithful_2016.py` against 63.24% — needs
    `RML2016.10a_dict.pkl`, not on this machine
 6. Add RadioML 2016.10a as a third domain (still synthetic, so it only partly
