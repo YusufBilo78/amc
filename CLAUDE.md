@@ -52,9 +52,10 @@ describe the current model as "the published architecture".
 | `baseline_results.npz` | current — cumulants + SVM, no neural net involved |
 | `sink_vs_geometry.npz` | current — signal geometry, no model involved |
 | `overfit_2x2.json` | current — architecture comparison |
+| `train_backbone_rml2016_f1000_colab.npz` | **current** — ICRNNA on RML2016.10a, 3 seeds, 0.6223 overall / 0.9148 at SNR ≥ 10 dB. Lives in Drive, not yet committed |
 
-Apart from one incomplete experiment, **nothing else is measured on the current
-backbone.** That is the honest starting position, not an oversight. The
+Apart from one incomplete experiment and the 2016 classification run,
+**nothing else is measured on the current backbone.** That is the honest starting position, not an oversight. The
 `README.md` "Open work" list is the queue, in order.
 
 Results from the earlier backbone were moved out of the repository into

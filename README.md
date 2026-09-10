@@ -51,6 +51,40 @@ Three readings:
 A cross-domain accuracy of 0.993 sits close enough to the ceiling that it
 deserves a sceptical pass of its own before it goes in a report.
 
+### Plain classification on RML2016.10a
+
+`train_backbone.py --data rml2016 --seeds 3 --epochs 60 --patience 20`, all
+1000 frames per (class, SNR) cell, 70/15/15, run on Colab
+(`train_backbone_rml2016_f1000_colab.npz`, 3/3 seeds):
+
+| | accuracy |
+|---|---|
+| overall, all SNRs | **0.6223 ± 0.0019** (0.6248, 0.6200, 0.6222) |
+| SNR ≥ 10 dB | **0.9148 ± 0.0013** |
+
+The curve is the shape this dataset is supposed to give: chance (0.091, eleven
+classes) below −16 dB, rising from −12 dB, past 0.90 at +2 dB, then flat at
+0.915 to the top of the range. Seed spread never exceeds 0.014.
+
+**What this establishes, and what it does not.** El-Haryqy et al. report 63.24%
+for ICRNNA on this dataset and this lands 1.01 points below it. That is a
+sanity check on the pipeline, *not* a reproduction of the paper: this backbone
+differs from the published description in five places (see the provenance
+caveat below) and the training protocol differs too — batch 256 against the
+paper's 32, LR schedule on validation accuracy against validation loss. The
+build that can actually answer the reproduction question is
+`colab/icrnna_faithful_2016.py`, still unrun.
+
+The high-SNR plateau is a property of the dataset rather than of the model.
+WBFM and AM-DSB are both generated from voice recordings, and during the
+silences in the source audio both degrade to an unmodulated carrier, which no
+architecture can separate; ~0.92 is the practical ceiling this imposes and is
+where the plateau sits.
+
+**The .npz is in Drive, not yet in this repository.** It has to be committed
+before this row means anything to anyone else — a result nobody can look up
+later is a result nobody can check.
+
 ---
 
 ## Setup
