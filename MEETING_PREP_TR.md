@@ -1,3 +1,16 @@
+> ## ⚠️ BU DOSYADAKİ SAYILAR ESKİ — KULLANMA
+>
+> Buradaki her doğruluk rakamı **IQNet** dönemine ait; o omurga
+> `overfit_2x2.json` ezberlediğini gösterdiği için atıldı. Güncel omurga
+> `model_zoo.ICRNNA` ve sayılar değişti.
+>
+> Kullanma: cross 0.811 · düzeltme sonrası 0.948 · "%79 kapandı" ·
+> "+3.3 s.d." · "16QAM %75 oranında 64QAM okunuyor" · 4 seed.
+>
+> Güncel sayılar `compare_methods_ICRNNA_es.npz` içinde, özeti `README.md`
+> ve **`KAM_NOTES.md`** dosyasında. Buradaki *sorular, çerçeveler ve
+> dil hazırlığı* hâlâ geçerli — sadece rakamlar değil.
+
 # Toplantı cevapları — Türkçe karşılıkları
 
 `MEETING_PREP.md`'deki İngilizce cevapların birebir Türkçesi.
