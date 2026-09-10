@@ -38,6 +38,7 @@ train_backbone.py and this file only arranges for it to be runnable.
 
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 import time
@@ -45,7 +46,7 @@ import time
 # ==========================================================================
 # Config
 # ==========================================================================
-DATASET = "rml2016"       # "rml2016" (11 classes, fast) or "rml2018" (24)
+DATASET = "rml2018"       # "rml2016" (11 classes, fast) or "rml2018" (24)
 SEEDS = 3
 EPOCHS = 60
 PATIENCE = 20
@@ -73,6 +74,11 @@ H5_HINTS = ("RadioML2018/GOLD_XYZ_OSC.0001_1024.hdf5",
             "GOLD_XYZ_OSC.0001_1024.hdf5",
             "RadioML/GOLD_XYZ_OSC.0001_1024.hdf5")
 NPY_HINTS = ("amc-data", "RadioML2018", "RadioML", ".")
+
+
+def need_estimate(frames_per_cell):
+    """Bytes the staged 2018 subsample will occupy: 24 classes x 26 SNRs."""
+    return 24 * 26 * frames_per_cell * 1024 * 2 * 4
 
 
 def first_existing(hints, predicate):
@@ -209,13 +215,43 @@ def main():
             else:
                 import h5py
 
-                need_gb = 24 * 26 * FRAMES_PER_CELL_2018 * 1024 * 2 * 4 / 1e9
+                need_gb = need_estimate(FRAMES_PER_CELL_2018) / 1e9
                 print(f"staging {FRAMES_PER_CELL_2018} frames per cell "
                       f"(~{need_gb:.1f} GB) to {STAGE_DIR}")
                 if free_gb < need_gb * 1.3:
                     raise SystemExit(
                         f"only {free_gb:.0f} GB free locally, need ~{need_gb:.1f}. "
                         "Lower FRAMES_PER_CELL_2018.")
+
+                # Staging reads about 12% of the rows, scattered across
+                # 21 GB. Over the Drive mount that is hundreds of thousands of
+                # small reads and it crawls. One bulk sequential copy to local
+                # disk first is far faster where there is room: the copy
+                # streams at the mount's full rate and every scattered read
+                # afterwards is local. Placed here, after the already-staged
+                # check, so a rerun that only needs the existing subsample does
+                # not copy 21 GB for nothing.
+                h5_size = h5.stat().st_size
+                local_h5 = pathlib.Path("/content") / h5.name
+                room = (h5_size + need_estimate(FRAMES_PER_CELL_2018)) / 1e9 * 1.15
+                if local_h5.exists() and local_h5.stat().st_size == h5_size:
+                    print(f"  HDF5 already on local disk, reusing it")
+                    h5 = local_h5
+                elif free_gb > room:
+                    print(f"  copying the HDF5 to local disk first "
+                          f"({h5_size / 1e9:.0f} GB, sequential -- much faster "
+                          f"than scattered reads over the mount)")
+                    t_copy = time.time()
+                    shutil.copyfile(h5, local_h5)
+                    el = max(time.time() - t_copy, 1e-9)
+                    print(f"  copied in {el / 60:.1f} min "
+                          f"({h5_size / 1e6 / el:.0f} MB/s)")
+                    h5 = local_h5
+                else:
+                    print(f"  only {free_gb:.0f} GB free locally, need "
+                          f"{room:.0f} to copy first. Reading over the mount "
+                          f"instead: slower, but it works.")
+                    local_h5 = None
 
                 t0 = time.time()
                 with h5py.File(h5, "r") as f:
@@ -255,6 +291,12 @@ def main():
                 np.save(STAGE_DIR / "radioml_z.npy", z_all[sel])
                 marker.write_text(f"{FRAMES_PER_CELL_2018}\n")
                 print(f"  staged in {(time.time() - t0) / 60:.1f} min")
+
+                # The 21 GB copy has served its purpose -- training reads the
+                # staged subsample. Reclaim the space.
+                if local_h5 is not None and h5 == local_h5 and local_h5.exists():
+                    local_h5.unlink()
+                    print(f"  removed the local copy, {h5_size / 1e9:.0f} GB freed")
 
             data_path = str(STAGE_DIR)
             frames_per_cell = FRAMES_PER_CELL_2018
