@@ -43,6 +43,7 @@ import numpy as np
 import torch
 
 import cnn
+import model_zoo
 import radioml
 from sink_class_24 import FAMILIES, family_of, neighbours_of
 
@@ -127,7 +128,7 @@ def main() -> None:
         torch.manual_seed(SEED)
         np.random.seed(SEED)
         tr, te = cnn.split(X, y, z, test_fraction=0.25, seed=SEED)
-        model = cnn.IQNet(len(kept))
+        model = model_zoo.backbone(len(kept))
         model = cnn.train_model(model, X[tr], y[tr], X[te], y[te], epochs=EPOCHS)
         in_dist = float((cnn.predict(model, X[te]) == y[te]).mean())
 

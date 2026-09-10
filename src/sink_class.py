@@ -60,6 +60,7 @@ import numpy as np
 import torch
 
 import cnn
+import model_zoo
 import domains
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -115,7 +116,7 @@ def run(rml, train_classes, probe_classes, seed, permute=False):
     tr_data = rml.load(order, TRAIN_SNRS, frames_per_cell=768, seed=seed)
     idx_tr, idx_te = cnn.split(tr_data["X"], tr_data["y"], tr_data["z"],
                                test_fraction=0.25, seed=seed)
-    model = cnn.IQNet(len(order))
+    model = model_zoo.backbone(len(order))
     model = cnn.train_model(model, tr_data["X"][idx_tr], tr_data["y"][idx_tr],
                             tr_data["X"][idx_te], tr_data["y"][idx_te],
                             epochs=EPOCHS)

@@ -37,6 +37,7 @@ import numpy as np
 import torch
 
 import cnn
+import model_zoo
 import domains
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -53,7 +54,7 @@ SPS_VALUES = [4, 6, 8, 10, 12, 16]
 
 
 def get_model(retrain: bool) -> torch.nn.Module:
-    model = cnn.IQNet(len(CLASSES))
+    model = model_zoo.backbone(len(CLASSES))
     if MODEL_PATH.exists() and not retrain:
         model.load_state_dict(torch.load(MODEL_PATH, map_location=cnn.DEVICE))
         print(f"loaded cached model from {MODEL_PATH.name}\n")

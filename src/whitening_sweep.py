@@ -44,6 +44,7 @@ import numpy as np
 from scipy.ndimage import uniform_filter1d
 
 import cnn
+import model_zoo
 import domains
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -113,7 +114,7 @@ def main() -> None:
         Xa = to_model_input(spectral_whiten(a_iq, alpha))
         Xb = to_model_input(spectral_whiten(b_iq, alpha))
 
-        model = cnn.IQNet(len(CLASSES))
+        model = model_zoo.backbone(len(CLASSES))
         model = cnn.train_model(model, Xa[tr], a["y"][tr], Xa[te], a["y"][te],
                                 epochs=EPOCHS)
 

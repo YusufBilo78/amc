@@ -36,6 +36,7 @@ import numpy as np
 import torch
 
 import cnn
+import model_zoo
 import domains
 from whitening_sweep import accuracy_by_snr, spectral_whiten, to_model_input
 
@@ -87,7 +88,7 @@ def main() -> None:
             np.random.seed(seed)
 
             tr, te = cnn.split(a["X"], a["y"], a["z"], test_fraction=0.3, seed=seed)
-            model = cnn.IQNet(len(CLASSES))
+            model = model_zoo.backbone(len(CLASSES))
             model = cnn.train_model(model, Xa[tr], a["y"][tr], Xa[te],
                                     a["y"][te], epochs=EPOCHS)
 

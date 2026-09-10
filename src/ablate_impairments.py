@@ -44,6 +44,7 @@ import torch
 from scipy.signal import resample
 
 import cnn
+import model_zoo
 import domains
 import modem
 
@@ -121,7 +122,7 @@ def main() -> None:
     if not MODEL_PATH.exists():
         raise SystemExit(f"{MODEL_PATH.name} not found -- run sweep.py first.")
 
-    model = cnn.IQNet(len(CLASSES))
+    model = model_zoo.backbone(len(CLASSES))
     model.load_state_dict(torch.load(MODEL_PATH, map_location=cnn.DEVICE))
     model = model.to(cnn.DEVICE)
     print("frozen model loaded; nothing below retrains it\n")

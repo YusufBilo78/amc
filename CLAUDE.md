@@ -44,17 +44,40 @@ published architecture".
 
 ## Which results are current
 
+Every IQNet-produced result has been moved out of the repository into
+`archive_iqnet/` (untracked, still on disk) together with the previous
+917-line README. What remains tracked is what still counts:
+
 | file | backbone | status |
 |---|---|---|
-| `compare_methods_ICRNNA_es.npz` | ICRNNA | **current**, 17/20 cells — 3 seeds of `whitening + standard` still missing |
-| `overfit_2x2.json` | both | current |
-| `compare_methods.npz`, `compare_dann.npz` | IQNet | superseded, keep for comparison |
-| `whitening_sweep.npz`, `whitening_seeds.npz` | IQNet | **needs rerunning** — alpha=0.75 was optimal for IQNet, unverified for ICRNNA |
-| `sink_*.npz/json`, `family_recovery.json` | IQNet | **needs rerunning** on ICRNNA |
-| everything else | IQNet | superseded |
+| `compare_methods_ICRNNA_es.npz` | ICRNNA | **current**, 17/20 cells — 3 seeds of `whitening + standard` missing |
+| `overfit_2x2.json` | both | current — this is the evidence for the switch |
+| `baseline_results.npz` | none (cumulants + SVM) | current, no neural net involved |
+| `sink_vs_geometry.npz` | none (signal geometry) | current |
+| `archive_iqnet/*` | IQNet | superseded, kept for comparison, **do not quote** |
 
-Most of the suite still has to be re-measured on ICRNNA. Treat any IQNet number
-quoted in `README.md` as historical.
+So: apart from one incomplete experiment, **nothing is measured on the current
+backbone yet.** That is the honest starting position, not an oversight. The
+`README.md` "Open work" list is the queue, in order.
+
+Figures in `figures/` are a mixture: the signal-level ones (spectrograms,
+constellations, class spectra) are still valid; anything showing an accuracy
+curve or a confusion matrix came from IQNet and is stale. They were left in
+place rather than deleted, so check what produced one before reusing it.
+
+## Calling the model
+
+Use `model_zoo.backbone(n_classes)`. Do not name a class directly — the point of
+the factory is that changing the default is one edit rather than twenty. The
+five remaining direct `cnn.IQNet(...)` calls are deliberate: `overfit_2x2.py`
+and `sink_across_architectures.py` compare architectures on purpose,
+`compare_methods.py` exposes `--arch`, `check_overfit.py` is the superseded
+predecessor of `overfit_2x2.py`, and `dann.py` has not been ported (see below).
+
+**`dann.py` is still on IQNet.** It reaches into `base.features`, an
+IQNet-specific attribute with no ICRNNA equivalent, so porting is a rewrite
+rather than a substitution. Until then its numbers are on a different backbone
+from everything they would be compared against.
 
 What is already known to survive the backbone change, from the 17 completed
 cells: the cross-domain gap is **not** an IQNet artifact (+0.182 on IQNet,

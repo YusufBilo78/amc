@@ -63,6 +63,15 @@ class DANNNet(nn.Module):
     training objective and not from a different network.
     """
 
+    # OPEN: this is the last thing still built on IQNet, and the docstring
+    # above is now false -- the rest of the project moved to
+    # model_zoo.backbone(). Porting is not a one-line change: the code below
+    # reaches into `base.features`, an IQNet-specific attribute, and ICRNNA
+    # has no equivalent (its trunk is conv -> LSTM -> attention, not a single
+    # Sequential). Until it is rewritten, DANN numbers are measured on a
+    # different backbone from everything they are compared against, which has
+    # to be stated wherever they appear.
+
     def __init__(self, n_classes: int, width: int = 64):
         super().__init__()
         base = cnn.IQNet(n_classes, width=width)

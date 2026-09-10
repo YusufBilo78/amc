@@ -89,7 +89,7 @@ def build_model(arch: str, n_classes: int):
 def main() -> None:
     global SEEDS, EPOCHS
     p = argparse.ArgumentParser()
-    p.add_argument("--arch", choices=("IQNet", "ICRNNA"), default="IQNet")
+    p.add_argument("--arch", choices=("ICRNNA", "IQNet"), default="ICRNNA")
     p.add_argument("--seeds", type=int, default=len(SEEDS))
     p.add_argument("--epochs", type=int, default=EPOCHS)
     p.add_argument("--patience", type=int, default=None,

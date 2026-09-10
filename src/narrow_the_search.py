@@ -39,6 +39,7 @@ import numpy as np
 import torch
 
 import cnn
+import model_zoo
 import domains
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -83,7 +84,7 @@ def to_model_input(frames_iq: np.ndarray) -> np.ndarray:
 
 
 def main() -> None:
-    model = cnn.IQNet(len(CLASSES))
+    model = model_zoo.backbone(len(CLASSES))
     model.load_state_dict(torch.load(MODEL_PATH, map_location=cnn.DEVICE))
     model = model.to(cnn.DEVICE)
     print("frozen model loaded\n")

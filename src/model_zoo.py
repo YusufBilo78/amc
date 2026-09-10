@@ -242,3 +242,34 @@ class ICRNNA(nn.Module):
 
 
 ARCHITECTURES["ICRNNA"] = ICRNNA
+
+
+# ==========================================================================
+# The default backbone
+# ==========================================================================
+
+
+def backbone(n_classes: int) -> nn.Module:
+    """
+    The model every experiment should use unless it is deliberately comparing
+    architectures. Call this rather than naming a class, so that changing the
+    default is one edit instead of twenty.
+
+    Currently ICRNNA. It replaced cnn.IQNet on a measurement, not a preference
+    -- see overfit_2x2.py and overfit_2x2.json. On RadioML, five classes, 512
+    frames per cell:
+
+        IQNet    train 0.9998 / test 0.6750, gap +0.325, memorising from ~ep 20
+        ICRNNA   train 0.7188 / test 0.7100, gap +0.009, never
+
+    IQNet carries a single dropout immediately before its output layer and
+    memorises the training set; ICRNNA regularises after every block and does
+    not, while scoring higher on test with fewer parameters. The training
+    recipe was varied on the same 2x2 and changed nothing, which is what makes
+    this an architecture effect rather than a schedule effect.
+
+    That matters here beyond tidiness: nearly every number this project reports
+    is a *difference* between two accuracies, and a backbone that memorises 30%
+    of its training set is a poor instrument for measuring one.
+    """
+    return ICRNNA(n_classes)

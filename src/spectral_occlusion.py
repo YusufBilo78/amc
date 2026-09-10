@@ -46,6 +46,7 @@ import numpy as np
 import torch
 
 import cnn
+import model_zoo
 import domains
 from whitening_sweep import spectral_whiten, to_model_input
 
@@ -86,7 +87,7 @@ def train_one(alpha: float, a, a_iq, tr, te):
     torch.manual_seed(SEED)
     np.random.seed(SEED)
     X = to_model_input(spectral_whiten(a_iq, alpha))
-    model = cnn.IQNet(len(CLASSES))
+    model = model_zoo.backbone(len(CLASSES))
     model = cnn.train_model(model, X[tr], a["y"][tr], X[te], a["y"][te],
                             epochs=EPOCHS)
     return model

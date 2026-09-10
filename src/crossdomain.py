@@ -35,6 +35,7 @@ import numpy as np
 from sklearn.metrics import confusion_matrix
 
 import cnn
+import model_zoo
 import domains
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -109,7 +110,7 @@ def main() -> None:
             print(f"ABLATION: {args.ablate} transform disabled")
         print(f"augmentation: {augmenter.describe()}")
 
-    model = cnn.IQNet(len(classes))
+    model = model_zoo.backbone(len(classes))
     print("training ...")
     model = cnn.train_model(model, a["X"][tr], a["y"][tr],
                             a["X"][te], a["y"][te], epochs=args.epochs,

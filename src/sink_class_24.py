@@ -49,6 +49,7 @@ import numpy as np
 import torch
 
 import cnn
+import model_zoo
 import radioml
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -174,7 +175,7 @@ def main() -> None:
         torch.manual_seed(SEED)
         np.random.seed(SEED)
         tr, te = cnn.split(X, y, z, test_fraction=0.25, seed=SEED)
-        model = cnn.IQNet(len(kept_classes))
+        model = model_zoo.backbone(len(kept_classes))
         model = cnn.train_model(model, X[tr], y[tr], X[te], y[te], epochs=EPOCHS)
         in_dist = float((cnn.predict(model, X[te]) == y[te]).mean())
 

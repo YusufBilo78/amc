@@ -48,6 +48,7 @@ import numpy as np
 import torch
 
 import cnn
+import model_zoo
 import radioml
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -93,7 +94,7 @@ def main() -> None:
 
     # ------------------------------------------------ train the all-24 model
     if MODEL_PATH.exists():
-        model = cnn.IQNet(n)
+        model = model_zoo.backbone(n)
         model.load_state_dict(torch.load(MODEL_PATH, map_location=cnn.DEVICE))
         model = model.to(cnn.DEVICE)
         print(f"loaded {MODEL_PATH.name}")
@@ -114,7 +115,7 @@ def main() -> None:
         X /= np.sqrt(p)[:, None] + 1e-12
         torch.manual_seed(SEED); np.random.seed(SEED)
         tr, te = cnn.split(X, y, z, test_fraction=0.2, seed=SEED)
-        model = cnn.IQNet(n)
+        model = model_zoo.backbone(n)
         model = cnn.train_model(model, X[tr], y[tr], X[te], y[te], epochs=EPOCHS)
         torch.save(model.state_dict(), MODEL_PATH)
         print(f"  trained in {time.perf_counter()-t0:.0f}s")

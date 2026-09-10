@@ -30,3 +30,8 @@ __pycache__/
 #                   can look up later is a result nobody can check.
 #   figures/        the plots are the output of this project, not a build
 #                   artifact, and they are what gets read first.
+
+# Superseded IQNet-era results and the README that quoted them. Kept on disk
+# so nothing is lost, kept out of the repository so a fresh session does not
+# mistake them for current measurements.
+archive_iqnet/

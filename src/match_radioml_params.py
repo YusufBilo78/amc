@@ -48,6 +48,7 @@ import numpy as np
 import torch
 
 import cnn
+import model_zoo
 import domains
 import modem
 
@@ -123,7 +124,7 @@ def evaluate(model, cfg: dict, seed: int = 11) -> np.ndarray:
 
 
 def main() -> None:
-    model = cnn.IQNet(len(CLASSES))
+    model = model_zoo.backbone(len(CLASSES))
     model.load_state_dict(torch.load(MODEL_PATH, map_location=cnn.DEVICE))
     model = model.to(cnn.DEVICE)
     print("frozen 5-class RadioML model; only the generator changes\n")
