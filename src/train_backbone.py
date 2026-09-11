@@ -55,6 +55,12 @@ pass. Real training measures about half that throughput (~3,900 frames/s at
     11 classes, all 1000/cell, 128 samples      154,000 train frames
                                                 ~0.2 min/epoch, ~12 min for 60
 
+Both of those are the laptop. Measured on a Colab GPU the 2018 configuration
+came in at 9-13 minutes per seed rather than the hour above, so treat the table
+as an upper bound tied to that machine and not as a property of the run. Which
+of the two -- a faster GPU or early stopping well before epoch 60 -- accounts
+for the difference was not separated.
+
 `--frames-per-cell` is the lever, and 512 is affordable, which is why it is the
 default. 1024 doubles it (~2 min/epoch) and is an overnight run. Keep the
 machine on mains power -- on battery the GPU is capped near 35 W and runs about

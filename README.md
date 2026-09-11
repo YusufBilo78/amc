@@ -85,6 +85,37 @@ where the plateau sits.
 before this row means anything to anyone else — a result nobody can look up
 later is a result nobody can check.
 
+### Plain classification on RadioML 2018.01A
+
+`train_backbone.py --data rml2018 --seeds 3 --epochs 60 --patience 20`, 512 of
+the 4096 frames per (class, SNR) cell, native 1024-sample frames, 70/15/15, run
+on Colab (`train_backbone_rml2018_f512_colab.npz`, 3/3 seeds):
+
+| | accuracy |
+|---|---|
+| overall, all 26 SNRs | **0.5699 ± 0.0081** (0.5616, 0.5809, 0.5672) |
+| SNR ≥ 10 dB | **0.8716 ± 0.0141** |
+
+Chance is 0.042 with 24 classes, and the curve sits there below −14 dB. It
+lifts from −12, passes 0.526 at 0 dB and 0.80 at +6, then flattens at 0.87 from
++8 dB to the top of the range, peaking at 0.880 at +12 dB.
+
+Seed spread reaches 0.021, against 0.014 on 2016. Three seeds on 24 classes is
+thin, and a difference of less than about 0.03 between two configurations
+measured this way is not yet a difference.
+
+**Against the literature.** Deep residual networks trained on the *whole*
+dataset are reported at roughly 95% above 8 dB. This run is about 8 points
+under that on 12.5% of the frames with a 786k-parameter recurrent model, and
+two things differ at once — data volume and architecture — so the deficit is
+not attributable to either. Closing it is not this project's goal; the number
+exists so that the cross-domain differences measured elsewhere are known to
+start from a competent classifier rather than a broken one.
+
+Wall clock: about 9–13 minutes per seed on a Colab GPU, including a one-off
+sequential copy of the 21 GB HDF5 to local disk and the staging of 512 frames
+per cell from it.
+
 ---
 
 ## Setup
