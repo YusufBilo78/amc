@@ -197,6 +197,7 @@ src/whitening_*.py      whitening and its alpha sweep
 src/compare_methods.py  whitening against the literature baseline
 src/sink_*.py           where an unseen modulation lands
 colab/run_training.py   run train_backbone.py on Colab
+colab/run_experiment.py run the open-work sweeps on Colab
 colab/icrnna_faithful_2016.py  paper-faithful ICRNNA, for calibration
 ```
 

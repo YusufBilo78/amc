@@ -23,6 +23,7 @@ way silently changes the question you are answering.
 
 from __future__ import annotations
 
+import os
 import pathlib
 
 import numpy as np
@@ -38,7 +39,18 @@ SEARCH_DIRS = (
     pathlib.Path(r"C:\Users\yusuf\amc-data"),
     pathlib.Path.home() / "Downloads",
     pathlib.Path(r"C:\Users\yusuf\OneDrive\Masaüstü\Claude Code\amc-data"),
+    # Colab: where colab/run_training.py stages a subset, and a mounted Drive.
+    # Listed here rather than passed per script so that every experiment finds
+    # the data on either machine without a flag of its own.
+    pathlib.Path("/content/amc-data"),
+    pathlib.Path("/content/drive/MyDrive/amc-data"),
 )
+
+# Checked before SEARCH_DIRS. This is how a runner tells every script where it
+# staged the data, including scripts it launches as subprocesses, which an
+# in-process edit of SEARCH_DIRS would not reach. Most of the sweeps take no
+# path argument of their own and there is no reason for each to grow one.
+ENV_DIR = "AMC_DATA_DIR"
 
 FILENAME = "GOLD_XYZ_OSC.0001_1024.hdf5"
 
@@ -142,6 +154,9 @@ class RadioML:
     @staticmethod
     def _find_npy(search_dir=None):
         directories = list(SEARCH_DIRS)
+        from_env = os.environ.get(ENV_DIR)
+        if from_env:
+            directories.insert(0, pathlib.Path(from_env))
         if search_dir is not None:
             directories.insert(0, pathlib.Path(search_dir))
         for directory in directories:
@@ -199,16 +214,33 @@ class RadioML:
         classes = list(range(self.n_classes)) if classes is None else classes
         snrs = list(self.unique_snrs) if snrs is None else snrs
 
-        train_idx, test_idx = [], []
+        train_idx, test_idx, short = [], [], []
         for class_id in classes:
             for snr in snrs:
                 idx = self.cell_indices(class_id, int(snr))
                 if frames_per_cell is not None and len(idx) > frames_per_cell:
                     idx = rng.choice(idx, frames_per_cell, replace=False)
+                elif frames_per_cell is not None and len(idx) < frames_per_cell:
+                    short.append(len(idx))
                 idx = rng.permutation(idx)
                 cut = int(len(idx) * (1.0 - test_fraction))
                 train_idx.append(idx[:cut])
                 test_idx.append(idx[cut:])
+
+        # A cell with fewer frames than asked for is taken whole and the run
+        # continues, quietly, on less data than the caller believes it has.
+        # That is fine against a dataset that simply holds fewer (2016 caps at
+        # 1000); it is a trap against a *staged subset*, where it means this run
+        # trained on different frames from one done against the full file, and
+        # results from the two are then not comparable despite sharing a name.
+        if short:
+            print(f"  WARNING: {len(short)} of "
+                  f"{len(classes) * len(snrs)} (class, SNR) cells hold fewer "
+                  f"than the {frames_per_cell} frames requested "
+                  f"({min(short)}..{max(short)}). Every such cell was taken "
+                  f"whole.\n"
+                  f"  If this is a staged subset, the frames differ from a run "
+                  f"against the full file and the two are not comparable.")
 
         train_idx = np.sort(np.concatenate(train_idx))  # sorted -> fast h5py reads
         test_idx = np.sort(np.concatenate(test_idx))

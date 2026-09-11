@@ -92,6 +92,14 @@ def main() -> None:
     p.add_argument("--arch", choices=("ICRNNA", "IQNet"), default="ICRNNA")
     p.add_argument("--seeds", type=int, default=len(SEEDS))
     p.add_argument("--epochs", type=int, default=EPOCHS)
+    p.add_argument("--out-dir", default=None,
+                   help="where the .npz and the figure are written, and where "
+                        "a partial run is resumed from. Defaults to the "
+                        "repository root. Point it at durable storage when the "
+                        "machine is not durable -- a Colab runtime is "
+                        "reclaimed after 12 hours and this sweep is the "
+                        "expensive kind. Seed it with the existing .npz first, "
+                        "or the finished cells will be recomputed.")
     p.add_argument("--patience", type=int, default=None,
                    help="switch to the 70/15/15 split with early stopping and "
                         "best-validation checkpointing; without it the "
@@ -104,8 +112,12 @@ def main() -> None:
     # numbers in the README are not silently overwritten by a different setup.
     tag = ("" if args.arch == "IQNet" and args.patience is None
            else f"_{args.arch}" + ("_es" if args.patience else ""))
-    npz_path = ROOT / f"compare_methods{tag}.npz"
-    fig_path = FIGURES / f"17_method_comparison{tag}.png"
+    out_dir = pathlib.Path(args.out_dir) if args.out_dir else ROOT
+    fig_dir = out_dir / "figures" if args.out_dir else FIGURES
+    out_dir.mkdir(parents=True, exist_ok=True)
+    fig_dir.mkdir(parents=True, exist_ok=True)
+    npz_path = out_dir / f"compare_methods{tag}.npz"
+    fig_path = fig_dir / f"17_method_comparison{tag}.png"
 
     print(f"{len(METHODS)} methods x {len(SEEDS)} seeds = "
           f"{len(METHODS) * len(SEEDS)} models")
@@ -290,7 +302,8 @@ def main() -> None:
     print(f"combining adds over whitening alone: {d:+.3f}  "
           f"({d / pooled(cross[3], cross[2]):+.1f} s.d.)")
     print("=" * 72)
-    print(f"\nwrote figures/{fig_path.name}")
+    print(f"\nwrote {npz_path}")
+    print(f"wrote {fig_path}")
 
 
 if __name__ == "__main__":

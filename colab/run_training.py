@@ -76,6 +76,129 @@ H5_HINTS = ("RadioML2018/GOLD_XYZ_OSC.0001_1024.hdf5",
 NPY_HINTS = ("amc-data", "RadioML2018", "RadioML", ".")
 
 
+def stage_from_hdf5(h5_path, stage_dir, frames_per_cell, free_gb,
+                    class_ids=None):
+    """
+    Pull the frames a run needs out of the 21 GB HDF5 onto local disk.
+
+    `class_ids` restricts the export to those classes and, when given, keeps
+    **every** frame of each rather than subsampling. That is not a convenience:
+    `RadioML.load` chooses its frames with `rng.choice` over the positions
+    inside each (class, SNR) cell, so a staged cell that still holds all 4096
+    in the file's order yields the same selection here as a run against the
+    complete file, and a cell short of that silently yields different frames.
+    An experiment whose other cells were computed elsewhere needs the former.
+    """
+    import numpy as np
+
+    stage_dir.mkdir(parents=True, exist_ok=True)
+    x_out = stage_dir / "radioml_X.npy"
+
+    # The marker names the staging, so switching between a subsample and a
+    # class-restricted full export restages rather than silently reusing the
+    # wrong one -- which is the whole failure this function exists to avoid.
+    if class_ids is None:
+        tag = f"f{frames_per_cell}"
+        what = f"{frames_per_cell} frames per cell, all 24 classes"
+        need_bytes = need_estimate(frames_per_cell)
+    else:
+        tag = "all-" + "-".join(str(c) for c in sorted(class_ids))
+        what = (f"every frame of {len(class_ids)} classes "
+                f"(ids {sorted(class_ids)})")
+        need_bytes = len(class_ids) * 26 * 4096 * 1024 * 2 * 4
+    marker = stage_dir / f"staged_{tag}.txt"
+
+    if marker.exists() and x_out.exists():
+        print(f"already staged ({what}), reusing")
+    else:
+        import h5py
+
+        need_gb = need_bytes / 1e9
+        print(f"staging {what} (~{need_gb:.1f} GB) to {stage_dir}")
+        if free_gb < need_gb * 1.3:
+            raise SystemExit(
+                f"only {free_gb:.0f} GB free locally, need ~{need_gb:.1f}. "
+                "Lower frames_per_cell.")
+
+        # Staging reads about 12% of the rows, scattered across
+        # 21 GB. Over the Drive mount that is hundreds of thousands of
+        # small reads and it crawls. One bulk sequential copy to local
+        # disk first is far faster where there is room: the copy
+        # streams at the mount's full rate and every scattered read
+        # afterwards is local. Placed here, after the already-staged
+        # check, so a rerun that only needs the existing subsample does
+        # not copy 21 GB for nothing.
+        h5_size = h5_path.stat().st_size
+        local_h5 = pathlib.Path("/content") / h5_path.name
+        room = (h5_size + need_bytes) / 1e9 * 1.15
+        if local_h5.exists() and local_h5.stat().st_size == h5_size:
+            print(f"  HDF5 already on local disk, reusing it")
+            h5_path = local_h5
+        elif free_gb > room:
+            print(f"  copying the HDF5 to local disk first "
+                  f"({h5_size / 1e9:.0f} GB, sequential -- much faster "
+                  f"than scattered reads over the mount)")
+            t_copy = time.time()
+            shutil.copyfile(h5_path, local_h5)
+            el = max(time.time() - t_copy, 1e-9)
+            print(f"  copied in {el / 60:.1f} min "
+                  f"({h5_size / 1e6 / el:.0f} MB/s)")
+            h5_path = local_h5
+        else:
+            print(f"  only {free_gb:.0f} GB free locally, need "
+                  f"{room:.0f} to copy first. Reading over the mount "
+                  f"instead: slower, but it works.")
+            local_h5 = None
+
+        t0 = time.time()
+        with h5py.File(h5_path, "r") as f:
+            print("  reading labels and SNR ...")
+            y_all = np.asarray(f["Y"][:]).argmax(axis=1).astype(np.int8)
+            z_all = np.asarray(f["Z"][:]).ravel().astype(np.int16)
+            print(f"    {len(y_all):,} rows, {y_all.max() + 1} classes, "
+                  f"SNR {z_all.min()}..{z_all.max()}")
+
+            if class_ids is None:
+                # radioml.select_cell_balanced is the single definition of this
+                # selection, shared with src/export_subset.py, so a subset
+                # staged here and one exported on the machine that holds the
+                # data hold the same frames.
+                import radioml
+
+                sel = radioml.select_cell_balanced(
+                    y_all, z_all, frames_per_cell)
+            else:
+                sel = np.flatnonzero(np.isin(y_all, class_ids))
+            print(f"    selected {len(sel):,} of {len(y_all):,} frames")
+
+            out = np.lib.format.open_memmap(
+                x_out, mode="w+", dtype=np.float32,
+                shape=(len(sel), 1024, 2))
+            chunk = 4096
+            for start in range(0, len(sel), chunk):
+                stop = min(start + chunk, len(sel))
+                out[start:stop] = f["X"][sel[start:stop]]
+                done = stop / len(sel)
+                el = time.time() - t0
+                print(f"\r    {done:6.1%}  {stop:>8,}/{len(sel):,}  "
+                      f"{el:5.0f}s elapsed, "
+                      f"~{el / max(done, 1e-9) - el:5.0f}s left", end="")
+            out.flush()
+            del out
+            print()
+
+        np.save(stage_dir / "radioml_y.npy", y_all[sel])
+        np.save(stage_dir / "radioml_z.npy", z_all[sel])
+        marker.write_text(f"{what}\n")
+        print(f"  staged in {(time.time() - t0) / 60:.1f} min")
+
+        # The 21 GB copy has served its purpose -- training reads the
+        # staged subsample. Reclaim the space.
+        if local_h5 is not None and h5_path == local_h5 and local_h5.exists():
+            local_h5.unlink()
+            print(f"  removed the local copy, {h5_size / 1e9:.0f} GB freed")
+
+
 def need_estimate(frames_per_cell):
     """Bytes the staged 2018 subsample will occupy: 24 classes x 26 SNRs."""
     return 24 * 26 * frames_per_cell * 1024 * 2 * 4
@@ -206,97 +329,7 @@ def main():
 
             import numpy as np
 
-            STAGE_DIR.mkdir(parents=True, exist_ok=True)
-            x_out = STAGE_DIR / "radioml_X.npy"
-            marker = STAGE_DIR / f"staged_{FRAMES_PER_CELL_2018}.txt"
-
-            if marker.exists() and x_out.exists():
-                print(f"already staged at {FRAMES_PER_CELL_2018} frames/cell, reusing")
-            else:
-                import h5py
-
-                need_gb = need_estimate(FRAMES_PER_CELL_2018) / 1e9
-                print(f"staging {FRAMES_PER_CELL_2018} frames per cell "
-                      f"(~{need_gb:.1f} GB) to {STAGE_DIR}")
-                if free_gb < need_gb * 1.3:
-                    raise SystemExit(
-                        f"only {free_gb:.0f} GB free locally, need ~{need_gb:.1f}. "
-                        "Lower FRAMES_PER_CELL_2018.")
-
-                # Staging reads about 12% of the rows, scattered across
-                # 21 GB. Over the Drive mount that is hundreds of thousands of
-                # small reads and it crawls. One bulk sequential copy to local
-                # disk first is far faster where there is room: the copy
-                # streams at the mount's full rate and every scattered read
-                # afterwards is local. Placed here, after the already-staged
-                # check, so a rerun that only needs the existing subsample does
-                # not copy 21 GB for nothing.
-                h5_size = h5.stat().st_size
-                local_h5 = pathlib.Path("/content") / h5.name
-                room = (h5_size + need_estimate(FRAMES_PER_CELL_2018)) / 1e9 * 1.15
-                if local_h5.exists() and local_h5.stat().st_size == h5_size:
-                    print(f"  HDF5 already on local disk, reusing it")
-                    h5 = local_h5
-                elif free_gb > room:
-                    print(f"  copying the HDF5 to local disk first "
-                          f"({h5_size / 1e9:.0f} GB, sequential -- much faster "
-                          f"than scattered reads over the mount)")
-                    t_copy = time.time()
-                    shutil.copyfile(h5, local_h5)
-                    el = max(time.time() - t_copy, 1e-9)
-                    print(f"  copied in {el / 60:.1f} min "
-                          f"({h5_size / 1e6 / el:.0f} MB/s)")
-                    h5 = local_h5
-                else:
-                    print(f"  only {free_gb:.0f} GB free locally, need "
-                          f"{room:.0f} to copy first. Reading over the mount "
-                          f"instead: slower, but it works.")
-                    local_h5 = None
-
-                t0 = time.time()
-                with h5py.File(h5, "r") as f:
-                    print("  reading labels and SNR ...")
-                    y_all = np.asarray(f["Y"][:]).argmax(axis=1).astype(np.int8)
-                    z_all = np.asarray(f["Z"][:]).ravel().astype(np.int16)
-                    print(f"    {len(y_all):,} rows, {y_all.max() + 1} classes, "
-                          f"SNR {z_all.min()}..{z_all.max()}")
-
-                    # radioml.select_cell_balanced is the single definition
-                    # of this selection, shared with src/export_subset.py, so a
-                    # subset staged here and one exported on the machine that
-                    # holds the data hold the same frames.
-                    import radioml
-
-                    sel = radioml.select_cell_balanced(
-                        y_all, z_all, FRAMES_PER_CELL_2018)
-                    print(f"    selected {len(sel):,} of {len(y_all):,} frames")
-
-                    out = np.lib.format.open_memmap(
-                        x_out, mode="w+", dtype=np.float32,
-                        shape=(len(sel), 1024, 2))
-                    chunk = 4096
-                    for start in range(0, len(sel), chunk):
-                        stop = min(start + chunk, len(sel))
-                        out[start:stop] = f["X"][sel[start:stop]]
-                        done = stop / len(sel)
-                        el = time.time() - t0
-                        print(f"\r    {done:6.1%}  {stop:>8,}/{len(sel):,}  "
-                              f"{el:5.0f}s elapsed, "
-                              f"~{el / max(done, 1e-9) - el:5.0f}s left", end="")
-                    out.flush()
-                    del out
-                    print()
-
-                np.save(STAGE_DIR / "radioml_y.npy", y_all[sel])
-                np.save(STAGE_DIR / "radioml_z.npy", z_all[sel])
-                marker.write_text(f"{FRAMES_PER_CELL_2018}\n")
-                print(f"  staged in {(time.time() - t0) / 60:.1f} min")
-
-                # The 21 GB copy has served its purpose -- training reads the
-                # staged subsample. Reclaim the space.
-                if local_h5 is not None and h5 == local_h5 and local_h5.exists():
-                    local_h5.unlink()
-                    print(f"  removed the local copy, {h5_size / 1e9:.0f} GB freed")
+            stage_from_hdf5(h5, STAGE_DIR, FRAMES_PER_CELL_2018, free_gb)
 
             data_path = str(STAGE_DIR)
             frames_per_cell = FRAMES_PER_CELL_2018

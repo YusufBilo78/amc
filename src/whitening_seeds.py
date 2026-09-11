@@ -21,6 +21,7 @@ reused across seeds -- only the split and the initialisation change.
 
 from __future__ import annotations
 
+import argparse
 import pathlib
 import sys
 import time
@@ -51,8 +52,34 @@ EPOCHS = 15
 
 
 def main() -> None:
-    print(f"{len(ALPHAS)} alphas x {len(SEEDS)} seeds = "
-          f"{len(ALPHAS) * len(SEEDS)} models\n")
+    p = argparse.ArgumentParser()
+    p.add_argument("--out-dir", default=None,
+                   help="where the .npz and the figure are written, and where "
+                        "a partial run is resumed from. Defaults to the "
+                        "repository root; point it at durable storage when the "
+                        "machine is not (a Colab runtime is reclaimed after 12 "
+                        "hours).")
+    p.add_argument("--epochs", type=int, default=EPOCHS)
+    p.add_argument("--patience", type=int, default=None,
+                   help="switch to early stopping on a validation split. "
+                        "Without it the original fixed-length recipe runs, "
+                        "which is what the numbers this rerun replaces used.")
+    p.add_argument("--seeds", type=int, default=len(SEEDS))
+    args = p.parse_args()
+
+    seeds = list(range(args.seeds))
+    epochs = args.epochs
+    out_dir = pathlib.Path(args.out_dir) if args.out_dir else ROOT
+    fig_dir = out_dir / "figures" if args.out_dir else FIGURES
+    out_dir.mkdir(parents=True, exist_ok=True)
+    fig_dir.mkdir(parents=True, exist_ok=True)
+    npz_path = out_dir / "whitening_seeds.npz"
+
+    print(f"{len(ALPHAS)} alphas x {len(seeds)} seeds = "
+          f"{len(ALPHAS) * len(seeds)} models")
+    print(f"max {epochs} epochs, protocol "
+          f"{'70/15/15 + early stopping' if args.patience else '70/30 fixed'}")
+    print(f"-> {npz_path}\n")
 
     src = domains.RadioMLDomain()
     a = src.load(CLASSES, SNRS, frames_per_cell=768, seed=0)
@@ -67,9 +94,25 @@ def main() -> None:
     q = CLASSES.index("16QAM")
 
     # [alpha, seed] -> metric
-    in_domain = np.full((len(ALPHAS), len(SEEDS)), np.nan)
-    cross = np.full((len(ALPHAS), len(SEEDS)), np.nan)
-    qam16 = np.full((len(ALPHAS), len(SEEDS)), np.nan)
+    in_domain = np.full((len(ALPHAS), len(seeds)), np.nan)
+    cross = np.full((len(ALPHAS), len(seeds)), np.nan)
+    qam16 = np.full((len(ALPHAS), len(seeds)), np.nan)
+
+    # Resume. The original wrote after every cell but never read the file back,
+    # so a run cut short restarted from zero -- against this repository's own
+    # rule that a sweep checkpoints *and* resumes. A cell counts as done when
+    # its in-domain entry is no longer NaN; the shape check refuses to resume
+    # into a file written by a differently-shaped configuration.
+    if npz_path.exists():
+        old = np.load(npz_path, allow_pickle=True)
+        if old["in_domain"].shape == in_domain.shape:
+            in_domain, cross = old["in_domain"], old["cross"]
+            qam16 = old["qam16"]
+            done = int(np.count_nonzero(~np.isnan(in_domain)))
+            if done:
+                print(f"resuming: {done}/{in_domain.size} models already done\n")
+        else:
+            print(f"{npz_path.name} has a different shape; starting over\n")
 
     header = (f"{'alpha':>6} {'seed':>5} {'in-dom':>8} {'cross':>8} "
               f"{'gap':>8} {'16QAM':>8} {'time':>7}")
@@ -82,15 +125,30 @@ def main() -> None:
         Xa = to_model_input(spectral_whiten(a_iq, alpha))
         Xb = to_model_input(spectral_whiten(b_iq, alpha))
 
-        for j, seed in enumerate(SEEDS):
+        for j, seed in enumerate(seeds):
+            if not np.isnan(in_domain[i, j]):
+                continue
             t0 = time.time()
             torch.manual_seed(seed)
             np.random.seed(seed)
 
-            tr, te = cnn.split(a["X"], a["y"], a["z"], test_fraction=0.3, seed=seed)
+            # With early stopping the monitored set must be a validation set:
+            # the test set is what gets reported, and choosing the stopping
+            # epoch on it would be selecting on the number being reported.
+            if args.patience:
+                tr, va, te = cnn.split(a["X"], a["y"], a["z"],
+                                       test_fraction=0.15, val_fraction=0.15,
+                                       seed=seed)
+                mon_X, mon_y = Xa[va], a["y"][va]
+            else:
+                tr, te = cnn.split(a["X"], a["y"], a["z"], test_fraction=0.3,
+                                   seed=seed)
+                mon_X, mon_y = Xa[te], a["y"][te]
+
             model = model_zoo.backbone(len(CLASSES))
-            model = cnn.train_model(model, Xa[tr], a["y"][tr], Xa[te],
-                                    a["y"][te], epochs=EPOCHS)
+            model = cnn.train_model(model, Xa[tr], a["y"][tr], mon_X, mon_y,
+                                    epochs=epochs, patience=args.patience,
+                                    grad_clip=5.0 if args.patience else None)
 
             pred_in = cnn.predict(model, Xa[te])
             pred_cross = cnn.predict(model, Xb)
@@ -106,8 +164,8 @@ def main() -> None:
                   f"{cross[i,j]:>8.3f} {in_domain[i,j]-cross[i,j]:>+8.3f} "
                   f"{qam16[i,j]:>8.3f} {time.time()-t0:>6.0f}s")
 
-            np.savez(ROOT / "whitening_seeds.npz", alphas=np.array(ALPHAS),
-                     seeds=np.array(SEEDS), in_domain=in_domain,
+            np.savez(npz_path, alphas=np.array(ALPHAS),
+                     seeds=np.array(seeds), in_domain=in_domain,
                      cross=cross, qam16=qam16)
         print()
 
@@ -136,7 +194,7 @@ def main() -> None:
         mean, std = data.mean(axis=1), data.std(axis=1)
         ax.errorbar(ALPHAS, mean, yerr=std, fmt="o-", lw=2, capsize=5,
                     color=color, markersize=7)
-        for j in range(len(SEEDS)):
+        for j in range(len(seeds)):
             ax.plot(ALPHAS, data[:, j], "o", ms=3, alpha=0.35, color="gray")
         ax.set_xlabel(r"whitening strength  $\alpha$")
         ax.set_title(title, fontsize=12, fontweight="bold")
@@ -149,12 +207,12 @@ def main() -> None:
     axes[1].axhline(0, ls=":", color="gray", lw=1)
 
     fig.suptitle(
-        f"Spectral whitening, {len(SEEDS)} seeds per point "
+        f"Spectral whitening, {len(seeds)} seeds per point "
         "(bars = 1 s.d., grey dots = individual runs)",
         fontsize=13,
     )
     fig.tight_layout(rect=(0, 0, 1, 0.93))
-    fig.savefig(FIGURES / "16_whitening_seeds.png", dpi=140)
+    fig.savefig(fig_dir / "16_whitening_seeds.png", dpi=140)
     plt.close(fig)
 
     # ------------------------------------------------------------- verdict
@@ -172,7 +230,7 @@ def main() -> None:
           f"{cross[1].mean():.3f} +-{cross[1].std():.3f} vs "
           f"alpha=0 {cross[0].mean():.3f} +-{cross[0].std():.3f}")
     print("=" * 70)
-    print("\nwrote figures/16_whitening_seeds.png")
+    print(f"\nwrote {fig_dir / '16_whitening_seeds.png'}")
 
 
 if __name__ == "__main__":

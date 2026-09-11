@@ -69,9 +69,15 @@ from torch.utils.data import DataLoader, Dataset
 # Config -- Table 2 of the paper, RML2016.10a column
 # ==========================================================================
 CFG = {
-    "data_path": "/content/drive/MyDrive/RML2016.10a_dict.pkl",
+    # Searched in order, then the whole Drive as a fallback. The file is not
+    # always where the first guess puts it.
+    "data_path": None,
     "save_dir": "/content/drive/MyDrive/RadioML/ICRNNA_faithful",
-    "seeds": [42, 43, 44, 45, 46],
+    # Three is enough to put an error bar on a single number and to say whether
+    # 63.24% is inside it. Each seed is 58 epochs at batch 32 over 154k frames,
+    # which is the better part of an hour; five would be most of a night for no
+    # extra answer. Add more if the three disagree.
+    "seeds": [42, 43, 44],
     "epochs": 58,            # Table 2: "Number of Epochs 58"
     "batch_size": 32,        # Table 2: 32 for 10a (the peer's code used 256)
     "lr": 1e-3,              # Table 2
@@ -88,6 +94,34 @@ CFG = {
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 os.makedirs(CFG["save_dir"], exist_ok=True)
 print(f"device {DEVICE} | target to reproduce: 63.24% on RML2016.10a")
+
+
+def find_pkl():
+    """Locate RML2016.10a_dict.pkl, wherever in Drive it ended up."""
+    import glob
+
+    hints = [
+        "/content/drive/MyDrive/RadioML/RML2016.10a_dict.pkl",
+        "/content/drive/MyDrive/RML2016.10a_dict.pkl",
+        "/content/drive/MyDrive/RadioML2016/RML2016.10a_dict.pkl",
+        "/content/RML2016.10a_dict.pkl",
+    ]
+    for h in hints:
+        if os.path.isfile(h):
+            return h
+    print("not at any of the usual paths; searching Drive ...")
+    found = glob.glob("/content/drive/MyDrive/**/RML2016.10a_dict.pkl",
+                      recursive=True)
+    if not found:
+        raise SystemExit(
+            "RML2016.10a_dict.pkl not found. Put it in Drive, or set "
+            "CFG['data_path'] to its path.")
+    return found[0]
+
+
+if CFG["data_path"] is None:
+    CFG["data_path"] = find_pkl()
+print(f"data   : {CFG['data_path']}")
 
 
 # ==========================================================================
@@ -307,16 +341,33 @@ def run_seed(seed):
 
 
 # ==========================================================================
+# Resume. A Colab runtime is reclaimed after 12 hours and this is an hour per
+# seed, so a seed already recorded in the results file is not run again. The
+# checkpoint has to be there too -- a JSON entry without its weights means the
+# run was interrupted between the two writes.
+RESULTS_PATH = os.path.join(CFG["save_dir"], "icrnna_faithful_results.json")
 results = []
+if os.path.isfile(RESULTS_PATH):
+    with open(RESULTS_PATH) as f:
+        prior = json.load(f).get("per_seed", [])
+    results = [r for r in prior
+               if os.path.isfile(os.path.join(
+                   CFG["save_dir"], f"icrnna_faithful_seed{r['seed']}.pt"))]
+    if results:
+        print(f"resuming: {len(results)} seed(s) already done "
+              f"({', '.join(str(r['seed']) for r in results)})")
+
+done = {r["seed"] for r in results}
 for sd in CFG["seeds"]:
+    if sd in done:
+        continue
     results.append(run_seed(sd))
     accs = [r["test_acc"] for r in results]
     out = {"config": CFG, "per_seed": results, "paper_target": 63.24,
            "summary": {"mean_test_acc": round(float(np.mean(accs)), 4),
                        "std_test_acc": round(float(np.std(accs)), 4),
                        "n_seeds": len(accs)}}
-    with open(os.path.join(CFG["save_dir"], "icrnna_faithful_results.json"),
-              "w") as f:
+    with open(RESULTS_PATH, "w") as f:
         json.dump(out, f, indent=2)
 
 m, s = out["summary"]["mean_test_acc"], out["summary"]["std_test_acc"]

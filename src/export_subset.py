@@ -70,6 +70,14 @@ def main() -> None:
     p.add_argument("--seed", type=int, default=42,
                    help="selection seed. Leave it alone unless you intend the "
                         "export to differ from what the Colab cell stages")
+    p.add_argument("--classes", default=None,
+                   help="comma-separated class names to keep, or 'shared' for "
+                        "the five that mean the same thing in every domain "
+                        "(BPSK, QPSK, 8PSK, 16QAM, 64QAM). Default: all 24")
+    p.add_argument("--all-frames", action="store_true",
+                   help="keep every frame of the selected classes rather than "
+                        "subsampling. Required for anything that must match a "
+                        "run done against the full file -- see the note below")
     args = p.parse_args()
 
     ds = radioml.RadioML()
@@ -84,12 +92,52 @@ def main() -> None:
         print(f"\nNOTE: asked for {args.frames_per_cell} per cell but only "
               f"{cell} exist. Every cell will be taken whole.")
 
-    out_dir = pathlib.Path(args.out) if args.out else \
-        ds.path.parent / f"upload_f{args.frames_per_cell}"
+    # Class filter. Ids stay in the file's own 24-class numbering so that
+    # `RadioML.load(classes=[...])` keeps working against the export unchanged.
+    if args.classes is None:
+        class_ids = None
+        tag = "all"
+    else:
+        import domains
+
+        wanted = (list(domains.SHARED_CLASSES) if args.classes == "shared"
+                  else [c.strip() for c in args.classes.split(",")])
+        unknown = [c for c in wanted if c not in radioml.CLASSES]
+        if unknown:
+            raise SystemExit(f"not RadioML 2018 class names: {unknown}\n"
+                             f"known: {', '.join(radioml.CLASSES)}")
+        class_ids = [radioml.CLASSES.index(c) for c in wanted]
+        tag = "-".join(wanted)
+        print(f"classes  : {len(wanted)} of {len(radioml.CLASSES)}  "
+              f"({', '.join(wanted)})  ids {class_ids}")
+
+    if args.out:
+        out_dir = pathlib.Path(args.out)
+    elif args.all_frames:
+        out_dir = ds.path.parent / f"upload_{tag}_allframes"
+    else:
+        out_dir = ds.path.parent / f"upload_f{args.frames_per_cell}"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    sel = radioml.select_cell_balanced(ds.labels, ds.snrs,
-                                       args.frames_per_cell, seed=args.seed)
+    if args.all_frames:
+        # Every frame of the selected classes, in the file's own order.
+        #
+        # This is what makes an export usable by an experiment whose other
+        # cells were computed against the full file. `RadioML.load` picks its
+        # frames with `rng.choice` over the positions within each (class, SNR)
+        # cell, so as long as the cell still holds all of them in the same
+        # order, the same call selects the same frames here as there. Export
+        # fewer and it silently selects different ones.
+        if class_ids is None:
+            raise SystemExit("--all-frames without --classes is the whole "
+                             "21 GB file; there is nothing to export.")
+        sel = np.flatnonzero(np.isin(ds.labels, class_ids))
+        print(f"keeping every frame of those classes (no subsampling)")
+    else:
+        sel = radioml.select_cell_balanced(ds.labels, ds.snrs,
+                                           args.frames_per_cell, seed=args.seed)
+        if class_ids is not None:
+            sel = sel[np.isin(ds.labels[sel], class_ids)]
     dtype = np.dtype(args.dtype)
     need = len(sel) * 1024 * 2 * dtype.itemsize
     free = shutil.disk_usage(out_dir).free
@@ -145,7 +193,9 @@ def main() -> None:
     counts = np.bincount(ds.labels[sel].astype(np.int64) * 1000
                          + (ds.snrs[sel].astype(np.int64) + 20) // 2)
     nz = counts[counts > 0]
-    print(f"\ncells: {len(nz)} (expect {ds.n_classes * len(ds.unique_snrs)}), "
+    n_classes_out = len(np.unique(ds.labels[sel]))
+    print(f"\ncells: {len(nz)} (expect "
+          f"{n_classes_out * len(ds.unique_snrs)}), "
           f"each holding {nz.min()}..{nz.max()} frames")
 
     total = sum(f.stat().st_size for f in out_dir.iterdir())
