@@ -52,8 +52,8 @@ describe the current model as "the published architecture".
 | `baseline_results.npz` | current — cumulants + SVM, no neural net involved |
 | `sink_vs_geometry.npz` | current — signal geometry, no model involved |
 | `overfit_2x2.json` | current — architecture comparison |
-| `train_backbone_rml2016_f1000_colab.npz` | **current** — ICRNNA on RML2016.10a, 3 seeds, 0.6223 overall / 0.9148 at SNR ≥ 10 dB. Lives in Drive, not yet committed |
-| `train_backbone_rml2018_f512_colab.npz` | **current** — ICRNNA on RadioML 2018.01A, 24 classes, 512 frames/cell, 3 seeds, 0.5699 overall / 0.8716 at SNR ≥ 10 dB. Lives in Drive, not yet committed |
+| `train_backbone_rml2016_f1000_colab.npz` | **current** — ICRNNA on RML2016.10a, 3 seeds, 0.6223 overall / 0.9148 at SNR ≥ 10 dB |
+| `train_backbone_rml2018_f512_colab.npz` | **current** — ICRNNA on RadioML 2018.01A, 24 classes, 512 frames/cell, 3 seeds, 0.5699 overall / 0.8716 at SNR ≥ 10 dB |
 
 Apart from one incomplete experiment and the two classification runs,
 **nothing else is measured on the current backbone.** That is the honest starting position, not an oversight. The

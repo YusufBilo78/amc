@@ -94,6 +94,7 @@ import torch
 
 import cnn
 import model_zoo
+import plots
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 FIGURES = ROOT / "figures"
@@ -306,50 +307,9 @@ def main() -> None:
     for s, a in zip(snrs, np.nanmean(curves, axis=0)):
         print(f"  {s:>7}     {a:.3f}")
 
-    # -------------------------------------------------------------- figures
-    mean_curve = np.nanmean(curves, axis=0)
-    std_curve = np.nanstd(curves, axis=0)
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.plot(snrs, mean_curve, "o-", lw=2, color="tab:blue", label="ICRNNA")
-    if len(seeds) > 1:
-        ax.fill_between(snrs, mean_curve - std_curve, mean_curve + std_curve,
-                        color="tab:blue", alpha=0.15)
-    ax.axhline(1 / n, ls=":", color="red", lw=1, label=f"chance ({1/n:.3f})")
-    ax.set_xlabel("SNR (dB)")
-    ax.set_ylabel("accuracy")
-    ax.set_ylim(0, 1.02)
-    ax.grid(alpha=0.3)
-    ax.legend()
-    ax.set_title(f"ICRNNA on {args.data}, {n} classes, {len(seeds)} seed(s)"
-                 + (" (band = 1 s.d.)" if len(seeds) > 1 else ""))
-    fig.tight_layout()
-    fig.savefig(fig_dir / f"29_{stem}_accuracy.png", dpi=140)
-    plt.close(fig)
-
-    cm = confusions.sum(axis=0).astype(float)
-    cm = cm / cm.sum(axis=1, keepdims=True).clip(min=1)
-    size = max(7, n * 0.55)
-    fig, ax = plt.subplots(figsize=(size + 1.5, size))
-    im = ax.imshow(cm, cmap="Blues", vmin=0, vmax=1)
-    ax.set_xticks(range(n))
-    ax.set_yticks(range(n))
-    ax.set_xticklabels(class_names, rotation=45, ha="right", fontsize=8)
-    ax.set_yticklabels(class_names, fontsize=8)
-    ax.set_xlabel("predicted")
-    ax.set_ylabel("true")
-    ax.set_title(f"ICRNNA on {args.data}, SNR >= {HIGH_SNR} dB "
-                 f"(acc {np.nanmean(high_snr):.3f})")
-    if n <= 14:
-        for r in range(n):
-            for c in range(n):
-                if cm[r, c] > 0.02:
-                    ax.text(c, r, f"{cm[r, c]:.2f}", ha="center", va="center",
-                            fontsize=6,
-                            color="white" if cm[r, c] > 0.5 else "black")
-    fig.colorbar(im, ax=ax, fraction=0.046)
-    fig.tight_layout()
-    fig.savefig(fig_dir / f"30_{stem}_confusion.png", dpi=140)
-    plt.close(fig)
+    plots.write_figures(curves, confusions, snrs, class_names,
+                        args.data, float(np.nanmean(high_snr)), stem,
+                        fig_dir, len(seeds), HIGH_SNR)
 
     print(f"\nwrote {npz_path}")
     print(f"wrote {fig_dir / f'29_{stem}_accuracy.png'}")

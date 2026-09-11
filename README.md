@@ -81,9 +81,13 @@ silences in the source audio both degrade to an unmodulated carrier, which no
 architecture can separate; ~0.92 is the practical ceiling this imposes and is
 where the plateau sits.
 
-**The .npz is in Drive, not yet in this repository.** It has to be committed
-before this row means anything to anyone else — a result nobody can look up
-later is a result nobody can check.
+Almost all of the remaining error is one cell. **WBFM is read as AM-DSB 60% of
+the time**, and that single cell is 64% of every misclassified frame at SNR ≥ 10
+dB; drop WBFM and the other ten classes sit at 0.968. This is the documented
+dataset artifact rather than a property of the model — both classes are
+generated from voice recordings, and during the silences in the source audio
+both collapse to an unmodulated carrier. QAM16 ↔ QAM64 accounts for most of the
+rest, at 0.06 and 0.08.
 
 ### Plain classification on RadioML 2018.01A
 
@@ -115,6 +119,33 @@ start from a competent classifier rather than a broken one.
 Wall clock: about 9–13 minutes per seed on a Colab GPU, including a one-off
 sequential copy of the 21 GB HDF5 to local disk and the staging of 512 frames
 per cell from it.
+
+#### Where the 2018 error goes, and why it is worth a look
+
+Pooling the three seeds at SNR ≥ 10 dB, **84.2% of all error mass lands inside
+the same modulation family** — using the taxonomy in `sink_class_24.py`, which
+was written before any of this was measured. If misclassifications were spread
+uniformly over the other 23 classes the share would be 16.6%, so this is 5.1×
+that baseline. Family-level recall is 1.000 for ASK, PSK and analog, 0.988 for
+QAM, and 0.896 for APSK.
+
+Two groups carry three quarters of it. The **with-carrier / suppressed-carrier
+analog pairs** (AM-DSB-WC ↔ AM-DSB-SC, AM-SSB-WC ↔ AM-SSB-SC) are 40.9%; drop
+those four classes and the remaining twenty sit at 0.909. **Confusion inside the
+QAM family** — mostly 64QAM ↔ 256QAM at 0.31 and 0.25 — is another 35.4%.
+
+The exceptions are the interesting part. Every cross-family leak above 0.02 is
+APSK → QAM *at matched constellation order*: 16APSK → 16QAM at 0.25, 64APSK →
+64QAM at 0.10, 128QAM ↔ 128APSK at 0.03 and 0.02. Where the model leaves the
+family it keeps the order.
+
+**This is not the sink experiment rerun.** That one holds a class out of
+training entirely and asks where an *unseen* modulation lands; this is ordinary
+in-distribution error on classes the model was trained on. The two are
+consistent, and the second is much weaker evidence than the first — errors
+falling between similar classes is what any classifier does. What is worth
+recording is the size of the effect and that the order-matched APSK → QAM leaks
+survive it. Open work item 3 is still open.
 
 ---
 
@@ -160,6 +191,7 @@ src/augment.py          augmentation transforms, including whitening
 src/model_zoo.py        ICRNNA, ResNet1D, GRU, Transformer, backbone()
 src/cnn.py              training loop, splits, evaluation
 src/train_backbone.py   plain classification on 2018 or 2016, current backbone
+src/plots.py            the run's two figures, rebuildable from a saved .npz
 src/crossdomain.py      the central train-on-A / test-on-B experiment
 src/whitening_*.py      whitening and its alpha sweep
 src/compare_methods.py  whitening against the literature baseline
