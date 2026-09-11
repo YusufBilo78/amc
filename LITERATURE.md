@@ -4,11 +4,15 @@
 against four specific claims, done with web search plus reading the full text
 of the papers that looked closest. It is not exhaustive.
 
-**Known blind spot:** much of the AMC literature sits behind IEEE Xplore, which
-was not accessible here. arXiv coverage is good for recent ML-flavoured work
-and poor for older or IEEE-only signal-processing work. "Not found" here means
-"not found in arXiv and open sources with these search terms", never "does not
-exist".
+**Known blind spot, corrected.** An earlier version of this file said IEEE
+Xplore "was not accessible here". That was a limit of the tooling that ran the
+searches, not of this project: NJIT holds an Xplore subscription, and the three
+papers added under Q4 below were downloaded through it. The accurate statement
+is narrower and still worth keeping — **the search behind Q1-Q3 was
+arXiv-weighted**, so coverage is good on recent ML-flavoured work and thin on
+older or Xplore-only signal-processing work, and **no systematic Xplore pass
+has been done yet**. "Not found" here means "not found with these search terms
+in the sources actually searched", never "does not exist".
 
 Four questions, one per claim this project makes.
 
@@ -189,6 +193,75 @@ Two facts worth internalising:
    an earlier search and confirmed in O'Shea's Table I as U(0.1, 0.4), means
    pulse-shaping variation is known to matter. That it *causes* a specific
    confusion between adjacent QAM orders is the part not seen elsewhere.
+
+### Q4 follow-up — three Xplore papers read in full (September 2026)
+
+Read end to end, not by abstract. Each one is a cross-domain AMC paper, and the
+useful thing is not any single result but **which domain difference each one
+varies**.
+
+- **Wang, Xing, Wang, Zhou, Hou & Jiao — "SigDA: A Superimposed Domain
+  Adaptation Framework for AMC".** *IEEE Trans. Wireless Communications* 23(10),
+  Oct 2024. Code and data at github.com/HantongXING/SigDA. The strongest of the
+  three and the most directly relevant. Its thesis is that prior work varies a
+  *single* domain-difference factor while real shifts superimpose several, so it
+  overlays them: **channel type, SNR, carrier frequency offset, sampling rate
+  offset**, plus sampling duration and whether the data was energy-normalised.
+  Adversarial alignment, so unlabelled target data is required at fit time.
+  Two findings worth carrying:
+  1. RML2016.10a -> RML2016.04c collapses to **11.58% on 11 classes** — chance.
+     A total cross-domain collapse between two *published* RadioML sets, which
+     is the cleanest available evidence that this failure is not an artifact of
+     a home-made generator. Their DA recovers >0 dB accuracy from 12.84% to
+     84.82%, and to 90.40% with their own backbone.
+  2. They generate AWGN / Rician / Rayleigh variants using RadioML's own public
+     generator (github.com/radioML/dataset) — a ready recipe for the third-domain
+     experiment in README "Open work" item 6.
+
+- **Deng, Li, Wang & Huang — "Cross-Domain AMC: A Multimodal-Information-Based
+  Progressive Unsupervised Domain Adaptation Network" (PMSPDMC).** *IEEE
+  Internet of Things Journal* 12(5), Mar 2025. Four modalities (IQ, amplitude-
+  phase, spectrum, combined) treated as separate source domains, aligned to the
+  target with a class-structure-aware MMD variant, then fused. **Its domain
+  shift is symbol rate alone** — 25 kHz source, 50 kHz target, every other
+  signal parameter held equal. Both domains simulated, Rician channel. Average
+  accuracy 94.67% against ~69.5% source-only; a DANN-based competitor
+  (CWDA-MR) already reaches ~93.2%, so the paper's own margin is 1.44 points.
+  Also introduces **partial domain adaptation** — target has fewer classes than
+  source, and the leftover "source outlier classes" cause negative transfer.
+  That is a cousin of the sink work's setup and a term worth having.
+
+- **Zhang, Yin, Yang, Wu & Zhao — "Unsupervised Domain Adaptation based
+  Modulation Classification for Overlapped Signals".** *DSA 2022*, two pages.
+  Applies DAN (Long et al., ICML 2015) to overlapped-signal AMC; **its domain
+  shift is the channel** — trained on AWGN, tested on COST207 multipath. Treat
+  with care: the method is off-the-shelf, the results section reports no
+  numbers in the body, and the conclusion section describes a different paper
+  entirely (jamming-signal classification with 15 CNN features). Cited here for
+  the factor table below and for CORAL / MK-MMD as vocabulary, not as support
+  for anything.
+
+**What the three have in common, and what they do not:**
+
+| paper | venue | domain difference varied |
+|---|---|---|
+| Zhang et al. 2022 | DSA (conf., 2 pp.) | channel (AWGN -> multipath) |
+| Wang et al. 2024 | IEEE TWC | channel type, SNR, CFO, sampling rate, duration, energy norm. |
+| Deng et al. 2025 | IEEE IoT J. | symbol rate |
+| **this project** | — | **pulse-shaping roll-off / spectral envelope** |
+
+All three require target-domain samples at fit time; whitening requires none.
+And **none of the three varies pulse shaping** — including SigDA, which
+explicitly sets out to superimpose the typical factors.
+
+Two caveats that have to travel with that observation:
+
+1. **Three papers are not a survey.** The honest phrasing is "I have not found
+   the paper that isolates it", never "the field has not looked".
+2. **SigDA's Table II was not verifiable here.** The tables in that PDF are
+   images and did not extract as text, so the factor list above comes from the
+   body prose. Table II lists the differences between the two RadioML sets and
+   must be read by eye before the claim is repeated anywhere.
 
 ---
 

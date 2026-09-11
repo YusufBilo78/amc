@@ -33,7 +33,38 @@ Dur. Nefes al. Soru sorsun.
 
 ---
 
-## 2. DEVAMINI İSTERSE — akan hali
+## 2. ESMER — sen aç, erken
+
+Açılışın hemen ardına. Kam ikinizi de tanıyacak; bunu sonradan çıkarmasındansa
+senden duyması her senaryoda daha iyi.
+
+> "One thing up front — you may already be talking to Esmer. We know each other,
+> we work on overlapping problems, and we talk about them. I'd rather you hear
+> that from me."
+
+*Baştan bir şey — Esmer'le de görüşüyor olabilirsiniz. Birbirimizi tanıyoruz,
+örtüşen problemler üzerinde çalışıyoruz, ve konuşuyoruz. Bunu benden duymanızı
+tercih ederim.*
+
+Ve hemen ardından çerçevele — örtüşme sorun değil, bölünmemiş olması sorun:
+
+> "We're not doing the same thing, and I don't think we should. I'd rather we
+> split it cleanly than both drift toward the middle — and I'd take your read on
+> where the line should be."
+
+*Aynı şeyi yapmıyoruz, yapmamız gerektiğini de düşünmüyorum. İkimizin de ortaya
+kaymasındansa işi net bölmeyi tercih ederim — çizginin nerede olması gerektiği
+konusunda sizin görüşünüzü alırım.*
+
+**Toplantıdan önce onu ara.** Asıl risk Kam'ın örtüşmeyi öğrenmesi değil,
+ikinizin aynı proje hakkında çelişen şeyler anlatması. Özellikle şunu netleştir:
+**16QAM çöküşünü mimari değişikliği çözmedi** — ICRNNA'da hâlâ 0.060, çözen şey
+beyazlatma. Mimari değişikliğinin çözdüğü şey ezberlemeydi. İki ayrı problem, ve
+ikiniz de aynı şekilde anlatın.
+
+---
+
+## 3. DEVAMINI İSTERSE — akan hali
 
 > "Modulation classification looks finished from the outside. Standard dataset,
 > everybody trains on it, everybody reports ninety-nine percent.
@@ -99,7 +130,7 @@ Dur. Nefes al. Soru sorsun.
 
 ---
 
-## 3. ASIL MESELE — ne istediğin
+## 4. ASIL MESELE — ne istediğin
 
 Bunu anlatının **sonuna** koy, başına değil.
 
@@ -122,7 +153,7 @@ Bunu anlatının **sonuna** koy, başına değil.
 
 ---
 
-## 4. SORACAKLARIN
+## 5. SORACAKLARIN
 
 1. > "Is this something worth pursuing here, and who should I be talking to?"
 
@@ -147,7 +178,7 @@ Bunu anlatının **sonuna** koy, başına değil.
 
 ---
 
-## 5. KAPANIŞ — son 30 saniye
+## 6. KAPANIŞ — son 30 saniye
 
 > "Whatever you think the right next step is — I'll take it. If that's a
 > different professor, a different topic, or reading a semester's worth of
@@ -157,7 +188,7 @@ Bunu anlatının **sonuna** koy, başına değil.
 
 ---
 
-## 6. SADECE SORARSA AÇACAĞIN KUTULAR
+## 7. SADECE SORARSA AÇACAĞIN KUTULAR
 
 Sen açmıyorsun. Sorarsa açıyorsun.
 
@@ -175,6 +206,28 @@ Sen açmıyorsun. Sorarsa açıyorsun.
 > intervening on one property and holding everything else fixed."
 
 *Öyle. WhiteNet benden önce ulaşmış, üstelik gerçek kayıtlarla — henüz eşleyemediğim kısım o. Standart olduğunu düşünmediğim şey onu nasıl bulduğum: tek bir özelliğe müdahale edip diğer her şeyi sabit tutarak.*
+
+### "What have you read?"
+> "Three cross-domain AMC papers properly, and a number of others by position
+> rather than in full. One varies the channel, one the symbol rate, and the
+> third — a TWC paper from last year — deliberately superimposes what it calls
+> the typical domain difference factors: channel type, SNR, carrier frequency
+> offset, sampling rate. None of them varies pulse shaping, which is the one
+> that moved my failure. I don't want to call that a gap in the field, because
+> three papers isn't a survey — but it's why I'd like your read on it."
+
+*Üç cross-domain AMC makalesini düzgün okudum, birkaçını da tam okumaktan çok
+alandaki yerinden biliyorum. Biri kanalı değiştiriyor, biri sembol hızını,
+üçüncüsü — geçen yıldan bir TWC makalesi — "tipik alan farkı faktörleri" dediği
+şeyleri bilerek üst üste bindiriyor: kanal tipi, SNR, taşıyıcı frekans kayması,
+örnekleme hızı. Hiçbiri darbe şekillendirmeyi değiştirmiyor, ki benim
+başarısızlığımı hareket ettiren oydu. Bunu alanda bir boşluk diye adlandırmak
+istemiyorum, çünkü üç makale bir tarama değil — ama bu yüzden görüşünüzü almak
+istiyorum.*
+
+**Üçü:** SigDA (IEEE TWC 2024, kanal/SNR/CFO/örnekleme hızı bindirilmiş) ·
+PMSPDMC (IEEE IoT J. 2025, sembol hızı) · Zhang ve ark. (DSA 2022, kanal).
+Detay `LITERATURE.md` Q4 devamında.
 
 ### "How did you do all this so fast?"
 > "I made the research decisions — what to test, what to rule out, when to stop
@@ -226,7 +279,7 @@ Emin değilsen:
 
 ---
 
-## 7. ASLA SÖYLEME
+## 8. ASLA SÖYLEME
 
 - **`CALL_NOTES.md` ve `MEETING_PREP*.md` içindeki hiçbir sayı** — hepsi atılmış
   omurganın (IQNet). Özellikle: cross 0.811, düzeltme sonrası 0.948, "%79
@@ -240,10 +293,15 @@ Emin değilsen:
   ezberlemeyi mimari çözdü, alanlar arası çöküşü beyazlatma çözüyor.
 - **Onun makalesini okumadıysan "makalenizi okudum"** — "your work on decision
   fusion" demek yeterli.
+- **"IEEE Xplore'a erişemedim"** — erişimin var, NJIT aboneliği üzerinden; okuduğun
+  üç makale de oradan indi. Doğru cümle: *"my search was arXiv-weighted and I
+  haven't done a proper Xplore pass yet."*
+- **"Bu alanda kimse darbe şekillendirmeye bakmamış"** — üç makalede yok, bu
+  "literatürde yok" demek değil. *"I haven't found the paper that isolates it."*
 
 ---
 
-## 8. HATIRLA
+## 9. HATIRLA
 
 **"I don't know" tam bir cümledir.** Bir hoca için "bilmiyorum, test etmedim"
 diyen öğrenci, her soruya cevabı olan öğrenciden daha güvenilirdir.
