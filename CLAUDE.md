@@ -40,9 +40,15 @@ reproduction, not from the paper. Checked against El-Haryqy et al., *Results in
 Engineering* 26 (2025) 104783, it differs in five places: conv1 kernel 5 vs 3,
 two max-pools vs one, one BatchNorm after the LSTM stack vs one per layer, no
 attention dropout or LayerNorm, and one dense layer of 128 at dropout 0.5 vs two
-of 128 and 64 at 0.3. A faithful build is in `colab/icrnna_faithful_2016.py`,
-unvalidated until it is run on RML2016.10a against the paper's 63.24%. Do not
-describe the current model as "the published architecture".
+of 128 and 64 at 0.3. Do not describe the current model as "the published
+architecture".
+
+The faithful build in `colab/icrnna_faithful_2016.py` has been run: 61.75% ±
+0.07 across three seeds against the paper's 63.24%, a 1.49-point deficit that
+is 21× the seed spread. It does not reproduce the paper either, and it scores
+slightly *below* the peer reproduction. Two of three seeds peaked at the final
+epoch, so the paper's 58-epoch budget may be what is binding; that is the one
+thing still untested. See README.
 
 ## Which results are current
 
@@ -53,6 +59,7 @@ describe the current model as "the published architecture".
 | `sink_vs_geometry.npz` | current — signal geometry, no model involved |
 | `overfit_2x2.json` | current — architecture comparison |
 | `train_backbone_rml2016_f1000_colab.npz` | **current** — ICRNNA on RML2016.10a, 3 seeds, 0.6223 overall / 0.9148 at SNR ≥ 10 dB |
+| `icrnna_faithful_results.json` | **current** — paper-faithful ICRNNA on RML2016.10a, 3 seeds, 61.75% ± 0.07 against the paper's 63.24% |
 | `train_backbone_rml2018_f512_colab.npz` | **current** — ICRNNA on RadioML 2018.01A, 24 classes, 512 frames/cell, 3 seeds, 0.5699 overall / 0.8716 at SNR ≥ 10 dB |
 
 Apart from one incomplete experiment and the two classification runs,
@@ -103,7 +110,7 @@ Run scripts from `src/`:
 2. Rerun the α sweep — α=0.75 is unverified for the current backbone
 3. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
 4. Port `dann.py` to the current backbone, or drop the comparison
-5. Validate `colab/icrnna_faithful_2016.py` against 63.24% — needs
-   `RML2016.10a_dict.pkl`, which is not on this machine
+5. ~~Validate `colab/icrnna_faithful_2016.py` against 63.24%~~ — done, 1.49
+   points under. Left over: is the 58-epoch budget what is binding?
 6. Real SDR capture when hardware and lab access allow. Both domains are
    synthetic today, and that is the single largest weakness of the work

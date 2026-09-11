@@ -147,6 +147,54 @@ falling between similar classes is what any classifier does. What is worth
 recording is the size of the effect and that the order-matched APSK → QAM leaks
 survive it. Open work item 3 is still open.
 
+### The faithful build, measured
+
+`colab/icrnna_faithful_2016.py`, built from the paper rather than from a
+reproduction, run under the paper's own hyperparameters — batch 32, 58 epochs,
+LR on validation *loss* with patience 5 — across three seeds
+(`icrnna_faithful_results.json`):
+
+| | |
+|---|---|
+| test accuracy | **61.75% ± 0.07** (61.79, 61.65, 61.82) |
+| paper (Table 3) | 63.24% |
+| difference | **−1.49 points** |
+| parameters | 794,827 (the paper states 0.79M) |
+
+The parameter count matches the paper's figure, which says the architecture was
+read correctly. The accuracy does not, and three things make that worth stating
+carefully rather than waving through:
+
+1. **The deficit is not seed noise.** Spread across seeds is 0.07 points; the
+   gap to the paper is 21× that. Whatever causes it is systematic.
+2. **The file's own verdict — "within ~1.5 points: the reproduction stands" —
+   passes by 0.01 points.** A threshold a result squeaks under is not evidence
+   that the result is fine. It is written here as a near miss, because that is
+   what it is.
+3. **Two of the three seeds peaked at the final epoch** (best epoch 58, 58, 55)
+   and early stopping at patience 15 never fired. The model was still improving
+   when the budget ran out, so the paper's "Number of Epochs 58" is binding
+   here. Whether the deficit is that budget rather than anything about the
+   architecture is a concrete, cheap test: raise the ceiling and see if it
+   closes. That is the one thing still open from this item.
+
+**Being faithful did not move it toward the paper.** Against the peer
+reproduction in `model_zoo.ICRNNA` on the same dataset: 61.75% versus 62.23%
+overall, and 90.76% versus 91.48% at SNR ≥ 10 dB. Correcting the five
+differences toward the published description moved the number half a point
+*away* from the published number.
+
+That comparison is suggestive and nothing more, because the two runs differ in
+protocol as well as architecture — batch 32 against 256, LR scheduled on
+validation loss against validation accuracy, 58 fixed epochs against 60 with
+patience 20, no mixed precision against AMP. It is not an architecture
+comparison and must not be reported as one. What it does rule out is the
+comfortable assumption that the five differences were holding the number back.
+
+The two curves are indistinguishable in the noise-limited regime — 33.19%
+against 33.29% averaged below 0 dB — and separate only across the plateau.
+Whatever differs between them acts where the signal is clean.
+
 ---
 
 ## Setup
@@ -320,10 +368,9 @@ also where re-measurement matters most.
   Engineering* 26 (2025) 104783, it differs in five places: conv1 kernel 5 vs 3,
   two max-pools vs one, one BatchNorm after the LSTM stack vs one per layer, no
   attention dropout or LayerNorm, and one dense layer of 128 at dropout 0.5 vs
-  two of 128 and 64 at 0.3. A faithful build is in
-  `colab/icrnna_faithful_2016.py`, unvalidated until run against the paper's
-  63.24% on RML2016.10a. **Do not call the current model "the published
-  architecture".**
+  two of 128 and 64 at 0.3. **Do not call the current model "the published
+  architecture".** The faithful build has now been run — see below — and does
+  not reproduce the paper either.
 - **`dann.py` has not been ported.** It builds on a legacy feature extractor
   with no equivalent in the current backbone, so its numbers are not comparable
   to the rest until it is rewritten.
@@ -338,8 +385,10 @@ also where re-measurement matters most.
 2. Rerun the α sweep — α=0.75 is unverified for the current backbone
 3. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
 4. Port `dann.py` to the current backbone, or drop the comparison
-5. Validate `colab/icrnna_faithful_2016.py` against 63.24% — needs
-   `RML2016.10a_dict.pkl`, not on this machine
+5. ~~Validate `colab/icrnna_faithful_2016.py` against 63.24%~~ — **done**, and
+   it lands 1.49 points under. See "The faithful build, measured" above. What
+   is left is the one open question it raised: whether the deficit is the
+   58-epoch budget.
 6. Add RadioML 2016.10a as a third domain (still synthetic, so it only partly
    addresses the weakness above). `rml2016.py` loads it and
    `train_backbone.py` trains on it; what does not exist yet is an
