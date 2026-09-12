@@ -12,6 +12,15 @@ Three tasks, matching the numbered list in README.md "Open work":
   "whitening_seeds"   item 2 -- rerun the alpha sweep with error bars, because
                       alpha=0.75 is unverified for the current backbone
   "faithful_2016"     item 5 -- run the paper-faithful ICRNNA against 63.24%
+  "faithful_budget"   the question item 5 left open: two of its three seeds
+                      peaked at the final epoch and early stopping never
+                      fired, so the paper's 58-epoch ceiling was binding.
+                      Same build, same everything else, a ceiling high enough
+                      for early stopping to decide. One seed, because the
+                      faithful run measured a seed spread of 0.07 points
+                      against a 1.49-point deficit -- one run is already 21x
+                      the noise, and a second buys nothing until the first
+                      says the gap moved.
 
 Item 5 needs only the 2016 pickle. The other two read RadioML 2018 and share
 the arrangements `run_training.py` already makes: repository on local disk,
@@ -40,7 +49,13 @@ import time
 # ==========================================================================
 # Config
 # ==========================================================================
-TASK = "compare_methods"   # "compare_methods" | "whitening_seeds" | "faithful_2016"
+TASK = "compare_methods"   # "compare_methods" | "whitening_seeds"
+                           # "faithful_2016" | "faithful_budget"
+
+# faithful_budget only. 150 is a ceiling, not a run length: early stopping at
+# patience 15 decides where it actually stops, which is the whole point.
+BUDGET_EPOCHS = 150
+BUDGET_SEEDS = 1
 
 SEEDS = 5                  # compare_methods: the table is 4 methods x 5 seeds
 EPOCHS = 60
@@ -108,6 +123,29 @@ def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     # ----------------------------------------------------------------------
+    if TASK == "faithful_budget":
+        hr("3. Is the 58-epoch ceiling what costs the 1.49 points?")
+        print(f"Same faithful build, ceiling raised to {BUDGET_EPOCHS}, "
+              f"{BUDGET_SEEDS} seed.")
+        print("A different budget is no longer the paper's protocol, so this")
+        print(f"writes to *_e{BUDGET_EPOCHS}.* and leaves the faithful run's")
+        print("results untouched.\n")
+        print("Worst case is the full ceiling at about 0.74 min an epoch, so")
+        print(f"budget up to {BUDGET_EPOCHS * 0.74 / 60:.1f} h; early stopping")
+        print("should land well short of that.\n")
+        env = dict(os.environ, AMC_FAITHFUL_EPOCHS=str(BUDGET_EPOCHS),
+                   AMC_FAITHFUL_SEEDS=str(BUDGET_SEEDS))
+        proc = subprocess.Popen(
+            [sys.executable, str(REPO_DIR / "colab" / "icrnna_faithful_2016.py")],
+            cwd=REPO_DIR / "colab", env=env, stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT, text=True, bufsize=1)
+        for line in proc.stdout:
+            print(line, end="")
+        proc.wait()
+        if proc.returncode != 0:
+            raise SystemExit(f"failed ({proc.returncode})")
+        return
+
     if TASK == "faithful_2016":
         hr("3. Open work item 5 -- the paper-faithful ICRNNA on RML2016.10a")
         print("Needs only the 2016 pickle; it finds it in Drive itself.")

@@ -78,6 +78,7 @@ CFG = {
     # which is the better part of an hour; five would be most of a night for no
     # extra answer. Add more if the three disagree.
     "seeds": [42, 43, 44],
+    # Overridden by AMC_FAITHFUL_SEEDS / AMC_FAITHFUL_EPOCHS below.
     "epochs": 58,            # Table 2: "Number of Epochs 58"
     "batch_size": 32,        # Table 2: 32 for 10a (the peer's code used 256)
     "lr": 1e-3,              # Table 2
@@ -91,9 +92,27 @@ CFG = {
     "n_pools": 1,            # see the ambiguity note in the docstring
 }
 
+# The epoch budget is the paper's, and on the 58-epoch run two of three seeds
+# peaked at the final epoch with early stopping never firing -- the ceiling was
+# binding, so the 1.49-point deficit may be that rather than anything about the
+# architecture. Raising it answers that, but a run with a different budget is no
+# longer the paper's protocol, so it writes to differently named files and does
+# not overwrite or resume into the faithful run's results. Same rule as the rest
+# of the repository: a different configuration gets a different output file.
+if os.environ.get("AMC_FAITHFUL_EPOCHS"):
+    CFG["epochs"] = int(os.environ["AMC_FAITHFUL_EPOCHS"])
+if os.environ.get("AMC_FAITHFUL_SEEDS"):
+    CFG["seeds"] = CFG["seeds"][: int(os.environ["AMC_FAITHFUL_SEEDS"])]
+
+TAG = "" if CFG["epochs"] == 58 else f"_e{CFG['epochs']}"
+
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 os.makedirs(CFG["save_dir"], exist_ok=True)
 print(f"device {DEVICE} | target to reproduce: 63.24% on RML2016.10a")
+if TAG:
+    print(f"epoch budget {CFG['epochs']} (the paper's is 58) -- this is the "
+          f"budget diagnostic,\nnot the faithful run. Writing to *{TAG}.*")
+print(f"seeds  : {CFG['seeds']}")
 
 
 def find_pkl():
@@ -331,7 +350,8 @@ def run_seed(seed):
 
     torch.save({"model_state_dict": best_state, "best_val_acc": best_acc,
                 "best_epoch": best_ep, "seed": seed},
-               os.path.join(CFG["save_dir"], f"icrnna_faithful_seed{seed}.pt"))
+               os.path.join(CFG["save_dir"],
+                            f"icrnna_faithful{TAG}_seed{seed}.pt"))
     del model, opt, sched
     torch.cuda.empty_cache()
     gc.collect()
@@ -345,14 +365,16 @@ def run_seed(seed):
 # seed, so a seed already recorded in the results file is not run again. The
 # checkpoint has to be there too -- a JSON entry without its weights means the
 # run was interrupted between the two writes.
-RESULTS_PATH = os.path.join(CFG["save_dir"], "icrnna_faithful_results.json")
+RESULTS_PATH = os.path.join(CFG["save_dir"],
+                            f"icrnna_faithful{TAG}_results.json")
 results = []
 if os.path.isfile(RESULTS_PATH):
     with open(RESULTS_PATH) as f:
         prior = json.load(f).get("per_seed", [])
     results = [r for r in prior
                if os.path.isfile(os.path.join(
-                   CFG["save_dir"], f"icrnna_faithful_seed{r['seed']}.pt"))]
+                   CFG["save_dir"],
+                   f"icrnna_faithful{TAG}_seed{r['seed']}.pt"))]
     if results:
         print(f"resuming: {len(results)} seed(s) already done "
               f"({', '.join(str(r['seed']) for r in results)})")
