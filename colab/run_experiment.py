@@ -7,8 +7,14 @@ Usage:
 
 Three tasks, matching the numbered list in README.md "Open work":
 
-  "compare_methods"   item 1 -- finish the last 3 cells of
-                      `compare_methods --arch ICRNNA`, which stands at 17/20
+  "compare_methods"   `compare_methods --arch ICRNNA`. The committed table is
+                      complete at 20/20 but two of the three cells with a
+                      recorded stopping epoch ran out of budget at the
+                      60-epoch ceiling rather than converging, and the other
+                      seventeen predate the recording. COMPARE_EPOCHS below
+                      raises the ceiling and COMPARE_TAG sends the result to
+                      its own file, because a table run to convergence is a
+                      different experiment from one that stopped at 60.
   "whitening_seeds"   item 2 -- rerun the alpha sweep with error bars, because
                       alpha=0.75 is unverified for the current backbone
   "faithful_2016"     item 5 -- run the paper-faithful ICRNNA against 63.24%
@@ -89,6 +95,14 @@ BUDGET_SEEDS = 1
 SEEDS = 5                  # compare_methods: the table is 4 methods x 5 seeds
 EPOCHS = 60
 PATIENCE = 20
+
+# compare_methods and whitening_seeds. The worst peak seen under the old
+# ceiling was epoch 53, which needs 73 to stop; 100 leaves room above that
+# without spending the budget on cells that were going to stop at 57 anyway.
+# The tag keeps this out of the committed 60-epoch file -- with it empty the
+# run would resume into that file, find 20 of 20 cells done, and do nothing.
+COMPARE_EPOCHS = 100
+COMPARE_TAG = "e100"
 
 BRANCH = "claude/iacs-modulation-classification-gwwv4m"
 REPO = "https://github.com/YusufBilo78/amc.git"
@@ -297,32 +311,25 @@ def main():
 
     # ----------------------------------------------------------------------
     if TASK == "compare_methods":
-        hr("4. Open work item 1 -- the last 3 cells of compare_methods")
-        name = "compare_methods_ICRNNA_es.npz"
-        src_npz, dst_npz = REPO_DIR / name, OUT_DIR / name
-
-        # Seed the output directory from the repository's copy, unless a
-        # previous run of this cell already left a further-along one there.
-        if dst_npz.exists():
+        hr("4. compare_methods, rerun to convergence")
+        name = f"compare_methods_ICRNNA_es_{COMPARE_TAG}.npz"
+        print(f"Ceiling {COMPARE_EPOCHS} instead of 60, writing to {name}.")
+        print("The committed 60-epoch table is left alone: it is a different")
+        print("experiment, and two of its measured cells stopped because the")
+        print("budget ended rather than because they had converged.\n")
+        print(f"Twenty cells. Expect roughly 3 hours -- early stopping will")
+        print("end many of them well before the ceiling.\n")
+        if (OUT_DIR / name).exists():
             import numpy as np
 
-            a = np.load(dst_npz)["in_domain"]
-            b = np.load(src_npz)["in_domain"]
-            done_a = int(np.count_nonzero(~np.isnan(a)))
-            done_b = int(np.count_nonzero(~np.isnan(b)))
-            print(f"{name}: {done_a}/{a.size} cells in Drive, "
-                  f"{done_b}/{b.size} in the repository")
-            if done_b > done_a:
-                shutil.copyfile(src_npz, dst_npz)
-                print("  repository copy is further along; using that")
-        else:
-            shutil.copyfile(src_npz, dst_npz)
-            print(f"seeded {dst_npz} from the repository "
-                  f"({src_npz.stat().st_size / 1024:.0f} KB)")
+            done = int(np.count_nonzero(~np.isnan(
+                np.load(OUT_DIR / name)["in_domain"])))
+            print(f"resuming: {done}/20 cells already in Drive\n")
 
         cmd = [sys.executable, "compare_methods.py", "--arch", "ICRNNA",
-               "--seeds", str(SEEDS), "--epochs", str(EPOCHS),
-               "--patience", str(PATIENCE), "--out-dir", str(OUT_DIR)]
+               "--seeds", str(SEEDS), "--epochs", str(COMPARE_EPOCHS),
+               "--patience", str(PATIENCE), "--tag", COMPARE_TAG,
+               "--out-dir", str(OUT_DIR)]
 
     elif TASK == "whitening_seeds":
         hr("4. Open work item 2 -- the alpha sweep, with error bars")
@@ -330,8 +337,9 @@ def main():
         print("per point. This reruns all five alphas across several seeds on")
         print("the current backbone, which is what makes the claim checkable.\n")
         cmd = [sys.executable, "whitening_seeds.py",
-               "--seeds", str(SEEDS), "--epochs", str(EPOCHS),
-               "--patience", str(PATIENCE), "--out-dir", str(OUT_DIR)]
+               "--seeds", str(SEEDS), "--epochs", str(COMPARE_EPOCHS),
+               "--patience", str(PATIENCE), "--tag", COMPARE_TAG,
+               "--out-dir", str(OUT_DIR)]
     else:
         raise SystemExit(f"unknown TASK {TASK!r}")
 

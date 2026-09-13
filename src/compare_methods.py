@@ -92,6 +92,13 @@ def main() -> None:
     p.add_argument("--arch", choices=("ICRNNA", "IQNet"), default="ICRNNA")
     p.add_argument("--seeds", type=int, default=len(SEEDS))
     p.add_argument("--epochs", type=int, default=EPOCHS)
+    p.add_argument("--tag", default="",
+                   help="appended to the output filenames. A run with "
+                        "different settings has to write a different file, or "
+                        "two configurations stop being comparable and a resume "
+                        "silently mixes them. The epoch ceiling is the case "
+                        "this exists for: a table run to convergence is not "
+                        "the same experiment as one that stopped at 60.")
     p.add_argument("--out-dir", default=None,
                    help="where the .npz and the figure are written, and where "
                         "a partial run is resumed from. Defaults to the "
@@ -112,6 +119,8 @@ def main() -> None:
     # numbers in the README are not silently overwritten by a different setup.
     tag = ("" if args.arch == "IQNet" and args.patience is None
            else f"_{args.arch}" + ("_es" if args.patience else ""))
+    if args.tag:
+        tag += f"_{args.tag}"
     out_dir = pathlib.Path(args.out_dir) if args.out_dir else ROOT
     fig_dir = out_dir / "figures" if args.out_dir else FIGURES
     out_dir.mkdir(parents=True, exist_ok=True)

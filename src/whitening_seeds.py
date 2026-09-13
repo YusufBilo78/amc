@@ -59,6 +59,10 @@ def main() -> None:
                         "repository root; point it at durable storage when the "
                         "machine is not (a Colab runtime is reclaimed after 12 "
                         "hours).")
+    p.add_argument("--tag", default="",
+                   help="appended to the output filename, so a run with a "
+                        "different epoch ceiling does not overwrite or resume "
+                        "into one that stopped somewhere else")
     p.add_argument("--epochs", type=int, default=EPOCHS)
     p.add_argument("--patience", type=int, default=None,
                    help="switch to early stopping on a validation split. "
@@ -73,7 +77,7 @@ def main() -> None:
     fig_dir = out_dir / "figures" if args.out_dir else FIGURES
     out_dir.mkdir(parents=True, exist_ok=True)
     fig_dir.mkdir(parents=True, exist_ok=True)
-    npz_path = out_dir / "whitening_seeds.npz"
+    npz_path = out_dir / f"whitening_seeds{'_' + args.tag if args.tag else ''}.npz"
 
     print(f"{len(ALPHAS)} alphas x {len(seeds)} seeds = "
           f"{len(ALPHAS) * len(seeds)} models")
@@ -225,7 +229,8 @@ def main() -> None:
         fontsize=13,
     )
     fig.tight_layout(rect=(0, 0, 1, 0.93))
-    fig.savefig(fig_dir / "16_whitening_seeds.png", dpi=140)
+    fig.savefig(fig_dir / f"16_whitening_seeds{'_' + args.tag if args.tag else ''}.png",
+                dpi=140)
     plt.close(fig)
 
     # ------------------------------------------------------------- verdict
@@ -243,7 +248,7 @@ def main() -> None:
           f"{cross[1].mean():.3f} +-{cross[1].std():.3f} vs "
           f"alpha=0 {cross[0].mean():.3f} +-{cross[0].std():.3f}")
     print("=" * 70)
-    print(f"\nwrote {fig_dir / '16_whitening_seeds.png'}")
+    print(f"\nwrote {npz_path}")
 
 
 if __name__ == "__main__":
