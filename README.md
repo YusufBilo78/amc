@@ -232,11 +232,46 @@ patience been 21, the committed run would have been cut off at the ceiling and
 nothing in the file would have said so. Sixty epochs is not a comfortable
 default for this configuration; it happened to be enough.
 
-The batch-256 regime converges far faster per update than the faithful build's
-batch 32, so the 14× arithmetic above turned out not to matter here. It does
-not follow that it does not matter on 2018, which is a harder problem — 24
-classes against 11, 1024-sample frames against 128 — and where more epochs, not
-fewer, would be the expectation. **2018 has not been checked.**
+#### 2018 converged too, with room to spare
+
+Same check at a 200-epoch ceiling
+(`train_backbone_rml2018_f512_colab_e200.npz`, one seed): **best epoch 26,
+early stop at 46**, against the committed run's ceiling of 60 — fourteen epochs
+of margin. Bit-identical to that run's seed 0 again, 0.561637 overall and
+0.856546 at SNR ≥ 10 dB in both. **Both committed classification results are
+measurements, not floors.**
+
+2018 converged *sooner* in epochs than 2016 despite being the harder problem,
+which is the wrong way round until the unit is fixed:
+
+| | train frames | steps/epoch | best epoch | gradient updates |
+|---|---|---|---|---|
+| 2016, 11 classes, 128 samples | 154,000 | 601 | 39 | **23,439** |
+| 2018, 24 classes, 1024 samples | 223,392 | 872 | 26 | **22,672** |
+
+Two datasets differing in class count and in sequence length by a factor of
+eight, converging within 3% of each other in *updates*. Under this optimizer
+what the model needs is about 23k steps, and the epoch count is just that
+number divided by however many batches the dataset happens to make.
+
+#### Which makes the 60-epoch ceiling a problem for the sweeps
+
+`compare_methods.py` and `whitening_seeds.py` train on the five shared classes:
+99,840 frames, 69,888 after the split, **273 steps per epoch**. At 23k updates
+that is **84 epochs** — above the 60 both are usually run with.
+
+That is an extrapolation, not a measurement. Five classes is a much easier
+problem than eleven or twenty-four and may well converge in far fewer updates.
+But the consequence if it does not is worse here than for a single accuracy:
+every number those files report is a *difference between two cells*, so one
+cell stopped at the ceiling does not make the comparison low, it makes it
+meaningless.
+
+Both now record `best_epochs` and refuse to report quietly: a cell that peaked
+at the ceiling is named as it happens and again in a warning above the summary
+table. The three cells still missing from `compare_methods_ICRNNA_es.npz` will
+therefore answer the question for the seventeen that are already in it — those
+predate the recording and are stored as NaN.
 
 **Being faithful did not move it toward the paper.** Against the peer
 reproduction in `model_zoo.ICRNNA` on the same dataset: 61.75% versus 62.23%
@@ -441,23 +476,21 @@ also where re-measurement matters most.
 
 ## Open work
 
-1. **Check whether the 2018 classification run converged.** The 2016 one did,
-   but with a single epoch of margin against the 60-epoch ceiling, and 2018 is
-   the harder problem. Until this is answered, anything measured under the same
-   ceiling — including items 2 and 3 below — may be comparing floors.
-2. Finish the last 3 cells of `compare_methods --arch ICRNNA`
-3. Rerun the α sweep — α=0.75 is unverified for the current backbone
-4. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
-5. Port `dann.py` to the current backbone, or drop the comparison
-6. Add RadioML 2016.10a as a third domain (still synthetic, so it only partly
+1. Finish the last 3 cells of `compare_methods --arch ICRNNA`. They now record
+   where training stopped, which also settles whether the seventeen already in
+   the file converged — see "Which makes the 60-epoch ceiling a problem" above.
+2. Rerun the α sweep — α=0.75 is unverified for the current backbone
+3. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
+4. Port `dann.py` to the current backbone, or drop the comparison
+5. Add RadioML 2016.10a as a third domain (still synthetic, so it only partly
    addresses the weakness above). `rml2016.py` loads it and
    `train_backbone.py` trains on it; what does not exist yet is an
    `RML2016Domain` for the cross-domain scripts, because 2016's 128-sample
    frames and 2018's 1024 have to be reconciled first and that is a decision,
    not a detail
-7. Real SDR capture when hardware and lab access allow
+6. Real SDR capture when hardware and lab access allow
 
 **Closed.** Validate `colab/icrnna_faithful_2016.py` against 63.24% — at the
 paper's 58-epoch ceiling it lands 1.49 points under; trained to convergence it
-reaches 63.21%. Check whether the 2016 classification run converged — it did,
-best epoch 39, one epoch inside the ceiling.
+reaches 63.21%. Check whether the two classification runs converged — both did,
+best epoch 39 on 2016 and 26 on 2018.

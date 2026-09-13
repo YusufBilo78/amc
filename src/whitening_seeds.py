@@ -97,6 +97,10 @@ def main() -> None:
     in_domain = np.full((len(ALPHAS), len(seeds)), np.nan)
     cross = np.full((len(ALPHAS), len(seeds)), np.nan)
     qam16 = np.full((len(ALPHAS), len(seeds)), np.nan)
+    # See the note in compare_methods.py: this sweep reports differences
+    # between cells, so a cell that stopped at the ceiling rather than because
+    # it converged makes the comparison meaningless rather than merely low.
+    best_epochs = np.full((len(ALPHAS), len(seeds)), np.nan)
 
     # Resume. The original wrote after every cell but never read the file back,
     # so a run cut short restarted from zero -- against this repository's own
@@ -108,6 +112,8 @@ def main() -> None:
         if old["in_domain"].shape == in_domain.shape:
             in_domain, cross = old["in_domain"], old["cross"]
             qam16 = old["qam16"]
+            if "best_epochs" in old.files:
+                best_epochs = old["best_epochs"]
             done = int(np.count_nonzero(~np.isnan(in_domain)))
             if done:
                 print(f"resuming: {done}/{in_domain.size} models already done\n")
@@ -156,6 +162,10 @@ def main() -> None:
             acc_cross = accuracy_by_snr(pred_cross, b["y"], b["z"], SNRS)
 
             mask = (b["z"] >= 10) & (b["y"] == q)
+            best_epochs[i, j] = getattr(model, "best_epoch", np.nan)
+            if args.patience and not getattr(model, "stopped_early", True):
+                print(f"  NOT converged: peaked at the {epochs}-epoch ceiling. "
+                      f"This cell's accuracy is a floor.")
             in_domain[i, j] = float(np.nanmean(acc_in[high]))
             cross[i, j] = float(np.nanmean(acc_cross[high]))
             qam16[i, j] = float((pred_cross[mask] == q).mean())
@@ -166,7 +176,8 @@ def main() -> None:
 
             np.savez(npz_path, alphas=np.array(ALPHAS),
                      seeds=np.array(seeds), in_domain=in_domain,
-                     cross=cross, qam16=qam16)
+                     cross=cross, qam16=qam16, best_epochs=best_epochs,
+                     epoch_ceiling=epochs)
         print()
 
     print(f"total {(time.time()-t_start)/60:.1f} min\n")

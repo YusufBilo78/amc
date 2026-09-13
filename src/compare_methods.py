@@ -147,6 +147,15 @@ def main() -> None:
     cross = np.full((len(METHODS), len(SEEDS)), np.nan)
     qam16 = np.full((len(METHODS), len(SEEDS)), np.nan)
     curves = np.full((len(METHODS), len(SEEDS), len(SNRS)), np.nan)
+    # Where each cell's training stopped. A cell that peaked at the ceiling did
+    # not converge and its accuracy is a floor -- and since every number this
+    # file reports is a *difference* between two cells, one floor among them is
+    # enough to make the comparison meaningless. The 2016 and 2018
+    # classification runs both converged at about 23k gradient updates; this
+    # sweep trains on 69,888 frames at batch 256, so 23k updates would be ~85
+    # epochs, above the 60 this is usually run with. Whether a 5-class problem
+    # needs as many is exactly what these entries will say.
+    best_epochs = np.full((len(METHODS), len(SEEDS)), np.nan)
 
     # Resume. Every cell is written to disk as soon as it finishes, so a run
     # cut short by a flat battery or a reboot picks up where it stopped rather
@@ -158,6 +167,8 @@ def main() -> None:
         if old["in_domain"].shape == in_domain.shape:
             in_domain, cross = old["in_domain"], old["cross"]
             qam16, curves = old["qam16"], old["curves"]
+            if "best_epochs" in old.files:
+                best_epochs = old["best_epochs"]
             done = int(np.count_nonzero(~np.isnan(in_domain)))
             if done:
                 print(f"resuming: {done}/{in_domain.size} models already done\n")
@@ -204,6 +215,10 @@ def main() -> None:
             acc_cross = accuracy_by_snr(pred_cross, b["y"], b["z"], SNRS)
 
             mask = (b["z"] >= 10) & (b["y"] == q)
+            best_epochs[i, j] = getattr(model, "best_epoch", np.nan)
+            if args.patience and not getattr(model, "stopped_early", True):
+                print(f"  NOT converged: peaked at the {EPOCHS}-epoch ceiling. "
+                      f"This cell's accuracy is a floor.")
             in_domain[i, j] = float(np.nanmean(acc_in[high]))
             cross[i, j] = float(np.nanmean(acc_cross[high]))
             qam16[i, j] = float((pred_cross[mask] == q).mean())
@@ -217,10 +232,19 @@ def main() -> None:
                      methods=np.array([m[0] for m in METHODS]),
                      seeds=np.array(SEEDS), in_domain=in_domain,
                      cross=cross, qam16=qam16, curves=curves,
-                     snrs=np.array(SNRS))
+                     snrs=np.array(SNRS), best_epochs=best_epochs,
+                     epoch_ceiling=EPOCHS)
         print()
 
     print(f"total {(time.time()-t_start)/60:.1f} min\n")
+
+    at_ceiling = int(np.count_nonzero(best_epochs >= EPOCHS))
+    if at_ceiling:
+        print(f"WARNING: {at_ceiling} cell(s) peaked at the {EPOCHS}-epoch "
+              f"ceiling and did not converge.\n"
+              f"Every number below is a difference between two cells, so one "
+              f"floor is enough to\nmake the comparison meaningless. Rerun "
+              f"with a higher --epochs.\n")
 
     gap = in_domain - cross
     print(f"{'method':<24} {'in-domain':>15} {'cross-domain':>15} "
