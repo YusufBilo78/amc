@@ -12,6 +12,13 @@ Three tasks, matching the numbered list in README.md "Open work":
   "whitening_seeds"   item 2 -- rerun the alpha sweep with error bars, because
                       alpha=0.75 is unverified for the current backbone
   "faithful_2016"     item 5 -- run the paper-faithful ICRNNA against 63.24%
+  "converged_2016"    item 7 -- the 2016 classification run again, with a
+                      ceiling high enough that early stopping decides and the
+                      stopping epoch recorded. The existing result used a
+                      60-epoch ceiling and never recorded where it stopped, so
+                      whether it converged is unknown and its accuracy may be a
+                      floor. Writes to its own file; the existing one is left
+                      alone either way.
   "faithful_budget"   the question item 5 left open: two of its three seeds
                       peaked at the final epoch and early stopping never
                       fired, so the paper's 58-epoch ceiling was binding.
@@ -51,6 +58,14 @@ import time
 # ==========================================================================
 TASK = "compare_methods"   # "compare_methods" | "whitening_seeds"
                            # "faithful_2016" | "faithful_budget"
+                           # "converged_2016"
+
+# converged_2016 only. 300 is a ceiling, not a run length. One seed: this asks
+# where training stops, not what the accuracy is to three decimals -- if the
+# answer is "well short of 60" the existing result stands and nothing more is
+# needed, and if it is "at the ceiling" one seed has already settled it.
+CONVERGE_EPOCHS = 300
+CONVERGE_SEEDS = 1
 
 # faithful_budget only. 150 is a ceiling, not a run length: early stopping at
 # patience 15 decides where it actually stops, which is the whole point.
@@ -68,6 +83,9 @@ REPO_DIR = pathlib.Path("/content/amc")
 OUT_DIR = DRIVE / "amc-results"
 STAGE_DIR = pathlib.Path("/content/amc-shared5")
 
+PKL_HINTS_2016 = ("RadioML/RML2016.10a_dict.pkl",
+                  "RML2016.10a_dict.pkl",
+                  "RadioML2016/RML2016.10a_dict.pkl")
 H5_HINTS = ("RadioML/GOLD_XYZ_OSC.0001_1024.hdf5",
             "RadioML2018/GOLD_XYZ_OSC.0001_1024.hdf5",
             "GOLD_XYZ_OSC.0001_1024.hdf5")
@@ -123,6 +141,41 @@ def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     # ----------------------------------------------------------------------
+    if TASK == "converged_2016":
+        hr("3. Did the 2016 run converge, or did the ceiling stop it?")
+        print("Same protocol as the committed result -- 11 classes, all 1000")
+        print(f"frames per cell, 70/15/15, patience 20 -- with the ceiling at")
+        print(f"{CONVERGE_EPOCHS} instead of 60 and the stopping epoch recorded.")
+        print("\nIt writes to train_backbone_rml2016_f1000_colab_e"
+              f"{CONVERGE_EPOCHS}.npz, so the")
+        print("existing result is untouched whichever way this comes out.")
+        print("\nAbout 4 s an epoch on 2016, so the full ceiling is ~20 min.\n")
+
+        pkl = None
+        for hint in PKL_HINTS_2016:
+            if (DRIVE / hint).is_file():
+                pkl = DRIVE / hint
+                break
+        if pkl is None:
+            found = list(DRIVE.rglob("RML2016.10a_dict.pkl"))
+            if not found:
+                raise SystemExit("RML2016.10a_dict.pkl not found in Drive.")
+            pkl = found[0]
+        print(f"data: {pkl}\n")
+
+        cmd = [sys.executable, "train_backbone.py", "--data", "rml2016",
+               "--data-path", str(pkl.parent), "--frames-per-cell", "1000",
+               "--epochs", str(CONVERGE_EPOCHS), "--patience", "20",
+               "--seeds", str(CONVERGE_SEEDS),
+               "--tag", f"colab_e{CONVERGE_EPOCHS}", "--out-dir", str(OUT_DIR)]
+        print(" ".join(cmd) + "\n")
+        t0 = time.time()
+        sh(cmd, cwd=SRC)
+        hr(f"Done in {(time.time() - t0) / 60:.1f} min")
+        print("Read the per-seed line: 'converged' means the existing 60-epoch")
+        print("result stands. 'NOT converged' means it was a floor.")
+        return
+
     if TASK == "faithful_budget":
         hr("3. Is the 58-epoch ceiling what costs the 1.49 points?")
         print(f"Same faithful build, ceiling raised to {BUDGET_EPOCHS}, "
