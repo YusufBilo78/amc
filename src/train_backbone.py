@@ -189,6 +189,14 @@ def run_seed(X, y, z, class_names, seed, args):
 
     overall = float((pred == y[te]).mean())
     high_acc = float((pred[high] == y[te][high]).mean())
+
+    if getattr(model, "stopped_early", False):
+        print(f"  converged: best epoch {model.best_epoch} of "
+              f"{model.epoch_ceiling}, then {args.patience} without improvement")
+    else:
+        print(f"  NOT converged: best epoch {model.best_epoch} of "
+              f"{model.epoch_ceiling} -- the ceiling stopped this run, not the "
+              f"model.\n  The accuracy below is a floor. Raise --epochs.")
     return curve, conf, overall, high_acc, model
 
 
@@ -248,6 +256,7 @@ def main() -> None:
     n = len(class_names)
     overall = np.full(len(seeds), np.nan)
     high_snr = np.full(len(seeds), np.nan)
+    best_epochs = np.full(len(seeds), np.nan)
     curves = np.full((len(seeds), len(snrs)), np.nan)
     confusions = np.zeros((len(seeds), n, n), dtype=np.int64)
 
@@ -260,6 +269,8 @@ def main() -> None:
                 old["curves"].shape == curves.shape:
             overall, high_snr = old["overall"], old["high"]
             curves, confusions = old["curves"], old["confusions"]
+            if "best_epochs" in old.files:
+                best_epochs = old["best_epochs"]
             done = int(np.count_nonzero(~np.isnan(overall)))
             if done:
                 print(f"resuming: {done}/{len(seeds)} seeds already done\n")
@@ -268,7 +279,7 @@ def main() -> None:
 
     def save():
         np.savez(npz_path, overall=overall, high=high_snr, curves=curves,
-                 confusions=confusions, snrs=snrs,
+                 confusions=confusions, snrs=snrs, best_epochs=best_epochs,
                  class_names=np.array(class_names), dataset=args.data,
                  frames_per_cell=args.frames_per_cell, epochs=args.epochs,
                  patience=args.patience, high_snr_threshold=HIGH_SNR)
@@ -282,6 +293,7 @@ def main() -> None:
                                                      seed, args)
         curves[j], confusions[j] = curve, conf
         overall[j], high_snr[j] = acc, acc_high
+        best_epochs[j] = model.best_epoch
         print(f"  test {acc:.4f} overall, {acc_high:.4f} at SNR >= {HIGH_SNR} dB"
               f"   ({(time.time() - t_seed) / 60:.1f} min)\n")
         save()
@@ -291,6 +303,12 @@ def main() -> None:
 
     # ------------------------------------------------------------------
     print(f"{'=' * 66}")
+    at_ceiling = int(np.count_nonzero(best_epochs >= args.epochs))
+    if at_ceiling:
+        print(f"\n  WARNING: {at_ceiling} of {len(seeds)} seed(s) peaked at the "
+              f"{args.epochs}-epoch ceiling. Those runs did not converge and "
+              f"their accuracies are floors.\n")
+
     print(f"{len(seeds)} seed(s): overall {np.nanmean(overall):.4f} "
           f"+- {np.nanstd(overall):.4f}   |   "
           f"SNR >= {HIGH_SNR} dB {np.nanmean(high_snr):.4f} "

@@ -1,0 +1,56 @@
+{
+  "config": {
+    "data_path": "/content/drive/MyDrive/RadioML/RML2016.10a_dict.pkl",
+    "save_dir": "/content/drive/MyDrive/RadioML/ICRNNA_faithful",
+    "seeds": [
+      42
+    ],
+    "epochs": 150,
+    "batch_size": 32,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "sched_factor": 0.2,
+    "sched_patience": 5,
+    "min_lr": 1e-06,
+    "early_stop_patience": 15,
+    "num_classes": 11,
+    "n_pools": 1
+  },
+  "per_seed": [
+    {
+      "seed": 42,
+      "val_acc": 63.1818,
+      "test_acc": 63.2121,
+      "best_epoch": 107,
+      "per_snr_acc": {
+        "-20": 9.82,
+        "-18": 9.21,
+        "-16": 9.52,
+        "-14": 11.21,
+        "-12": 15.03,
+        "-10": 24.42,
+        "-8": 40.06,
+        "-6": 60.55,
+        "-4": 74.48,
+        "-2": 86.55,
+        "0": 91.33,
+        "2": 91.7,
+        "4": 92.48,
+        "6": 92.91,
+        "8": 92.24,
+        "10": 92.42,
+        "12": 92.61,
+        "14": 92.61,
+        "16": 92.36,
+        "18": 92.73
+      },
+      "n_params": 794827
+    }
+  ],
+  "paper_target": 63.24,
+  "summary": {
+    "mean_test_acc": 63.2121,
+    "std_test_acc": 0.0,
+    "n_seeds": 1
+  }
+}

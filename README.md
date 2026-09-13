@@ -174,9 +174,50 @@ carefully rather than waving through:
 3. **Two of the three seeds peaked at the final epoch** (best epoch 58, 58, 55)
    and early stopping at patience 15 never fired. The model was still improving
    when the budget ran out, so the paper's "Number of Epochs 58" is binding
-   here. Whether the deficit is that budget rather than anything about the
-   architecture is a concrete, cheap test: raise the ceiling and see if it
-   closes. That is the one thing still open from this item.
+   here.
+
+#### It was the epoch budget
+
+Same build, same everything, ceiling raised to 150 so that early stopping at
+patience 15 decides where to stop (`icrnna_faithful_e150_results.json`):
+
+| | 58-epoch ceiling | 150-epoch ceiling |
+|---|---|---|
+| best epoch | 58, 58, 55 — at the ceiling | **107** — early stopping decided |
+| test accuracy | 61.75% ± 0.07 | **63.21%** |
+| against the paper's 63.24% | −1.49 | **−0.03** |
+
+**The faithful build reproduces the paper.** It needed nearly twice the
+published epoch count to do it, and that is the whole of the 1.49-point
+deficit; nothing about the architecture was involved. The paper's "Number of
+Epochs 58" is best read as a report of where its own early stopping landed than
+as a recipe, and it does not transfer.
+
+The gain is everywhere the signal is usable — +1.4 to +3.6 points at every SNR
+from −8 dB up, +1.78 across the plateau — and nothing at all below −10 dB,
+where there is nothing to learn. Trained to convergence it also passes the peer
+reproduction, 63.21% against 62.23% overall and 92.55% against 91.48% at
+SNR ≥ 10 dB.
+
+#### What that implies for this project's own numbers
+
+An under-trained run reports a floor, not a measurement, and this one was under
+the ceiling by 49 epochs without anyone noticing. The same question applies
+here, and the arithmetic is not reassuring:
+
+| run | batch | epochs | gradient updates |
+|---|---|---|---|
+| faithful ICRNNA, converged | 32 | 107 | **515k** |
+| `train_backbone --data rml2016` | 256 | 60 ceiling | 36k |
+| `train_backbone --data rml2018` | 256 | 60 ceiling | 52k |
+
+Fourteen times fewer updates on the same dataset. That is not evidence those
+runs were under-trained — early stopping at patience 20 may well have fired
+long before 60 — but **nothing in the saved results says which**, because the
+stopping epoch was never recorded. It is now: `cnn.train_model` reports where
+it stopped, `train_backbone.py` stores `best_epochs` in its `.npz` and says
+loudly when a seed peaked at the ceiling. The existing 2016 and 2018 results
+predate that and cannot be checked without rerunning them.
 
 **Being faithful did not move it toward the paper.** Against the peer
 reproduction in `model_zoo.ICRNNA` on the same dataset: 61.75% versus 62.23%
@@ -385,10 +426,12 @@ also where re-measurement matters most.
 2. Rerun the α sweep — α=0.75 is unverified for the current backbone
 3. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
 4. Port `dann.py` to the current backbone, or drop the comparison
-5. ~~Validate `colab/icrnna_faithful_2016.py` against 63.24%~~ — **done**, and
-   it lands 1.49 points under. See "The faithful build, measured" above. What
-   is left is the one open question it raised: whether the deficit is the
-   58-epoch budget.
+5. ~~Validate `colab/icrnna_faithful_2016.py` against 63.24%~~ — **done**. At
+   the paper's 58-epoch ceiling it lands 1.49 points under; given enough
+   epochs it reaches 63.21% against the paper's 63.24%. Closed.
+7. Rerun the 2016 and 2018 classification runs with the stopping epoch
+   recorded, and with a ceiling high enough to be sure they converged. The
+   existing numbers may be floors — see "What that implies" above.
 6. Add RadioML 2016.10a as a third domain (still synthetic, so it only partly
    addresses the weakness above). `rml2016.py` loads it and
    `train_backbone.py` trains on it; what does not exist yet is an

@@ -326,6 +326,21 @@ def train_model(model, Xtr, ytr, Xmon, ymon, epochs=25, batch_size=256, lr=1e-3,
 
     if early and best_state is not None:
         model.load_state_dict(best_state)
+
+    # Which epoch the returned weights came from, and whether the run stopped
+    # because it stopped improving or because it ran out of budget. Attached to
+    # the model rather than returned, so that every existing caller is
+    # unaffected -- they all ignore it.
+    #
+    # This is worth recording because a run that ends at its ceiling has not
+    # converged, and reporting its accuracy as the model's is reporting a floor.
+    # The paper-faithful ICRNNA looked 1.49 points worse than published for
+    # exactly that reason: at a 58-epoch ceiling it peaked at epoch 58, and at
+    # 150 it peaked at 107 and matched the paper.
+    model.best_epoch = best_epoch if early else epochs
+    model.best_val = best_acc if early else float("nan")
+    model.stopped_early = bool(early and stale >= patience)
+    model.epoch_ceiling = epochs
     return model
 
 
