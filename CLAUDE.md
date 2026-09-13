@@ -51,13 +51,16 @@ epoch budget, not the architecture.
 
 **Read that as a warning about this repository's own numbers.** An
 under-trained run reports a floor. `train_backbone.py` uses batch 256 and a
-60-epoch ceiling, which is 14× fewer gradient updates than the 515k the
-faithful build needed on the same dataset. Whether early stopping fired first
-is unknown for the existing 2016 and 2018 results, because the stopping epoch
-was not recorded. It is recorded now — `cnn.train_model` sets `best_epoch` /
-`stopped_early` on the model it returns, and `train_backbone.py` stores
-`best_epochs` and warns when a seed peaks at the ceiling — but those two
-results predate it.
+60-epoch ceiling. The stopping epoch is now recorded — `cnn.train_model` sets
+`best_epoch` / `stopped_early` on the model it returns, `train_backbone.py`
+stores `best_epochs` and warns when a seed peaks at the ceiling — but the two
+committed classification results predate that.
+
+**2016 has been checked and converged**: rerun at a 300-epoch ceiling, best
+epoch 39, early stop at 59, bit-identical to the committed run. The margin
+against the 60-epoch ceiling was **one epoch**, so treat 60 as lucky rather
+than sufficient. **2018 has not been checked** and is the one at risk — 24
+classes and 1024-sample frames against 2016's 11 and 128.
 
 ## Which results are current
 
@@ -67,10 +70,10 @@ results predate it.
 | `baseline_results.npz` | current — cumulants + SVM, no neural net involved |
 | `sink_vs_geometry.npz` | current — signal geometry, no model involved |
 | `overfit_2x2.json` | current — architecture comparison |
-| `train_backbone_rml2016_f1000_colab.npz` | **current** — ICRNNA on RML2016.10a, 3 seeds, 0.6223 overall / 0.9148 at SNR ≥ 10 dB |
+| `train_backbone_rml2016_f1000_colab.npz` | **current** — ICRNNA on RML2016.10a, 3 seeds, 0.6223 overall / 0.9148 at SNR ≥ 10 dB. Checked: converged, best epoch 39, one epoch inside the ceiling |
 | `icrnna_faithful_results.json`, at the paper's 58-epoch ceiling | **current** — paper-faithful ICRNNA on RML2016.10a, 3 seeds, 61.75% ± 0.07 against the paper's 63.24%, at the paper's 58-epoch ceiling |
 | `icrnna_faithful_e150_results.json` | **current** — the same build trained to convergence (peak at epoch 107): 63.21% against the paper's 63.24%. The deficit above was the epoch budget |
-| `train_backbone_rml2018_f512_colab.npz` | **current** — ICRNNA on RadioML 2018.01A, 24 classes, 512 frames/cell, 3 seeds, 0.5699 overall / 0.8716 at SNR ≥ 10 dB |
+| `train_backbone_rml2018_f512_colab.npz` | **current** — ICRNNA on RadioML 2018.01A, 24 classes, 512 frames/cell, 3 seeds, 0.5699 overall / 0.8716 at SNR ≥ 10 dB. **Convergence unchecked** — may be a floor |
 
 Apart from one incomplete experiment and the two classification runs,
 **nothing else is measured on the current backbone.** That is the honest starting position, not an oversight. The
@@ -116,13 +119,15 @@ Run scripts from `src/`:
 
 ## Open work
 
-1. Finish the last 3 cells of `compare_methods --arch ICRNNA`
-2. Rerun the α sweep — α=0.75 is unverified for the current backbone
-3. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
-4. Port `dann.py` to the current backbone, or drop the comparison
-5. ~~Validate `colab/icrnna_faithful_2016.py` against 63.24%~~ — done and
-   closed: 63.21% once trained to convergence
-7. Rerun the 2016 and 2018 classification runs with the stopping epoch
-   recorded; the existing numbers may be floors
+1. **Check whether the 2018 classification run converged** — 2016 did, but
+   with one epoch of margin, and 2018 is the harder problem. Until this is
+   answered, anything under the same ceiling may be comparing floors
+2. Finish the last 3 cells of `compare_methods --arch ICRNNA`
+3. Rerun the α sweep — α=0.75 is unverified for the current backbone
+4. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
+5. Port `dann.py` to the current backbone, or drop the comparison
 6. Real SDR capture when hardware and lab access allow. Both domains are
    synthetic today, and that is the single largest weakness of the work
+
+Closed: validating the faithful build against 63.24% (reaches 63.21% trained to
+convergence), and the 2016 convergence check (best epoch 39).

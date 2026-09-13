@@ -12,7 +12,15 @@ Three tasks, matching the numbered list in README.md "Open work":
   "whitening_seeds"   item 2 -- rerun the alpha sweep with error bars, because
                       alpha=0.75 is unverified for the current backbone
   "faithful_2016"     item 5 -- run the paper-faithful ICRNNA against 63.24%
-  "converged_2016"    item 7 -- the 2016 classification run again, with a
+  "converged_2018"    the open question: the 2018 classification run again,
+                      with a ceiling high enough that early stopping decides.
+                      2016 turned out to have converged, but with one epoch of
+                      margin against the 60-epoch ceiling, and 2018 is the
+                      harder problem -- 24 classes and 1024-sample frames
+                      against 11 and 128. If it ran to the ceiling its 0.5699
+                      is a floor, and so is anything else measured under that
+                      ceiling.
+  "converged_2016"    done -- the 2016 classification run again, with a
                       ceiling high enough that early stopping decides and the
                       stopping epoch recorded. The existing result used a
                       60-epoch ceiling and never recorded where it stopped, so
@@ -58,7 +66,7 @@ import time
 # ==========================================================================
 TASK = "compare_methods"   # "compare_methods" | "whitening_seeds"
                            # "faithful_2016" | "faithful_budget"
-                           # "converged_2016"
+                           # "converged_2016" | "converged_2018"
 
 # converged_2016 only. 300 is a ceiling, not a run length. One seed: this asks
 # where training stops, not what the accuracy is to three decimals -- if the
@@ -66,6 +74,12 @@ TASK = "compare_methods"   # "compare_methods" | "whitening_seeds"
 # needed, and if it is "at the ceiling" one seed has already settled it.
 CONVERGE_EPOCHS = 300
 CONVERGE_SEEDS = 1
+
+# converged_2018 only. Lower ceiling than 2016's because an epoch there costs
+# about 0.18 min against 0.07, so 200 is already 36 minutes of worst case. 2016
+# peaked at 39; if 2018 needs more than 200 that is itself the answer.
+CONVERGE_EPOCHS_2018 = 200
+FRAMES_PER_CELL_2018_CHECK = 512   # must match the committed run to compare
 
 # faithful_budget only. 150 is a ceiling, not a run length: early stopping at
 # patience 15 decides where it actually stops, which is the whole point.
@@ -207,6 +221,50 @@ def main():
         print("cell skips seeds that already finished.\n")
         sh([sys.executable, str(REPO_DIR / "colab" / "icrnna_faithful_2016.py")],
            cwd=REPO_DIR / "colab")
+        return
+
+    if TASK == "converged_2018":
+        hr("3. Did the 2018 run converge, or did the ceiling stop it?")
+        print("Same protocol as the committed result -- 24 classes, "
+              f"{FRAMES_PER_CELL_2018_CHECK} frames per cell,")
+        print(f"native 1024 samples, 70/15/15, patience 20 -- with the ceiling "
+              f"at\n{CONVERGE_EPOCHS_2018} instead of 60 and the stopping "
+              f"epoch recorded.\n")
+        print("2016 converged at epoch 39, one epoch inside its ceiling. This")
+        print("is the harder problem, so it is the one that might not have.\n")
+
+        h5 = None
+        for hint in H5_HINTS:
+            if (DRIVE / hint).is_file():
+                h5 = DRIVE / hint
+                break
+        if h5 is None:
+            raise SystemExit(
+                "GOLD_XYZ_OSC.0001_1024.hdf5 not found in Drive. Looked at:\n  "
+                + "\n  ".join(str(DRIVE / h) for h in H5_HINTS))
+        print(f"found: {h5}  ({h5.stat().st_size / 1e9:.0f} GB)\n")
+
+        import run_training
+
+        stage = pathlib.Path("/content/amc-data")
+        run_training.stage_from_hdf5(h5, stage,
+                                     FRAMES_PER_CELL_2018_CHECK, free_gb)
+        os.environ["AMC_DATA_DIR"] = str(stage)
+
+        cmd = [sys.executable, "train_backbone.py", "--data", "rml2018",
+               "--data-path", str(stage),
+               "--frames-per-cell", str(FRAMES_PER_CELL_2018_CHECK),
+               "--epochs", str(CONVERGE_EPOCHS_2018), "--patience", "20",
+               "--seeds", str(CONVERGE_SEEDS),
+               "--tag", f"colab_e{CONVERGE_EPOCHS_2018}",
+               "--out-dir", str(OUT_DIR)]
+        print(" ".join(cmd) + "\n")
+        t0 = time.time()
+        sh(cmd, cwd=SRC)
+        hr(f"Done in {(time.time() - t0) / 60:.1f} min")
+        print("Read the per-seed line. 'converged' and the committed 0.5699")
+        print("stands; 'NOT converged' and it is a floor, as is anything else")
+        print("measured under the same ceiling.")
         return
 
     # ------------------------------------------------- 2018 for both sweeps

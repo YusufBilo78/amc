@@ -216,8 +216,27 @@ runs were under-trained — early stopping at patience 20 may well have fired
 long before 60 — but **nothing in the saved results says which**, because the
 stopping epoch was never recorded. It is now: `cnn.train_model` reports where
 it stopped, `train_backbone.py` stores `best_epochs` in its `.npz` and says
-loudly when a seed peaked at the ceiling. The existing 2016 and 2018 results
-predate that and cannot be checked without rerunning them.
+loudly when a seed peaked at the ceiling.
+
+#### 2016 converged — by one epoch
+
+Rerun at a 300-epoch ceiling with the stopping epoch recorded
+(`train_backbone_rml2016_f1000_colab_e300.npz`, one seed): **best epoch 39,
+early stop at 59**. The committed 60-epoch run's ceiling was 60. The result is
+bit-identical to that run's seed 0 — 0.624758 overall and 0.914909 at
+SNR ≥ 10 dB in both — so nothing after epoch 39 improved on it and the
+committed number is a measurement, not a floor.
+
+The margin was **one epoch**. Had the trajectory peaked two epochs later, or
+patience been 21, the committed run would have been cut off at the ceiling and
+nothing in the file would have said so. Sixty epochs is not a comfortable
+default for this configuration; it happened to be enough.
+
+The batch-256 regime converges far faster per update than the faithful build's
+batch 32, so the 14× arithmetic above turned out not to matter here. It does
+not follow that it does not matter on 2018, which is a harder problem — 24
+classes against 11, 1024-sample frames against 128 — and where more epochs, not
+fewer, would be the expectation. **2018 has not been checked.**
 
 **Being faithful did not move it toward the paper.** Against the peer
 reproduction in `model_zoo.ICRNNA` on the same dataset: 61.75% versus 62.23%
@@ -422,16 +441,14 @@ also where re-measurement matters most.
 
 ## Open work
 
-1. Finish the last 3 cells of `compare_methods --arch ICRNNA`
-2. Rerun the α sweep — α=0.75 is unverified for the current backbone
-3. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
-4. Port `dann.py` to the current backbone, or drop the comparison
-5. ~~Validate `colab/icrnna_faithful_2016.py` against 63.24%~~ — **done**. At
-   the paper's 58-epoch ceiling it lands 1.49 points under; given enough
-   epochs it reaches 63.21% against the paper's 63.24%. Closed.
-7. Rerun the 2016 and 2018 classification runs with the stopping epoch
-   recorded, and with a ceiling high enough to be sure they converged. The
-   existing numbers may be floors — see "What that implies" above.
+1. **Check whether the 2018 classification run converged.** The 2016 one did,
+   but with a single epoch of margin against the 60-epoch ceiling, and 2018 is
+   the harder problem. Until this is answered, anything measured under the same
+   ceiling — including items 2 and 3 below — may be comparing floors.
+2. Finish the last 3 cells of `compare_methods --arch ICRNNA`
+3. Rerun the α sweep — α=0.75 is unverified for the current backbone
+4. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
+5. Port `dann.py` to the current backbone, or drop the comparison
 6. Add RadioML 2016.10a as a third domain (still synthetic, so it only partly
    addresses the weakness above). `rml2016.py` loads it and
    `train_backbone.py` trains on it; what does not exist yet is an
@@ -439,3 +456,8 @@ also where re-measurement matters most.
    frames and 2018's 1024 have to be reconciled first and that is a decision,
    not a detail
 7. Real SDR capture when hardware and lab access allow
+
+**Closed.** Validate `colab/icrnna_faithful_2016.py` against 63.24% — at the
+paper's 58-epoch ceiling it lands 1.49 points under; trained to convergence it
+reaches 63.21%. Check whether the 2016 classification run converged — it did,
+best epoch 39, one epoch inside the ceiling.
