@@ -164,8 +164,10 @@ def main() -> None:
             mask = (b["z"] >= 10) & (b["y"] == q)
             best_epochs[i, j] = getattr(model, "best_epoch", np.nan)
             if args.patience and not getattr(model, "stopped_early", True):
-                print(f"  NOT converged: peaked at the {epochs}-epoch ceiling. "
-                      f"This cell's accuracy is a floor.")
+                print(f"  NOT converged: peaked at epoch "
+                      f"{getattr(model, 'best_epoch', '?')} and the "
+                      f"{epochs}-epoch budget ran out before early stopping "
+                      f"could fire. This cell's accuracy is a floor.")
             in_domain[i, j] = float(np.nanmean(acc_in[high]))
             cross[i, j] = float(np.nanmean(acc_cross[high]))
             qam16[i, j] = float((pred_cross[mask] == q).mean())

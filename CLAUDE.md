@@ -70,16 +70,22 @@ the dataset makes.
 So the 60-epoch ceiling is not safe everywhere. `compare_methods.py` and
 `whitening_seeds.py` train on 69,888 frames, 273 steps per epoch, so 23k
 updates would be ~84 epochs. Whether five classes need as many is unmeasured.
-Both now record `best_epochs` and warn when a cell peaks at the ceiling, which
-matters more there than for a single accuracy: those files report *differences*
-between cells, and one cell stopped early by the ceiling makes the comparison
-meaningless rather than merely low.
+Both now record `best_epochs` and warn, which matters more there than for a
+single accuracy: those files report *differences* between cells, and one cell
+stopped by the ceiling makes the comparison meaningless rather than merely low.
+
+**The test for "converged" is `best_epoch + patience <= ceiling`, not
+`best_epoch >= ceiling`.** The second is too weak and got this wrong once
+already: `compare_methods` cells peaked at epochs 53, 37 and 50 under a ceiling
+of 60 with patience 20, so two of them needed to reach 73 and 70 before
+stopping and instead ran out of budget — while `53 >= 60` is False and the
+warning stayed silent.
 
 ## Which results are current
 
 | file | status |
 |---|---|
-| `compare_methods_ICRNNA_es.npz` | **current**, 17/20 cells — 3 seeds of `whitening + standard` missing |
+| `compare_methods_ICRNNA_es.npz` | **complete at 20/20**, but two of the three cells with a recorded stopping epoch ran out of budget at the 60-epoch ceiling rather than converging. The 0.804 → 0.993 headline survives that; the small differences in the table do not. See README |
 | `baseline_results.npz` | current — cumulants + SVM, no neural net involved |
 | `sink_vs_geometry.npz` | current — signal geometry, no model involved |
 | `overfit_2x2.json` | current — architecture comparison |
@@ -132,9 +138,9 @@ Run scripts from `src/`:
 
 ## Open work
 
-1. Finish the last 3 cells of `compare_methods --arch ICRNNA` — they now
-   record where training stopped, which also settles the seventeen already in
-   the file
+1. Rerun `compare_methods --arch ICRNNA --epochs 100` — the table is complete
+   at 20/20 but two measured cells ran out of budget at 60 rather than
+   converging, so the small differences in it are not yet measurements
 2. Rerun the α sweep — α=0.75 is unverified for the current backbone
 3. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
 4. Port `dann.py` to the current backbone, or drop the comparison

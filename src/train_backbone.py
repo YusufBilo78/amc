@@ -303,11 +303,22 @@ def main() -> None:
 
     # ------------------------------------------------------------------
     print(f"{'=' * 66}")
-    at_ceiling = int(np.count_nonzero(best_epochs >= args.epochs))
-    if at_ceiling:
-        print(f"\n  WARNING: {at_ceiling} of {len(seeds)} seed(s) peaked at the "
-              f"{args.epochs}-epoch ceiling. Those runs did not converge and "
-              f"their accuracies are floors.\n")
+    # A run has converged only when early stopping fired, which means
+    # `best_epoch + patience <= ceiling`. Testing `best_epoch >= ceiling` instead is
+    # too weak and was wrong here: three cells peaked at epochs 53, 37 and 50 under a
+    # 60-epoch ceiling with patience 20, so two of them would have needed to reach
+    # epoch 73 and 70 before stopping and instead ran out of budget at 60 -- while
+    # `53 >= 60` and `50 >= 60` are both False and the warning stayed silent.
+    if args.patience:
+        unconverged = best_epochs + args.patience > args.epochs
+        n = int(np.count_nonzero(unconverged & ~np.isnan(best_epochs)))
+        if n:
+            worst = int(np.nanmax(best_epochs))
+            print(f"\n  WARNING: {n} of {len(seeds)} seed(s) did not converge. "
+                  f"The budget ran out at the\n  {args.epochs}-epoch ceiling "
+                  f"before early stopping fired: the latest peak was epoch "
+                  f"{worst},\n  which needs {worst + args.patience} to stop. "
+                  f"Those accuracies are floors.\n")
 
     print(f"{len(seeds)} seed(s): overall {np.nanmean(overall):.4f} "
           f"+- {np.nanstd(overall):.4f}   |   "

@@ -27,14 +27,16 @@ numbers are being re-measured. Only the table immediately following is current.
 ### Currently measured
 
 `compare_methods.py --arch ICRNNA --seeds 5 --epochs 60 --patience 20`,
-17 of 20 cells complete (`compare_methods_ICRNNA_es.npz`):
+**all 20 cells** (`compare_methods_ICRNNA_es.npz`):
 
 | method | in-domain | cross-domain | gap | 16QAM |
 |---|---|---|---|---|
-| none | 0.999 | 0.804 | **+0.195** | 0.060 |
-| standard augmentation | 1.000 | 0.806 | +0.194 | 0.036 |
-| whitening α=0.75 | 1.000 | **0.993** | **+0.007** | **0.991** |
-| whitening + standard (2/5 seeds) | 0.999 | 0.990 | +0.008 | 0.996 |
+| none | 0.999 ±0.001 | 0.804 ±0.005 | **+0.195** ±0.005 | 0.060 ±0.021 |
+| standard augmentation | 1.000 ±0.000 | 0.806 ±0.003 | +0.194 ±0.003 | 0.036 ±0.014 |
+| whitening α=0.75 | 1.000 ±0.000 | **0.993** ±0.001 | **+0.007** ±0.001 | **0.991** ±0.006 |
+| whitening + standard | 0.999 ±0.001 | 0.994 ±0.003 | +0.005 ±0.003 | 0.998 ±0.003 |
+
+**Read this table with the convergence caveat below.**
 
 Three readings:
 
@@ -50,6 +52,47 @@ Three readings:
 
 A cross-domain accuracy of 0.993 sits close enough to the ceiling that it
 deserves a sceptical pass of its own before it goes in a report.
+
+Completing the table also settled the fourth row, which stood at 2 of 5 seeds.
+Combining whitening with the literature augmentation adds **+0.001 (0.3 s.d.)**
+over whitening alone. They do not compose; whitening is doing all of the work
+and the rotation/flip/noise set contributes nothing on top of it. That is the
+opposite of what this file's own docstring predicted, and the prediction was
+written before the measurement — so it stays as a refuted hypothesis rather
+than being quietly reworded.
+
+### The convergence caveat on this table
+
+The three cells run last recorded where training stopped: peaks at epochs
+**53, 37 and 50**, under a 60-epoch ceiling with patience 20. Early stopping
+fires 20 epochs after the peak, so two of the three needed to reach epoch 73
+and 70 and instead **ran out of budget at 60**. Those two cells did not
+converge and their accuracies are floors.
+
+The other seventeen cells were run under the same ceiling before the stopping
+epoch was recorded, so the same is likely true of them and unprovable either
+way from the file.
+
+How much this matters depends on which comparison you read:
+
+- **The headline survives.** Whitening moves cross-domain accuracy from 0.804
+  to 0.993, a difference of 0.19 against a seed spread of 0.005. Under-training
+  depresses cells; it does not manufacture a nineteen-point gap, and the
+  2016 and 2018 runs showed the penalty for stopping a few epochs early is
+  fractions of a point.
+- **The small comparisons do not.** Whitening against whitening-plus-standard
+  is +0.001, and none against standard augmentation is +0.002. Differences that
+  size, between cells that stopped at an arbitrary budget rather than at
+  convergence, are not measurements. Neither is safe to report until the table
+  is rerun with a ceiling that lets early stopping decide.
+
+This was nearly missed. The warning added for exactly this case tested
+`best_epoch >= ceiling`, which is too weak — a peak at 53 under a ceiling of 60
+is not at the ceiling, but the run still stopped because the budget ended
+rather than because it had converged. The test is now
+`best_epoch + patience <= ceiling` in `compare_methods.py`,
+`whitening_seeds.py` and `train_backbone.py`, and it names the epoch a rerun
+would need.
 
 ### Plain classification on RML2016.10a
 
@@ -476,10 +519,14 @@ also where re-measurement matters most.
 
 ## Open work
 
-1. Finish the last 3 cells of `compare_methods --arch ICRNNA`. They now record
-   where training stopped, which also settles whether the seventeen already in
-   the file converged — see "Which makes the 60-epoch ceiling a problem" above.
-2. Rerun the α sweep — α=0.75 is unverified for the current backbone
+1. **Rerun `compare_methods --arch ICRNNA` with a ceiling that lets early
+   stopping decide.** The table is complete at 20/20, but two of the three
+   cells measured with the stopping epoch recorded ran out of budget at 60
+   rather than converging, and the seventeen older ones cannot be checked. The
+   headline result survives that; the small differences in the table do not.
+   `--epochs 100` covers the worst peak seen (53) with room for patience.
+2. Rerun the α sweep — α=0.75 is unverified for the current backbone, and it
+   needs the same ceiling for the same reason
 3. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
 4. Port `dann.py` to the current backbone, or drop the comparison
 5. Add RadioML 2016.10a as a third domain (still synthetic, so it only partly

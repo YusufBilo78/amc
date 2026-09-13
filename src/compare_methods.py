@@ -217,8 +217,10 @@ def main() -> None:
             mask = (b["z"] >= 10) & (b["y"] == q)
             best_epochs[i, j] = getattr(model, "best_epoch", np.nan)
             if args.patience and not getattr(model, "stopped_early", True):
-                print(f"  NOT converged: peaked at the {EPOCHS}-epoch ceiling. "
-                      f"This cell's accuracy is a floor.")
+                print(f"  NOT converged: peaked at epoch "
+                      f"{getattr(model, 'best_epoch', '?')} and the "
+                      f"{EPOCHS}-epoch budget ran out before early stopping "
+                      f"could fire. This cell's accuracy is a floor.")
             in_domain[i, j] = float(np.nanmean(acc_in[high]))
             cross[i, j] = float(np.nanmean(acc_cross[high]))
             qam16[i, j] = float((pred_cross[mask] == q).mean())
@@ -238,13 +240,25 @@ def main() -> None:
 
     print(f"total {(time.time()-t_start)/60:.1f} min\n")
 
-    at_ceiling = int(np.count_nonzero(best_epochs >= EPOCHS))
-    if at_ceiling:
-        print(f"WARNING: {at_ceiling} cell(s) peaked at the {EPOCHS}-epoch "
-              f"ceiling and did not converge.\n"
-              f"Every number below is a difference between two cells, so one "
-              f"floor is enough to\nmake the comparison meaningless. Rerun "
-              f"with a higher --epochs.\n")
+    # A run has converged only when early stopping fired, which means
+    # `best_epoch + patience <= ceiling`. Testing `best_epoch >= ceiling` instead is
+    # too weak and was wrong here: three cells peaked at epochs 53, 37 and 50 under a
+    # 60-epoch ceiling with patience 20, so two of them would have needed to reach
+    # epoch 73 and 70 before stopping and instead ran out of budget at 60 -- while
+    # `53 >= 60` and `50 >= 60` are both False and the warning stayed silent.
+    if args.patience:
+        unconverged = best_epochs + args.patience > EPOCHS
+        n = int(np.count_nonzero(unconverged & ~np.isnan(best_epochs)))
+        if n:
+            worst = int(np.nanmax(best_epochs))
+            print(f"WARNING: {n} cell(s) did not converge. The budget ran out "
+                  f"at the {EPOCHS}-epoch ceiling\nbefore early stopping "
+                  f"fired: the latest peak was epoch {worst}, which needs "
+                  f"{worst + args.patience} to stop.\n"
+                  f"Every number below is a difference between two cells, so "
+                  f"one floor is enough to make\nthe comparison meaningless. "
+                  f"Rerun with --epochs {int(worst * 1.5 + args.patience)} or "
+                  f"more.\n")
 
     gap = in_domain - cross
     print(f"{'method':<24} {'in-domain':>15} {'cross-domain':>15} "
