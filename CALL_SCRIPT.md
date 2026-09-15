@@ -1,3 +1,9 @@
+> **⚠️ ESKİ — IQNET DÖNEMİ. SAYILARINI ALINTILAMA.**
+> Bu dosyadaki doğruluk değerleri (0.993 → 0.811, fark 0.182 ± 0.017, 4 tohum vb.)
+> arşivlenmiş IQNet backbone'una ait ve mevcut backbone için geçerli değil.
+> Argümanın yapısı ve soru/cevap provası hâlâ işe yarar; **sayılar yaramaz.**
+> Güncel sayılar için `MEETING_MOSHE.md` ve `README.md`.
+
 # CALL SCRIPT — Prof. Ali Abdi
 
 *Ekranda açık tut. Kısa satırlar = konuşma ritmi. Nokta = nefes.*
