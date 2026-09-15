@@ -67,6 +67,14 @@ each other despite differing in class count and in sequence length by a factor
 of eight. The epoch count is just that number divided by however many batches
 the dataset makes.
 
+That 23k is not a constant, though — it was those two problems. In
+`compare_methods` the stopping epoch depends strongly on the *method*:
+whitening converges at 26–33 epochs, no method at 36–51, and the standard
+augmentation set at 48–89, which is 2.6× slower than whitening. Whitening
+removes a nuisance dimension and augmentation adds one, so this is what the
+mechanism predicts, but it means a single ceiling cannot be assumed safe
+across a sweep whose cells differ in method.
+
 So the 60-epoch ceiling is not safe everywhere. `compare_methods.py` and
 `whitening_seeds.py` train on 69,888 frames, 273 steps per epoch, so 23k
 updates would be ~84 epochs. Whether five classes need as many is unmeasured.
@@ -85,6 +93,7 @@ warning stayed silent.
 
 | file | status |
 |---|---|
+| `compare_methods_ICRNNA_es_e100.npz` | **13/20, in Drive, unfinished** — the same table at a 100-epoch ceiling. Three of the thirteen still ran out of budget, all in the standard augmentation row. Finish it, then `--epochs 150 --redo-unconverged` |
 | `compare_methods_ICRNNA_es.npz` | **complete at 20/20**, but two of the three cells with a recorded stopping epoch ran out of budget at the 60-epoch ceiling rather than converging. The 0.804 → 0.993 headline survives that; the small differences in the table do not. See README |
 | `baseline_results.npz` | current — cumulants + SVM, no neural net involved |
 | `sink_vs_geometry.npz` | current — signal geometry, no model involved |
@@ -138,9 +147,10 @@ Run scripts from `src/`:
 
 ## Open work
 
-1. Rerun `compare_methods --arch ICRNNA --epochs 100` — the table is complete
-   at 20/20 but two measured cells ran out of budget at 60 rather than
-   converging, so the small differences in it are not yet measurements
+1. Finish `compare_methods_ICRNNA_es_e100.npz` (stopped at 13/20), then
+   `--epochs 150 --redo-unconverged` for the three augmentation cells that
+   ran out of budget. Ten cells, not twenty — the ceiling only matters to a
+   cell that hits it, and it is now stored per cell
 2. Rerun the α sweep — α=0.75 is unverified for the current backbone
 3. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
 4. Port `dann.py` to the current backbone, or drop the comparison

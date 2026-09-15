@@ -94,6 +94,42 @@ rather than because it had converged. The test is now
 `whitening_seeds.py` and `train_backbone.py`, and it names the epoch a rerun
 would need.
 
+#### The rerun at 100 epochs, and what it showed about convergence
+
+`compare_methods_ICRNNA_es_e100.npz` is the same table under a 100-epoch
+ceiling. It stopped at **13 of 20 cells** — the runtime ended — and is waiting
+to be resumed. The thirteen recorded their stopping epochs, and those turned
+out to be the interesting part:
+
+| method | stopping epochs | mean | gradient updates |
+|---|---|---|---|
+| none | 51, 41, 48, 36, 38 | 43 | 9.8k – 13.9k |
+| standard augmentation | 89, 48, 83, 65, 82 | 73 | 13.1k – 24.3k |
+| whitening α=0.75 | 26, 26, 33 | 28 | 7.1k – 9.0k |
+
+**Convergence speed is a property of the method, not just of the dataset.**
+Whitening converges 2.6× faster than the augmentation row and 1.5× faster than
+training with no method at all. That is what the mechanism predicts: whitening
+removes a nuisance dimension, so there is less to fit; augmentation adds
+nuisance variation, so there is more. It also corrects the generalisation
+drawn from the two classification runs — 23k updates was not a constant of the
+optimizer, it was those two problems.
+
+**Three cells still ran out of budget at 100**, all of them in the standard
+augmentation row: peaks at 89, 83 and 82, which need 109, 103 and 102 to stop.
+That row is the comparison baseline for the headline claim, so it is the worst
+one to have under-trained, and the claim that the literature augmentation set
+does not address this failure mode is not safe until those three are rerun.
+
+Fixing it does not cost another full table. **The ceiling only matters to a
+cell that hits it**: a cell that peaked at epoch 36 peaks at 36 whatever
+ceiling it ran under, so a table whose cells all converged is sound even
+though they ran under different ceilings. `compare_methods.py` now stores the
+ceiling per cell and takes `--redo-unconverged`, which on resume clears only
+the cells that ran out of budget and reruns those. Ten cells instead of twenty,
+and the per-cell ceilings are in the file so the claim can be checked rather
+than taken on trust.
+
 ### Plain classification on RML2016.10a
 
 `train_backbone.py --data rml2016 --seeds 3 --epochs 60 --patience 20`, all
@@ -519,12 +555,9 @@ also where re-measurement matters most.
 
 ## Open work
 
-1. **Rerun `compare_methods --arch ICRNNA` with a ceiling that lets early
-   stopping decide.** The table is complete at 20/20, but two of the three
-   cells measured with the stopping epoch recorded ran out of budget at 60
-   rather than converging, and the seventeen older ones cannot be checked. The
-   headline result survives that; the small differences in the table do not.
-   `--epochs 100` covers the worst peak seen (53) with room for patience.
+1. **Finish `compare_methods_ICRNNA_es_e100.npz`**, which stopped at 13 of 20,
+   then rerun the three unconverged augmentation cells with
+   `--epochs 150 --redo-unconverged`. Seven cells plus three, not twenty.
 2. Rerun the α sweep — α=0.75 is unverified for the current backbone, and it
    needs the same ceiling for the same reason
 3. Rerun the sink/family thread (24-class leave-one-out, the expensive one)

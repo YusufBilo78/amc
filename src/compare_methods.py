@@ -92,6 +92,17 @@ def main() -> None:
     p.add_argument("--arch", choices=("ICRNNA", "IQNet"), default="ICRNNA")
     p.add_argument("--seeds", type=int, default=len(SEEDS))
     p.add_argument("--epochs", type=int, default=EPOCHS)
+    p.add_argument("--redo-unconverged", action="store_true",
+                   help="on resume, clear any finished cell that stopped "
+                        "because its budget ran out rather than because early "
+                        "stopping fired, so it runs again under the current "
+                        "--epochs. The ceiling only matters to a cell that "
+                        "hits it: one that peaked at epoch 36 peaks at 36 "
+                        "whatever the ceiling was, so a table whose cells all "
+                        "converged is sound even though they ran under "
+                        "different ceilings. That is what makes this cheaper "
+                        "than rerunning everything -- and why the ceiling is "
+                        "stored per cell, so the claim is auditable.")
     p.add_argument("--tag", default="",
                    help="appended to the output filenames. A run with "
                         "different settings has to write a different file, or "
@@ -165,6 +176,7 @@ def main() -> None:
     # epochs, above the 60 this is usually run with. Whether a 5-class problem
     # needs as many is exactly what these entries will say.
     best_epochs = np.full((len(METHODS), len(SEEDS)), np.nan)
+    ceilings = np.full((len(METHODS), len(SEEDS)), np.nan)
 
     # Resume. Every cell is written to disk as soon as it finishes, so a run
     # cut short by a flat battery or a reboot picks up where it stopped rather
@@ -178,6 +190,26 @@ def main() -> None:
             qam16, curves = old["qam16"], old["curves"]
             if "best_epochs" in old.files:
                 best_epochs = old["best_epochs"]
+            if "ceilings" in old.files:
+                ceilings = old["ceilings"]
+            elif "epoch_ceiling" in old.files:
+                # Older files stored one ceiling for the whole run.
+                ceilings = np.where(np.isnan(best_epochs), np.nan,
+                                    float(old["epoch_ceiling"]))
+
+            if args.redo_unconverged and args.patience:
+                stale = (best_epochs + args.patience > ceilings) & \
+                        ~np.isnan(best_epochs)
+                n = int(np.count_nonzero(stale))
+                if n:
+                    print(f"--redo-unconverged: clearing {n} cell(s) that ran "
+                          f"out of budget rather than converging "
+                          f"(peaks {sorted(best_epochs[stale].astype(int))}, "
+                          f"ceilings {sorted(set(ceilings[stale].astype(int)))}"
+                          f"). They will run again at {EPOCHS}.")
+                    for arr in (in_domain, cross, qam16, best_epochs, ceilings):
+                        arr[stale] = np.nan
+                    curves[stale] = np.nan
             done = int(np.count_nonzero(~np.isnan(in_domain)))
             if done:
                 print(f"resuming: {done}/{in_domain.size} models already done\n")
@@ -225,6 +257,7 @@ def main() -> None:
 
             mask = (b["z"] >= 10) & (b["y"] == q)
             best_epochs[i, j] = getattr(model, "best_epoch", np.nan)
+            ceilings[i, j] = EPOCHS
             if args.patience and not getattr(model, "stopped_early", True):
                 print(f"  NOT converged: peaked at epoch "
                       f"{getattr(model, 'best_epoch', '?')} and the "
@@ -244,7 +277,7 @@ def main() -> None:
                      seeds=np.array(SEEDS), in_domain=in_domain,
                      cross=cross, qam16=qam16, curves=curves,
                      snrs=np.array(SNRS), best_epochs=best_epochs,
-                     epoch_ceiling=EPOCHS)
+                     ceilings=ceilings, epoch_ceiling=EPOCHS)
         print()
 
     print(f"total {(time.time()-t_start)/60:.1f} min\n")
@@ -256,18 +289,25 @@ def main() -> None:
     # epoch 73 and 70 before stopping and instead ran out of budget at 60 -- while
     # `53 >= 60` and `50 >= 60` are both False and the warning stayed silent.
     if args.patience:
-        unconverged = best_epochs + args.patience > EPOCHS
-        n = int(np.count_nonzero(unconverged & ~np.isnan(best_epochs)))
+        unconverged = (best_epochs + args.patience > ceilings) & \
+                      ~np.isnan(best_epochs)
+        n = int(np.count_nonzero(unconverged))
         if n:
-            worst = int(np.nanmax(best_epochs))
-            print(f"WARNING: {n} cell(s) did not converge. The budget ran out "
-                  f"at the {EPOCHS}-epoch ceiling\nbefore early stopping "
-                  f"fired: the latest peak was epoch {worst}, which needs "
-                  f"{worst + args.patience} to stop.\n"
-                  f"Every number below is a difference between two cells, so "
-                  f"one floor is enough to make\nthe comparison meaningless. "
-                  f"Rerun with --epochs {int(worst * 1.5 + args.patience)} or "
-                  f"more.\n")
+            worst = int(np.nanmax(best_epochs[unconverged]))
+            print(f"WARNING: {n} cell(s) did not converge. Their budget ran "
+                  f"out before early stopping\nfired: the latest peak was "
+                  f"epoch {worst}, which needs {worst + args.patience} to "
+                  f"stop.\nEvery number below is a difference between two "
+                  f"cells, so one floor is enough to make\nthe comparison "
+                  f"meaningless. Rerun with --epochs "
+                  f"{int(worst + args.patience + 20)} --redo-unconverged, "
+                  f"which reruns only those cells.\n")
+        else:
+            seen = sorted({int(c) for c in ceilings[~np.isnan(ceilings)]})
+            if seen:
+                print(f"All measured cells converged (ceilings used: {seen}; "
+                      f"peaks {int(np.nanmin(best_epochs))}"
+                      f"-{int(np.nanmax(best_epochs))}).\n")
 
     gap = in_domain - cross
     print(f"{'method':<24} {'in-domain':>15} {'cross-domain':>15} "
