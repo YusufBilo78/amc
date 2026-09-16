@@ -104,6 +104,14 @@ PATIENCE = 20
 COMPARE_EPOCHS = 100
 COMPARE_TAG = "e100"
 
+# The second pass. Three augmentation cells peaked at 89, 83 and 82 under the
+# 100 ceiling, so they needed 109, 103 and 102 to stop and ran out of budget
+# instead. Setting this clears exactly those cells and reruns them; every cell
+# that converged is left alone, because the ceiling only matters to a cell that
+# hits it. Raise COMPARE_EPOCHS to 150 in the same edit -- rerunning them at
+# 100 would reproduce the same problem.
+REDO_UNCONVERGED = False
+
 BRANCH = "claude/iacs-modulation-classification-gwwv4m"
 REPO = "https://github.com/YusufBilo78/amc.git"
 DRIVE = pathlib.Path("/content/drive/MyDrive")
@@ -317,8 +325,12 @@ def main():
         print("The committed 60-epoch table is left alone: it is a different")
         print("experiment, and two of its measured cells stopped because the")
         print("budget ended rather than because they had converged.\n")
-        print(f"Twenty cells. Expect roughly 3 hours -- early stopping will")
-        print("end many of them well before the ceiling.\n")
+        print("Twenty cells from cold, but this resumes: as of the last run"
+              " 15 were")
+        print("done and the whitening + standard row was what remained. Expect"
+              " roughly")
+        print("3 hours for a full table -- early stopping ends many cells well")
+        print("before the ceiling.\n")
         if (OUT_DIR / name).exists():
             import numpy as np
 
@@ -330,6 +342,10 @@ def main():
                "--seeds", str(SEEDS), "--epochs", str(COMPARE_EPOCHS),
                "--patience", str(PATIENCE), "--tag", COMPARE_TAG,
                "--out-dir", str(OUT_DIR)]
+        if REDO_UNCONVERGED:
+            cmd.append("--redo-unconverged")
+            print("REDO_UNCONVERGED: cells whose early stopping never fired")
+            print("will be cleared and rerun; converged cells are kept.\n")
 
     elif TASK == "whitening_seeds":
         hr("4. Open work item 2 -- the alpha sweep, with error bars")
