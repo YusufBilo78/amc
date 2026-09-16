@@ -301,6 +301,72 @@ subset run is **not** trained on the frames the 24-class run gave those
 classes. It is its own experiment in its own file, which is the honest thing
 for it to be; what it must not be is quoted as a slice of the other.
 
+### The four-class decision table, measured
+
+`train_backbone.py --data rml2016 --classes BPSK,QPSK,QAM16,QAM64 --seeds 3`,
+all 1000 frames per (class, SNR) cell
+(`train_backbone_rml2016_f1000_c4_colab.npz`). Overall **0.7086 ± 0.0076**
+across all twenty SNRs, **0.9439 ± 0.0098** at SNR ≥ 10 dB, in 6.6 minutes on a
+Colab T4. Converged: peaks at epochs 19, 23 and 33 under a 60-epoch ceiling
+with patience 20, so the last of them stopped sixteen epochs inside the budget.
+
+Decision counts, three seeds pooled, 2,250 frames per row:
+
+| transmitted \ decided | BPSK | QPSK | QAM16 | QAM64 | recall |
+|---|---|---|---|---|---|
+| **BPSK** | **2235** | 14 | 0 | 1 | 99.3% |
+| **QPSK** | 9 | **2232** | 5 | 4 | 99.2% |
+| **QAM16** | 9 | 19 | **1978** | 244 | 87.9% |
+| **QAM64** | 13 | 13 | 174 | **2050** | 91.1% |
+
+8,495 of 9,000 correct, 94.39%. Two cells hold 83% of the error: QAM16 decided
+as QAM64 244 times and the reverse 174 times. Everything outside the QAM pair
+is at or below 0.8%.
+
+#### Fewer classes did not make QAM16 easier
+
+The obvious reading of a four-class table is that it is the easy case. Against
+the eleven-class run on the same dataset it is not, and the direction is
+consistent seed by seed:
+
+| | four classes | eleven classes |
+|---|---|---|
+| BPSK | 99.33 ± 0.11 | 98.80 ± 0.19 |
+| QPSK | 99.20 ± 0.58 | 98.71 ± 0.27 |
+| **QAM16** | **87.91 ± 2.27** | **91.82 ± 0.88** |
+| QAM64 | 91.11 ± 2.54 | 90.76 ± 0.44 |
+| QAM16 → QAM64 | **10.84** | **6.36** |
+
+BPSK and QPSK improve, which is what removing seven competitors is supposed to
+do. QAM16 goes the other way, and it is not a seed picked out of three: its
+four-class seeds are 84.8, 88.8 and 90.1 against 92.0, 90.7 and 92.8, so the
+ranges do not overlap, and neither do the leak's — 8.9, 9.3, 14.3 against 4.9,
+6.5, 7.6.
+
+Part of that is arithmetic. With eleven classes QAM16's error also leaves for
+8PSK, AM-SSB, QPSK and PAM4, 1.7 points in total; close those routes and the
+mass has nowhere to go but QAM64. But the leak rose by 4.5 points, not 1.7, so
+rerouting does not account for it. The seed spread also quadruples, 0.88 to
+2.27.
+
+**This is stated as an observation, not a mechanism.** Three seeds is thin for
+a difference this size, and the two runs are not trained on the same frames:
+both loaders draw each cell from one generator walking the classes in order, so
+iterating four consumes it differently from iterating twenty-four. What can be
+said is that the four-class table is not a magnified corner of the eleven-class
+one, and that whichever way the effect is explained, it argues for reporting
+the table rather than the average — an overall figure that went *up*, 91.48% to
+94.39%, is hiding a class that went down.
+
+#### And it converged four times faster
+
+Best epochs 19, 23 and 33 at 219 steps per epoch is **4,156 to 7,218 gradient
+updates**, against 23,439 for the eleven-class run on the same dataset. That is
+a third of the updates for a problem with a third of the classes, and it is the
+same lesson as the `compare_methods` rows: the update count is a property of
+the problem, not a constant of the optimizer, so a ceiling that was safe for
+one configuration says nothing about another.
+
 ### The faithful build, measured
 
 `colab/icrnna_faithful_2016.py`, built from the paper rather than from a
