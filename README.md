@@ -401,15 +401,62 @@ any way that matters — it is at 99.995% and has nowhere to go — but the
 low-SNR part of the curve is where validation accuracy was still creeping when
 the run stopped, and that is where the next table lives.
 
-**It did not store the table that matters.** The pooled matrix above 10 dB is
-a diagonal, which demonstrates the method and tells nobody anything about
-where decisions go. The informative table is at 0 dB, where accuracy is 80%,
-or at −4 dB, where it is 59% — and this run recorded only per-SNR *accuracy*
-at those levels, not the matrix. `train_backbone.py` now stores a confusion
-matrix at every SNR level (`confusions_by_snr`), `confusion_table.py --snr 0`
-prints one, and `eval_by_snr.py` rebuilds them for this run from its saved
-checkpoints — after proving, count for count, that it has reconstructed the
-same test set the file was scored on.
+**It did not store the table that matters — at first.** The pooled matrix
+above 10 dB is a diagonal, which demonstrates the method and tells nobody
+anything about where decisions go. The informative tables are lower down, and
+this run recorded only per-SNR *accuracy* there, not the matrix.
+`train_backbone.py` now stores a confusion matrix at every SNR level
+(`confusions_by_snr`), `confusion_table.py --snr 0` prints one, and
+`eval_by_snr.py` rebuilt them for this run from its saved checkpoints — after
+proving, count for count, that it had reconstructed the same test set the file
+was scored on. All three seeds matched. The file now carries all 26 levels.
+
+#### Where the decisions go, by SNR
+
+Three seeds pooled, **924 decisions per row** at each level. Recall on the
+diagonal, and the one cell each class loses most to:
+
+| SNR | BPSK | QPSK | 16QAM | 64QAM | what the errors do |
+|---|---|---|---|---|---|
+| −8 dB | 70.7 | 70.0 | **2.5** | **8.5** | everything drains into QPSK: 16QAM → QPSK 69%, 64QAM → QPSK 73% |
+| −4 dB | 100.0 | 73.3 | **15.7** | 48.4 | 16QAM splits between QPSK (42%) and 64QAM (42%); QPSK leaks to 64QAM 18% |
+| 0 dB | 100.0 | 100.0 | 58.3 | 60.1 | the PSK/QAM boundary is closed; the QAM pair is a coin flip against each other |
+| +4 dB | 100.0 | 100.0 | 97.6 | 95.5 | 42 + 22 errors, all inside the QAM pair |
+| ≥ 10 dB | 100.0 | 100.0 | 100.0 | 99.98 | 2 in 40,656 |
+
+The table at 0 dB, in full:
+
+| transmitted \ decided | BPSK | QPSK | 16QAM | 64QAM | recall |
+|---|---|---|---|---|---|
+| **BPSK** | **924** | 0 | 0 | 0 | 100.0% |
+| **QPSK** | 0 | **924** | 0 | 0 | 100.0% |
+| **16QAM** | 0 | 9 | **539** | 376 | 58.3% |
+| **64QAM** | 0 | 6 | 363 | **555** | 60.1% |
+
+2,942 of 3,696, 79.6%. Of the 754 errors, 739 stay inside the QAM pair.
+
+**The decision resolves in two stages, at two different SNRs.** *Is this PSK
+or QAM* is settled somewhere between −4 and 0 dB: at −4 a 16QAM frame still
+goes to QPSK 42% of the time, at 0 dB it never does. *Which QAM* is settled
+between 0 and +6: a coin flip at 0, 96–98% at +4, perfect by +8. Those are
+different questions with different SNR thresholds, and an accuracy curve
+averages them into one number per level.
+
+**Below the first threshold the unreadable classes do not scatter, they
+sink.** At −8 dB, 16QAM and 64QAM are read as QPSK 69% and 73% of the time
+— far above the 25% a uniform spread would give — and 16QAM's own recall,
+2.5%, is well *below* chance. A QAM constellation under that much noise is
+being decided as the simplest constellation it resembles, not as "unknown".
+That is the same shape as the leave-one-out finding (an unseen modulation
+lands inside its family) seen from a different angle: here the class *was*
+trained on, and it still drains to the nearest simpler one once the SNR takes
+away what distinguishes it.
+
+Two caveats travel with these tables. They come from the unconverged run, and
+the low-SNR levels are exactly where validation accuracy was still moving when
+the ceiling stopped it, so the −8 and −4 dB rows are the ones most likely to
+shift under the 150-epoch rerun. And 924 decisions per row is one third of
+what the pooled table has; a 1% cell is nine frames.
 
 ### The faithful build, measured
 
@@ -751,12 +798,11 @@ reaching 63.21% against the paper's 63.24% is the only point where this
 pipeline is tied to a published number, and that paper is a 2016 paper. Losing
 that link would cost more than the focus is worth.
 
-1. **The four-class decision table on 2018, finished properly.** The run is
-   measured — 40,654 of 40,656 above 10 dB — but did not converge (peaks 46,
-   48, 59 under a 60 ceiling) and stored no per-SNR matrices. Two steps, in
-   order: `eval_by_snr.py` on the existing checkpoints to get the 0 dB table
-   from the run already paid for; then a rerun at `AMC_EPOCHS=150`, which
-   stores every level itself. About three hours on a T4
+1. **The four-class table on 2018, converged.** The run is measured at every
+   SNR now (per-SNR matrices rebuilt from the checkpoints) but did not
+   converge — peaks 46, 48, 59 under a 60 ceiling. Rerun at `AMC_EPOCHS=150
+   AMC_TAG=colab_e150`, about three hours on a T4; the low-SNR rows are the
+   ones expected to move
 2. **Finish `compare_methods_ICRNNA_es_e100.npz`**, which stands at 15 of 20 —
    the whitening + standard augmentation row is what is left — then rerun the
    three unconverged augmentation cells with `--epochs 150 --redo-unconverged`.
