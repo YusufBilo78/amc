@@ -97,15 +97,15 @@ would need.
 #### The rerun at 100 epochs, and what it showed about convergence
 
 `compare_methods_ICRNNA_es_e100.npz` is the same table under a 100-epoch
-ceiling. It stopped at **13 of 20 cells** — the runtime ended — and is waiting
-to be resumed. The thirteen recorded their stopping epochs, and those turned
-out to be the interesting part:
+ceiling. It stands at **15 of 20 cells**; the whole fourth row, whitening plus
+standard augmentation, is still to run. Every finished cell recorded its
+stopping epoch, and those turned out to be the interesting part:
 
 | method | stopping epochs | mean | gradient updates |
 |---|---|---|---|
 | none | 51, 41, 48, 36, 38 | 43 | 9.8k – 13.9k |
 | standard augmentation | 89, 48, 83, 65, 82 | 73 | 13.1k – 24.3k |
-| whitening α=0.75 | 26, 26, 33 | 28 | 7.1k – 9.0k |
+| whitening α=0.75 | 26, 26, 33, 43, 25 | 31 | 6.8k – 11.7k |
 
 **Convergence speed is a property of the method, not just of the dataset.**
 Whitening converges 2.6× faster than the augmentation row and 1.5× faster than
@@ -120,6 +120,23 @@ augmentation row: peaks at 89, 83 and 82, which need 109, 103 and 102 to stop.
 That row is the comparison baseline for the headline claim, so it is the worst
 one to have under-trained, and the claim that the literature augmentation set
 does not address this failure mode is not safe until those three are rerun.
+
+**The two tables are independent samples, not one refined into the other.**
+No cell reproduces its 60-epoch counterpart bit for bit — the `none` row reads
+0.8066 against 0.8076 on the first seed, and so on down the table. The 2016 and
+2018 convergence checks *were* bit-identical to the runs they re-ran, so this
+is not how the code behaves on one machine; the 60-epoch table was measured on
+the laptop and this one on Colab, and cuDNN and AMP do not promise the same
+arithmetic across two GPUs. It costs nothing for the headline, which is a
+nineteen-point difference, but it does mean a 60-vs-100 comparison at the cell
+level confounds the ceiling with the hardware and should not be read as an
+effect of the ceiling.
+
+The one cell worth naming is whitening seed 2, which lands at 0.9750 here
+against 0.9914 at the lower ceiling and drags that row's spread from ±0.0014 to
+±0.0070. It peaked at epoch 33 under a ceiling of 100, so it converged with 47
+epochs to spare — this is seed-level variation in the whitening row, not an
+under-trained cell, and the row's honest spread is the wider one.
 
 Fixing it does not cost another full table. **The ceiling only matters to a
 cell that hits it**: a cell that peaked at epoch 36 peaks at 36 whatever
@@ -555,9 +572,10 @@ also where re-measurement matters most.
 
 ## Open work
 
-1. **Finish `compare_methods_ICRNNA_es_e100.npz`**, which stopped at 13 of 20,
-   then rerun the three unconverged augmentation cells with
-   `--epochs 150 --redo-unconverged`. Seven cells plus three, not twenty.
+1. **Finish `compare_methods_ICRNNA_es_e100.npz`**, which stands at 15 of 20 —
+   the whitening + standard augmentation row is what is left — then rerun the
+   three unconverged augmentation cells with `--epochs 150 --redo-unconverged`.
+   Five cells plus three, not twenty.
 2. Rerun the α sweep — α=0.75 is unverified for the current backbone, and it
    needs the same ceiling for the same reason
 3. Rerun the sink/family thread (24-class leave-one-out, the expensive one)

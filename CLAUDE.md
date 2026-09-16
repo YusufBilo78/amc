@@ -93,8 +93,8 @@ warning stayed silent.
 
 | file | status |
 |---|---|
-| `compare_methods_ICRNNA_es_e100.npz` | **13/20, in Drive, unfinished** — the same table at a 100-epoch ceiling. Three of the thirteen still ran out of budget, all in the standard augmentation row. Finish it, then `--epochs 150 --redo-unconverged` |
-| `compare_methods_ICRNNA_es.npz` | **complete at 20/20**, but two of the three cells with a recorded stopping epoch ran out of budget at the 60-epoch ceiling rather than converging. The 0.804 → 0.993 headline survives that; the small differences in the table do not. See README |
+| `compare_methods_ICRNNA_es_e100.npz` | **15/20, unfinished** — the same table at a 100-epoch ceiling. The whitening + standard row is what is left. Three finished cells still ran out of budget, all in the standard augmentation row. Finish it, then `--epochs 150 --redo-unconverged`. It does not reproduce the 60-epoch table cell for cell — different machine, so the two are independent samples |
+| `compare_methods_ICRNNA_es.npz` | **complete at 20/20** — the finished copy is now the committed one. Two of the three cells with a recorded stopping epoch ran out of budget at the 60-epoch ceiling rather than converging. The 0.804 → 0.993 headline survives that; the small differences in the table do not. See README |
 | `baseline_results.npz` | current — cumulants + SVM, no neural net involved |
 | `sink_vs_geometry.npz` | current — signal geometry, no model involved |
 | `overfit_2x2.json` | current — architecture comparison |
