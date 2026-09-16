@@ -243,6 +243,49 @@ falling between similar classes is what any classifier does. What is worth
 recording is the size of the effect and that the order-matched APSK → QAM leaks
 survive it. Open work item 3 is still open.
 
+### The decision table
+
+The number a review asks for first is not the average, it is the table the
+average is computed over: N frames of a known modulation go in, and how often
+did the classifier answer each of the classes available to it? Row =
+transmitted, column = decided. `confusion_table.py` prints it from a finished
+run's stored counts, so for a run that already exists it costs nothing.
+
+RML2016.10a at SNR ≥ 10 dB, three seeds pooled, 2,250 decisions per row
+(percentages of the row):
+
+| transmitted \ decided | 8PSK | AM-DSB | AM-SSB | BPSK | CPFSK | GFSK | PAM4 | QAM16 | QAM64 | QPSK | WBFM |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| **8PSK** | **98.3** | | 0.8 | | | | | | 0.1 | 0.7 | |
+| **AM-DSB** | | **100.0** | | | | | | | | | |
+| **AM-SSB** | 1.0 | 2.9 | **89.5** | 0.8 | 0.8 | 1.7 | 1.0 | 0.3 | 0.1 | 0.9 | 1.0 |
+| **BPSK** | | 0.1 | 0.8 | **98.8** | | | 0.2 | | | | |
+| **CPFSK** | | | | | **100.0** | | | | | | |
+| **GFSK** | | | | | | **99.9** | | | | | 0.1 |
+| **PAM4** | | | 0.7 | 0.3 | 0.1 | | **98.8** | | | | |
+| **QAM16** | 0.5 | | 0.9 | | | | 0.1 | **91.8** | 6.4 | 0.2 | |
+| **QAM64** | 0.2 | | 0.8 | | | | 0.2 | 7.8 | **90.8** | 0.1 | |
+| **QPSK** | | | 1.0 | | | | | 0.1 | 0.1 | **98.7** | |
+| **WBFM** | | 60.3 | | | | | | | | | **39.6** |
+
+22,641 of 24,750 correct, which is the 0.9148 reported above — the same number,
+with its structure left in. Two cells carry nearly all of the error: WBFM
+decided as AM-DSB 1,357 times out of 2,250, and the QAM16 ↔ QAM64 pair at 143
+and 176. Everything else in the table is below 3%.
+
+**A subset of a table is not a smaller experiment.** `confusion_table.py
+--classes BPSK,QPSK,16QAM,64QAM` narrows which rows are printed, but the model
+still had all of its classes available, so the rows do not sum to 100% across
+the four columns and the remainder is reported in an `other` column rather than
+renormalised away. On the 24-class 2018 run those four rows read 100.0, 100.0,
+98.5 and 56.4 — and that last one is not a four-class result, it is 64QAM
+losing 30.7% to 256QAM and 11.5% to 128QAM, neither of which is on the table.
+
+The four-class *experiment* is `train_backbone.py --classes
+BPSK,QPSK,16QAM,64QAM`, which builds the model with four outputs and so gives
+it four answers to choose between. The two numbers answer different questions
+and neither substitutes for the other.
+
 ### The faithful build, measured
 
 `colab/icrnna_faithful_2016.py`, built from the paper rather than from a
@@ -576,17 +619,22 @@ also where re-measurement matters most.
    the whitening + standard augmentation row is what is left — then rerun the
    three unconverged augmentation cells with `--epochs 150 --redo-unconverged`.
    Five cells plus three, not twenty.
-2. Rerun the α sweep — α=0.75 is unverified for the current backbone, and it
+2. **The four-class decision table** — `train_backbone.py --classes
+   BPSK,QPSK,16QAM,64QAM`, asked for directly in the 2026-09-15 meeting. Four
+   outputs, so the model chooses between four answers and the rows sum over
+   four columns; the subset of the 24-class table is not the same measurement
+   and says so where it is printed. Cheap: four classes against twenty-four
+3. Rerun the α sweep — α=0.75 is unverified for the current backbone, and it
    needs the same ceiling for the same reason
-3. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
-4. Port `dann.py` to the current backbone, or drop the comparison
-5. Add RadioML 2016.10a as a third domain (still synthetic, so it only partly
+4. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
+5. Port `dann.py` to the current backbone, or drop the comparison
+6. Add RadioML 2016.10a as a third domain (still synthetic, so it only partly
    addresses the weakness above). `rml2016.py` loads it and
    `train_backbone.py` trains on it; what does not exist yet is an
    `RML2016Domain` for the cross-domain scripts, because 2016's 128-sample
    frames and 2018's 1024 have to be reconciled first and that is a decision,
    not a detail
-6. Real SDR capture when hardware and lab access allow
+7. Real SDR capture when hardware and lab access allow
 
 **Closed.** Validate `colab/icrnna_faithful_2016.py` against 63.24% — at the
 paper's 58-epoch ceiling it lands 1.49 points under; trained to convergence it

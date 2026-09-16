@@ -220,6 +220,16 @@ def main() -> None:
     p.add_argument("--batch-size", type=int, default=256)
     p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--seeds", type=int, default=1)
+    p.add_argument("--classes", default=None,
+                   help="comma-separated class names to train on, e.g. "
+                        "BPSK,QPSK,16QAM,64QAM. The model is built with that "
+                        "many outputs, so this is a genuinely smaller problem "
+                        "rather than a slice of a larger one -- a four-class "
+                        "run gives the model four answers to choose between, "
+                        "and its confusion matrix rows sum over four columns. "
+                        "Slicing four rows out of a finished 24-class table is "
+                        "a different thing; confusion_table.py --classes does "
+                        "that and says so")
     p.add_argument("--tag", default="",
                    help="appended to the output filenames, so a run with "
                         "different settings does not overwrite an earlier one")
@@ -234,7 +244,11 @@ def main() -> None:
 
     seeds = list(range(args.seeds))
     suffix = f"_{args.tag}" if args.tag else ""
-    stem = f"train_backbone_{args.data}_f{args.frames_per_cell}{suffix}"
+    # A subset run is a different experiment from the full one, so it has to
+    # land in a different file even when --tag is not given.
+    subset = f"_c{len(args.classes.split(','))}" if args.classes else ""
+    stem = (f"train_backbone_{args.data}_f{args.frames_per_cell}"
+            f"{subset}{suffix}")
 
     out_dir = pathlib.Path(args.out_dir) if args.out_dir else ROOT
     fig_dir = out_dir / "figures" if args.out_dir else FIGURES
@@ -246,6 +260,29 @@ def main() -> None:
     t0 = time.time()
     X, y, z, class_names = load_dataset(args.data, args.frames_per_cell,
                                         args.data_path)
+
+    if args.classes:
+        wanted = [c.strip() for c in args.classes.split(",")]
+        missing = [c for c in wanted if c not in class_names]
+        if missing:
+            raise SystemExit(
+                f"--classes: not in {args.data}: {', '.join(missing)}\n"
+                f"available: {', '.join(class_names)}")
+        if len(wanted) < 2:
+            raise SystemExit("--classes needs at least two classes")
+        # Labels are remapped to 0..k-1 in the order given, so the confusion
+        # matrix rows come out in the order that was asked for rather than in
+        # the dataset's own order.
+        keep = [class_names.index(c) for c in wanted]
+        mask = np.isin(y, keep)
+        remap = np.full(len(class_names), -1, dtype=np.int64)
+        for new_id, old_id in enumerate(keep):
+            remap[old_id] = new_id
+        X, y, z = X[mask], remap[y[mask]], z[mask]
+        class_names = wanted
+        print(f"  --classes: {len(wanted)} of the dataset's classes, "
+              f"{X.shape[0]:,} frames kept")
+
     snrs = np.unique(z)
     print(f"  {X.shape[0]:,} frames  {X.shape}  "
           f"({X.nbytes / 1e9:.1f} GB)  in {time.time() - t0:.0f}s")

@@ -58,6 +58,22 @@ FRAMES_PER_CELL_2018 = 512
 FRAMES_PER_CELL_2016 = 1000
 TAG = "colab"
 
+# Train on a subset of the classes, as a genuinely smaller problem: the model
+# is built with this many outputs, so its confusion matrix rows sum over these
+# columns and nothing else. None trains on all of them.
+#
+#   rml2018: "BPSK,QPSK,16QAM,64QAM"
+#   rml2016: "BPSK,QPSK,QAM16,QAM64"   (2016 spells the QAM classes the other
+#                                       way round; confusion_table.py prints
+#                                       the available names on a mismatch)
+#
+# The staging step is left alone when this is set. Its per-cell draw walks the
+# classes in order from one shared generator, so staging only four classes
+# would not pick the same frames within them as staging all twenty-four; the
+# subset is taken after loading instead, which costs a full stage and keeps the
+# frames identical to every other run on this data.
+CLASSES = None
+
 BRANCH = "claude/iacs-modulation-classification-gwwv4m"
 REPO = "https://github.com/YusufBilo78/amc.git"
 DRIVE = pathlib.Path("/content/drive/MyDrive")
@@ -353,12 +369,15 @@ def main():
            "--seeds", str(SEEDS),
            "--tag", TAG,
            "--out-dir", str(OUT_DIR)]
+    if CLASSES:
+        cmd += ["--classes", CLASSES]
     print(" ".join(cmd) + "\n")
     t0 = time.time()
     sh(cmd, cwd=SRC)
 
     hr(f"Done in {(time.time() - t0) / 60:.1f} min")
-    stem = f"train_backbone_{DATASET}_f{frames_per_cell}_{TAG}"
+    subset = f"_c{len(CLASSES.split(','))}" if CLASSES else ""
+    stem = f"train_backbone_{DATASET}_f{frames_per_cell}{subset}_{TAG}"
     print(f"results  : {OUT_DIR / (stem + '.npz')}")
     print(f"figures  : {OUT_DIR / 'figures'}/29_{stem}_accuracy.png")
     print(f"           {OUT_DIR / 'figures'}/30_{stem}_confusion.png")
