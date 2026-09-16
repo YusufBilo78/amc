@@ -36,7 +36,7 @@ hiçbir şey alıntılama.
 | hiçbiri | 0.999 | **0.804** ±0.005 | **+0.195** | **0.060** |
 | literatür augmentasyonu | 1.000 | 0.806 ±0.003 | +0.194 | 0.036 |
 | **whitening α=0.75** | 1.000 | **0.993** ±0.001 | **+0.007** | **0.991** |
-| whitening + augmentasyon | 0.999 | 0.990 ±0.002 | +0.008 | 0.996 |
+| whitening + augmentasyon | 0.999 | 0.994 ±0.003 | +0.005 | 0.998 |
 
 > "A model at 0.999 in-domain falls to 0.804 on an independently generated
 > domain, and 16QAM — the class the whole diagnosis centres on — collapses to
@@ -44,9 +44,11 @@ hiçbir şey alıntılama.
 > and additive noise, moves that gap by 0.001. Spectral whitening moves it from
 > nineteen points to less than one, and costs nothing in-domain."
 
-*Dikkat — bunu sen söyle, sana sordurma:* dördüncü satır repodaki kopyada
-**5 değil 2 tohum**. Tablonun tamamlanmış hâli Drive'da, repoya henüz
-alınmadı. 0.990 ile 0.994 arasındaki fark bu yüzden konuşulmaz.
+*Dikkat:* tablo **20/20 hücrede tam** ve dosyası repoda. Ama dördüncü satır
+ile üçüncü satır arasındaki fark **+0.001** — yani ölçüm değil. Whitening
+üstüne augmentasyon eklemek hiçbir şey katmıyor; bütün işi whitening yapıyor.
+Bu, dosyanın kendi docstring'inin öngördüğünün tersi ve öngörü ölçümden önce
+yazılmıştı, o yüzden çürütülmüş hipotez olarak duruyor.
 
 ### 1.2 Düz sınıflandırma — backbone'un yetkin olduğunun kanıtı
 
@@ -144,9 +146,13 @@ bekliyor.**
 ## 2. ŞU AN ÇALIŞIYOR
 
 - `compare_methods_ICRNNA_es_e100.npz` — aynı tablo, 100 epoch tavanla.
-  **13/20 hücrede durdu**, Colab'da devam ediyor. Kaydedilen 13 hücrenin
-  üçü hâlâ bütçe bitiminden durdu (89, 83, 82 tepe → 109, 103, 102 gerekiyordu),
-  hepsi augmentasyon satırında. Onlar için `--epochs 150 --redo-unconverged`.
+  **15/20 hücrede**, kalan tek satır whitening + augmentasyon. Biten
+  hücrelerin üçü bütçe bitiminden durdu (89, 83, 82 tepe → 109, 103, 102
+  gerekiyordu), hepsi augmentasyon satırında. Onlar için
+  `--epochs 150 --redo-unconverged`.
+- Bu tablo 60 epoch'luk tabloyu hücre hücre **tekrarlamıyor** — o laptopta, bu
+  Colab'da ölçüldü. İki bağımsız örnek; aradaki hücre farkları tavanın değil
+  donanımın.
 - Maliyet küçük: **tavan sadece ona dayanan hücreyi ilgilendirir.** 36'da tepe
   yapan hücre hangi tavanda koşarsa koşsun 36'da tepe yapar. Yirmi değil, on
   hücre yeniden koşuyor.
@@ -228,8 +234,9 @@ Toplantıdan bir şey çıkmasını istiyorsan, sorulacaklar bunlar:
 
 ## 6. Toplantı sonrası — hemen yapılacak
 
-- [ ] Drive'daki tamamlanmış `compare_methods_ICRNNA_es.npz` (20/20) repoya alınacak;
-      repodaki kopya hâlâ 17/20 ama dokümanlar 20/20 diyor.
+- [x] Drive'daki tamamlanmış `compare_methods_ICRNNA_es.npz` (20/20) repoya
+      alındı; eski 17/20 kopyanın üstüne yazıldı, bütün ortak hücreler bit
+      düzeyinde aynıydı.
 - [ ] `compare_methods_ICRNNA_es_e100.npz` bitince üç augmentasyon hücresi
       `--epochs 150 --redo-unconverged` ile yeniden.
 - [ ] α süpürmesi (`whitening_seeds.py`) — tohum sayısı bütçeye göre kararlaşacak.

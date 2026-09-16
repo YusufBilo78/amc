@@ -34,7 +34,7 @@ longer hold** — nothing from those files.
 | none | 0.999 | **0.804** ±0.005 | **+0.195** | **0.060** |
 | literature augmentation | 1.000 | 0.806 ±0.003 | +0.194 | 0.036 |
 | **whitening α=0.75** | 1.000 | **0.993** ±0.001 | **+0.007** | **0.991** |
-| whitening + augmentation | 0.999 | 0.990 ±0.002 | +0.008 | 0.996 |
+| whitening + augmentation | 0.999 | 0.994 ±0.003 | +0.005 | 0.998 |
 
 > "A model at 0.999 in-domain falls to 0.804 on an independently generated
 > domain, and 16QAM — the class the whole diagnosis centres on — collapses to
@@ -42,10 +42,12 @@ longer hold** — nothing from those files.
 > and additive noise, moves that gap by 0.001. Spectral whitening moves it from
 > nineteen points to less than one, and costs nothing in-domain."
 
-*Note — volunteer this, don't wait to be asked:* the fourth row is **2 seeds,
-not 5**, in the copy that is in the repository. The completed table is on Drive
-and has not been pulled in yet. That is why the difference between 0.990 and
-0.994 is not something to discuss.
+*Note:* the table is **complete at 20 of 20** and the file is in the
+repository. But the fourth row beats the third by **+0.001**, which is not a
+measurement. Adding the literature augmentation on top of whitening
+contributes nothing; whitening is doing all of the work. That is the opposite
+of what the file's own docstring predicted, and the prediction was written
+before the measurement, so it stays as a refuted hypothesis.
 
 ### 1.2 Plain classification — evidence the backbone is competent
 
@@ -146,10 +148,13 @@ re-measurement.**
 ## 2. WHAT IS RUNNING NOW
 
 - `compare_methods_ICRNNA_es_e100.npz` — the same table at a 100-epoch ceiling.
-  It **stopped at 13 of 20 cells** and is resuming on Colab. Three of the
-  thirteen recorded cells still stopped because the budget ran out (peaks at 89,
-  83, 82, which needed 109, 103, 102), all of them in the augmentation row.
+  It stands at **15 of 20 cells**; the whitening + augmentation row is what is
+  left. Three finished cells still stopped because the budget ran out (peaks at
+  89, 83, 82, which needed 109, 103, 102), all of them in the augmentation row.
   Those get `--epochs 150 --redo-unconverged`.
+- It does **not** reproduce the 60-epoch table cell for cell — that one was
+  measured on the laptop and this one on Colab. They are independent samples,
+  so a cell-level difference between them is hardware, not the ceiling.
 - The cost is small: **the ceiling only matters to a cell that hits it.** A cell
   that peaked at epoch 36 peaks at 36 whatever ceiling it ran under. Ten cells
   rerun, not twenty.
@@ -236,8 +241,9 @@ If anything is to come out of the meeting, it is these:
 
 ## 6. AFTER THE MEETING — immediate
 
-- [ ] Pull the completed `compare_methods_ICRNNA_es.npz` (20/20) from Drive into
-      the repository; the committed copy is still 17/20 while the docs say 20/20.
+- [x] Pulled the completed `compare_methods_ICRNNA_es.npz` (20/20) from Drive
+      into the repository, over the old 17/20 copy; every shared cell was
+      bit-identical.
 - [ ] When `compare_methods_ICRNNA_es_e100.npz` finishes, rerun the three
       augmentation cells with `--epochs 150 --redo-unconverged`.
 - [ ] The α sweep (`whitening_seeds.py`) — seed count to be decided against the
