@@ -388,7 +388,11 @@ def main() -> None:
           f"+- {np.nanstd(overall):.4f}   |   "
           f"SNR >= {HIGH_SNR} dB {np.nanmean(high_snr):.4f} "
           f"+- {np.nanstd(high_snr):.4f}")
-    if args.data == "rml2016":
+    # The paper's number is for all eleven classes. Printing it next to a
+    # subset run invites exactly the comparison it cannot support -- four
+    # classes is an easier problem and a higher number there means nothing
+    # about the paper.
+    if args.data == "rml2016" and not args.classes:
         print(f"context: El-Haryqy et al. report {PAPER_2016}% on this dataset "
               f"for ICRNNA. This backbone is a reproduction of a reproduction "
               f"and\n         differs from the paper in five places, so treat "

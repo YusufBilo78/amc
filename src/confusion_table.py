@@ -124,6 +124,26 @@ def main() -> None:
           f"SNR >= {threshold} dB")
     print(f"{conf.sum():,} decisions in total, "
           f"{conf.sum(axis=1)[rows[0]]:,} per class\n")
+
+    # A table from an under-trained run is a table of floors, and that is not
+    # visible in the counts. Say it here rather than leaving it in a log
+    # nobody kept.
+    if "best_epochs" in z.files and "patience" in z.files:
+        best = z["best_epochs"]
+        ceiling, patience = int(z["epochs"]), int(z["patience"])
+        short = [int(b) for b in best
+                 if not np.isnan(b) and b + patience > ceiling]
+        peaks = ", ".join("?" if np.isnan(b) else str(int(b)) for b in best)
+        if short:
+            print(f"WARNING: {len(short)} of {len(best)} seeds did not "
+                  f"converge -- peaks at {peaks} under a\n"
+                  f"{ceiling}-epoch ceiling with patience {patience}, so "
+                  f"{max(short)} needed {max(short) + patience}. Read every "
+                  f"number below as a floor.\n")
+        else:
+            print(f"converged: peaks at epoch {peaks}, ceiling {ceiling}, "
+                  f"patience {patience}\n")
+
     print("row = transmitted, column = decided\n")
 
     for line in render(conf, names, rows, args.counts, threshold, n_seeds):
