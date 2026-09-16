@@ -232,11 +232,20 @@ def run_seed(X, y, z, class_names, seed, args):
         for s in snrs
     ])
 
+    # One confusion matrix per SNR level. The pooled matrix above the
+    # threshold is the headline table, but on an easy problem it saturates --
+    # four classes at 1024 samples make two errors in forty thousand decisions
+    # above 10 dB -- and the table that shows where decisions actually go is
+    # the one at 0 dB. Storing every level costs nothing and means the run
+    # never has to be repeated to ask a different SNR.
     n = len(class_names)
-    high = z[te] >= HIGH_SNR
-    conf = np.zeros((n, n), dtype=np.int64)
-    np.add.at(conf, (y[te][high], pred[high]), 1)
+    by_snr = np.zeros((len(snrs), n, n), dtype=np.int64)
+    for k, s in enumerate(snrs):
+        at = z[te] == s
+        np.add.at(by_snr[k], (y[te][at], pred[at]), 1)
+    conf = by_snr[snrs >= HIGH_SNR].sum(axis=0)
 
+    high = z[te] >= HIGH_SNR
     overall = float((pred == y[te]).mean())
     high_acc = float((pred[high] == y[te][high]).mean())
 
@@ -247,7 +256,7 @@ def run_seed(X, y, z, class_names, seed, args):
         print(f"  NOT converged: best epoch {model.best_epoch} of "
               f"{model.epoch_ceiling} -- the ceiling stopped this run, not the "
               f"model.\n  The accuracy below is a floor. Raise --epochs.")
-    return curve, conf, overall, high_acc, model
+    return curve, conf, by_snr, overall, high_acc, model
 
 
 def main() -> None:
@@ -323,6 +332,7 @@ def main() -> None:
     best_epochs = np.full(len(seeds), np.nan)
     curves = np.full((len(seeds), len(snrs)), np.nan)
     confusions = np.zeros((len(seeds), n, n), dtype=np.int64)
+    confusions_by_snr = np.zeros((len(seeds), len(snrs), n, n), dtype=np.int64)
 
     # Resume. A seed counts as done when its overall entry is no longer NaN.
     # The shape check guards against resuming into a file written by a
@@ -335,6 +345,14 @@ def main() -> None:
             curves, confusions = old["curves"], old["confusions"]
             if "best_epochs" in old.files:
                 best_epochs = old["best_epochs"]
+            if "confusions_by_snr" in old.files:
+                confusions_by_snr = old["confusions_by_snr"]
+            else:
+                # Seeds finished before this key existed have no per-SNR
+                # record here; eval_by_snr.py rebuilds it from their
+                # checkpoints. Seeds run from now on fill it directly.
+                print("  (no per-SNR confusions in this file for the seeds "
+                      "already done -- see eval_by_snr.py)")
             done = int(np.count_nonzero(~np.isnan(overall)))
             if done:
                 print(f"resuming: {done}/{len(seeds)} seeds already done\n")
@@ -343,7 +361,8 @@ def main() -> None:
 
     def save():
         np.savez(npz_path, overall=overall, high=high_snr, curves=curves,
-                 confusions=confusions, snrs=snrs, best_epochs=best_epochs,
+                 confusions=confusions, confusions_by_snr=confusions_by_snr,
+                 snrs=snrs, best_epochs=best_epochs,
                  class_names=np.array(class_names), dataset=args.data,
                  frames_per_cell=args.frames_per_cell, epochs=args.epochs,
                  patience=args.patience, high_snr_threshold=HIGH_SNR)
@@ -353,9 +372,9 @@ def main() -> None:
             continue
         print(f"{'=' * 66}\n seed {seed}\n{'=' * 66}")
         t_seed = time.time()
-        curve, conf, acc, acc_high, model = run_seed(X, y, z, class_names,
-                                                     seed, args)
-        curves[j], confusions[j] = curve, conf
+        curve, conf, by_snr, acc, acc_high, model = run_seed(
+            X, y, z, class_names, seed, args)
+        curves[j], confusions[j], confusions_by_snr[j] = curve, conf, by_snr
         overall[j], high_snr[j] = acc, acc_high
         best_epochs[j] = model.best_epoch
         print(f"  test {acc:.4f} overall, {acc_high:.4f} at SNR >= {HIGH_SNR} dB"

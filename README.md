@@ -367,6 +367,50 @@ same lesson as the `compare_methods` rows: the update count is a property of
 the problem, not a constant of the optimizer, so a ceiling that was safe for
 one configuration says nothing about another.
 
+### The four-class decision table on 2018 — the one that was asked for
+
+`train_backbone.py --data rml2018 --classes BPSK,QPSK,16QAM,64QAM --seeds 3`,
+2,048 of the 4,096 frames per (class, SNR) cell, native 1024-sample frames
+(`train_backbone_rml2018_f2048_c4_colab.npz`). 114 minutes on a Colab T4.
+
+Above 10 dB, three seeds pooled, **10,164 decisions per row**:
+
+| transmitted \ decided | BPSK | QPSK | 16QAM | 64QAM | recall |
+|---|---|---|---|---|---|
+| **BPSK** | **10164** | 0 | 0 | 0 | 100.00% |
+| **QPSK** | 0 | **10164** | 0 | 0 | 100.00% |
+| **16QAM** | 0 | 0 | **10164** | 0 | 100.00% |
+| **64QAM** | 0 | 0 | 2 | **10162** | 99.98% |
+
+**40,654 of 40,656 correct.** Both errors are 64QAM decided as 16QAM, one
+each in seeds 0 and 1; seed 2 is perfect. Overall across all 26 SNR levels,
+**0.7465 ± 0.0015**, with the curve at chance (0.25) up to −12 dB, 0.796 at
+0 dB, 0.983 at +4, and at 1.000 from +14 dB up.
+
+Set against the 2016 table above, where the same QAM pair still confused at
+7–11% above 10 dB: the difference is the frame. 1024 samples against 128 is
+eight times the symbols to read a constellation from, and at that length
+16QAM and 64QAM stop being confusable at high SNR at all.
+
+#### Two things this run did not do
+
+**It did not converge.** Peaks at epochs 46, 48 and 59 under a 60-epoch
+ceiling with patience 20; the last of them needed 79. Every seed ran out of
+budget, so the overall figure is a floor. The table above is not affected in
+any way that matters — it is at 99.995% and has nowhere to go — but the
+low-SNR part of the curve is where validation accuracy was still creeping when
+the run stopped, and that is where the next table lives.
+
+**It did not store the table that matters.** The pooled matrix above 10 dB is
+a diagonal, which demonstrates the method and tells nobody anything about
+where decisions go. The informative table is at 0 dB, where accuracy is 80%,
+or at −4 dB, where it is 59% — and this run recorded only per-SNR *accuracy*
+at those levels, not the matrix. `train_backbone.py` now stores a confusion
+matrix at every SNR level (`confusions_by_snr`), `confusion_table.py --snr 0`
+prints one, and `eval_by_snr.py` rebuilds them for this run from its saved
+checkpoints — after proving, count for count, that it has reconstructed the
+same test set the file was scored on.
+
 ### The faithful build, measured
 
 `colab/icrnna_faithful_2016.py`, built from the paper rather than from a
@@ -707,15 +751,12 @@ reaching 63.21% against the paper's 63.24% is the only point where this
 pipeline is tied to a published number, and that paper is a 2016 paper. Losing
 that link would cost more than the focus is worth.
 
-1. **The four-class decision table on 2018** — `train_backbone.py --data
-   rml2018 --classes BPSK,QPSK,16QAM,64QAM`, asked for directly in the
-   2026-09-15 meeting. Four outputs, so the model chooses between four answers
-   and the rows sum over four columns; the subset of the 24-class table is not
-   the same measurement and says so where it is printed. At 2,048 frames per
-   cell the test set is about 10,200 decisions per class over three seeds.
-   The 2016 version of this is already measured and is what the design was
-   rehearsed on — see above, including the part where four classes made QAM16
-   *worse*, which is the thing to check for again here
+1. **The four-class decision table on 2018, finished properly.** The run is
+   measured — 40,654 of 40,656 above 10 dB — but did not converge (peaks 46,
+   48, 59 under a 60 ceiling) and stored no per-SNR matrices. Two steps, in
+   order: `eval_by_snr.py` on the existing checkpoints to get the 0 dB table
+   from the run already paid for; then a rerun at `AMC_EPOCHS=150`, which
+   stores every level itself. About three hours on a T4
 2. **Finish `compare_methods_ICRNNA_es_e100.npz`**, which stands at 15 of 20 —
    the whitening + standard augmentation row is what is left — then rerun the
    three unconverged augmentation cells with `--epochs 150 --redo-unconverged`.

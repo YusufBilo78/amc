@@ -102,6 +102,7 @@ warning stayed silent.
 | `icrnna_faithful_results.json`, at the paper's 58-epoch ceiling | **current** — paper-faithful ICRNNA on RML2016.10a, 3 seeds, 61.75% ± 0.07 against the paper's 63.24%, at the paper's 58-epoch ceiling |
 | `icrnna_faithful_e150_results.json` | **current** — the same build trained to convergence (peak at epoch 107): 63.21% against the paper's 63.24%. The deficit above was the epoch budget |
 | `train_backbone_rml2016_f1000_c4_colab.npz` | **current** — the four-class decision table Moshe asked for. BPSK/QPSK/QAM16/QAM64 on RML2016.10a, 3 seeds, 0.7086 overall / 0.9439 at SNR ≥ 10 dB, 9,000 pooled decisions. Converged: peaks at 19, 23, 33 under a 60 ceiling. Note QAM16 is **worse** here than in the 11-class run (87.9 vs 91.8), seed ranges not overlapping |
+| `train_backbone_rml2018_f2048_c4_colab.npz` | **current, unconverged** — the four-class table on 2018. BPSK/QPSK/16QAM/64QAM, 2048 frames/cell, 3 seeds: **40,654 of 40,656 correct above 10 dB**, 0.7465 overall. Peaks at 46, 48, 59 under a 60 ceiling, so the overall number is a floor; the high-SNR table is saturated and unaffected. Holds no per-SNR matrices — `eval_by_snr.py` rebuilds them |
 | `train_backbone_rml2018_f512_colab.npz` | **current** — ICRNNA on RadioML 2018.01A, 24 classes, 512 frames/cell, 3 seeds, 0.5699 overall / 0.8716 at SNR ≥ 10 dB. Checked: converged, best epoch 26, fourteen epochs inside the ceiling |
 
 Apart from one incomplete experiment and the two classification runs,
@@ -153,10 +154,9 @@ retract the 2016 results — in particular the faithful build's 63.21% against
 the paper's 63.24% is the one tie to a published number, and that paper is a
 2016 paper. `rml2016.py` stays.
 
-1. The four-class decision table on 2018 — `train_backbone.py --data rml2018
-   --classes BPSK,QPSK,16QAM,64QAM`, ~10,200 decisions per class at 2048
-   frames/cell. The 2016 rehearsal is measured; watch for the same surprise,
-   where four classes made QAM16 worse than eleven did
+1. The four-class table on 2018: measured but unconverged and without
+   per-SNR matrices. `eval_by_snr.py` on the existing checkpoints first (the
+   0 dB table from the run already paid for), then rerun at `AMC_EPOCHS=150`
 2. Finish `compare_methods_ICRNNA_es_e100.npz` (15/20), then
    `--epochs 150 --redo-unconverged` for the three augmentation cells that
    ran out of budget. The ceiling only matters to a cell that hits it, and

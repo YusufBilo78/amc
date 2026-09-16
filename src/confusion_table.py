@@ -17,6 +17,20 @@ them. So the table for a run that has finished costs nothing to produce.
         --classes BPSK,QPSK,16QAM,64QAM
     python confusion_table.py ../train_backbone_rml2016_f1000_colab.npz \
         --counts --csv ../confusion_2016.csv
+    python confusion_table.py ../train_backbone_rml2018_f2048_c4_colab.npz \
+        --snr 0                      # one level
+    python confusion_table.py ../train_backbone_rml2018_f2048_c4_colab.npz \
+        --snr=-4:4                   # a range, inclusive. Note the "=": a
+                                     # value starting with "-" is read as a
+                                     # flag otherwise
+
+**On --snr.** The default table pools every level at or above the run's
+threshold, which is the headline. On an easy problem that table saturates --
+four classes at 1024 samples make two errors in forty thousand decisions above
+10 dB -- and the table that shows where decisions go is the one at 0 dB.
+Runs made since `confusions_by_snr` was added carry every level; older runs
+carry only the pooled matrix, and `eval_by_snr.py` rebuilds the rest from
+their checkpoints.
 
 **On --classes.** Selecting four rows out of a twenty-four class run is not the
 same experiment as training a four-class classifier. The model printed here
@@ -100,10 +114,38 @@ def main() -> None:
                    help="print integer decision counts instead of row "
                         "percentages")
     p.add_argument("--csv", default=None, help="also write the counts here")
+    p.add_argument("--snr", default=None,
+                   help="print the table at one SNR level (\"0\") or over an "
+                        "inclusive range instead of pooled above the run's "
+                        "threshold. A range starting below zero needs the "
+                        "\"=\" form, --snr=-4:4, or the value is read as a "
+                        "flag. Needs confusions_by_snr in the file")
     args = p.parse_args()
 
     path = pathlib.Path(args.npz)
     conf_per_seed, names, z = load(path)
+    snrs = z["snrs"].astype(int)
+    threshold = int(z["high_snr_threshold"])
+
+    if args.snr is not None:
+        if "confusions_by_snr" not in z.files:
+            raise SystemExit(
+                f"{path.name} has no per-SNR confusions -- it predates the "
+                "key. Rebuild them from the run's checkpoints:\n"
+                f"    python eval_by_snr.py {path} --data-path <dir>")
+        lo, _, hi = args.snr.partition(":")
+        lo = int(lo)
+        hi = int(hi) if hi else lo
+        pick = (snrs >= lo) & (snrs <= hi)
+        if not pick.any():
+            raise SystemExit(f"--snr {args.snr}: no level in "
+                             f"{snrs.min()}..{snrs.max()} matches")
+        conf_per_seed = z["confusions_by_snr"][:, pick].sum(axis=1)
+        which = (f"SNR = {lo} dB" if lo == hi
+                 else f"SNR {lo}..{hi} dB ({pick.sum()} levels)")
+    else:
+        which = f"SNR >= {threshold} dB"
+
     conf = conf_per_seed.sum(axis=0)
     n_seeds = conf_per_seed.shape[0]
 
@@ -118,10 +160,9 @@ def main() -> None:
     else:
         rows = list(range(len(names)))
 
-    threshold = int(z["high_snr_threshold"])
     print(f"\n{path.name}")
     print(f"{str(z['dataset'])}, {len(names)} classes, {n_seeds} seeds pooled, "
-          f"SNR >= {threshold} dB")
+          f"{which}")
     print(f"{conf.sum():,} decisions in total, "
           f"{conf.sum(axis=1)[rows[0]]:,} per class\n")
 
