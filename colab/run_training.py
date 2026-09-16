@@ -128,6 +128,31 @@ H5_HINTS = ("RadioML2018/GOLD_XYZ_OSC.0001_1024.hdf5",
 NPY_HINTS = ("amc-data", "RadioML2018", "RadioML", ".")
 
 
+def staged_data_matches(stage_dir, marker, expected_ids):
+    """
+    True when the staging on disk is the one this run wants.
+
+    The marker says what was staged last; the labels say what is actually
+    there. Both are checked, because the marker alone was once enough to let
+    a five-class run reuse a four-class staging: the previous run's marker had
+    not been removed, and `marker.exists() and x_out.exists()` was satisfied
+    by a file with no 8PSK in it. The label check makes the data the
+    authority and the marker merely a hint that skips reading it.
+    """
+    import numpy as np
+
+    x_out = stage_dir / "radioml_X.npy"
+    y_out = stage_dir / "radioml_y.npy"
+    if not (marker.exists() and x_out.exists() and y_out.exists()):
+        return False
+    present = sorted(int(c) for c in np.unique(np.load(y_out, mmap_mode="r")))
+    if present != list(expected_ids):
+        print(f"  staged data holds classes {present}, this run needs "
+              f"{list(expected_ids)}: restaging")
+        return False
+    return True
+
+
 def stage_from_hdf5(h5_path, stage_dir, frames_per_cell, free_gb,
                     class_ids=None):
     """
@@ -159,11 +184,19 @@ def stage_from_hdf5(h5_path, stage_dir, frames_per_cell, free_gb,
                 f"(ids {sorted(class_ids)})")
         need_bytes = len(class_ids) * 26 * 4096 * 1024 * 2 * 4
     marker = stage_dir / f"staged_{tag}.txt"
+    expected_ids = sorted(class_ids) if class_ids is not None else list(range(24))
 
-    if marker.exists() and x_out.exists():
+    if staged_data_matches(stage_dir, marker, expected_ids):
         print(f"already staged ({what}), reusing")
     else:
         import h5py
+
+        # Whatever was staged here before is about to be overwritten, so its
+        # marker must go with it. Leaving it would let a later run with that
+        # older configuration find its marker still present and reuse this
+        # run's data as if it were its own.
+        for stale in stage_dir.glob("staged_*.txt"):
+            stale.unlink()
 
         need_gb = need_bytes / 1e9
         print(f"staging {what} (~{need_gb:.1f} GB) to {stage_dir}")

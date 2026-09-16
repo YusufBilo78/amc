@@ -70,7 +70,42 @@ import time
 # ==========================================================================
 # Config
 # ==========================================================================
-TASK = "compare_methods"   # "compare_methods" | "whitening_seeds"
+# Every setting below can be overridden from the environment, so this file can
+# be run straight out of a clone instead of being pasted and edited in place:
+#
+#     %env AMC_TASK=compare_methods
+#     %env AMC_COMPARE_EPOCHS=150
+#     %env AMC_REDO_UNCONVERGED=1
+#     !python /content/amc/colab/run_experiment.py
+#
+# Unset means the default in each case, so a bare run behaves exactly as
+# before. Same helper as run_training.py; duplicated rather than imported
+# because the repository is not on disk yet when this block runs.
+
+
+def _env(name, default, cast=str):
+    raw = os.environ.get(name)
+    if raw is None or raw == "":
+        return default
+    try:
+        return cast(raw)
+    except ValueError:
+        raise SystemExit(f"{name}={raw!r} is not a valid "
+                         f"{cast.__name__}") from None
+
+
+def _flag(raw):
+    """"1", "true", "yes" -> True; "0", "false", "no" -> False."""
+    v = raw.strip().lower()
+    if v in ("1", "true", "yes", "on"):
+        return True
+    if v in ("0", "false", "no", "off"):
+        return False
+    raise ValueError(raw)
+
+
+TASK = _env("AMC_TASK", "compare_methods")
+                           # "compare_methods" | "whitening_seeds"
                            # "faithful_2016" | "faithful_budget"
                            # "converged_2016" | "converged_2018"
 
@@ -92,17 +127,17 @@ FRAMES_PER_CELL_2018_CHECK = 512   # must match the committed run to compare
 BUDGET_EPOCHS = 150
 BUDGET_SEEDS = 1
 
-SEEDS = 5                  # compare_methods: the table is 4 methods x 5 seeds
-EPOCHS = 60
-PATIENCE = 20
+SEEDS = _env("AMC_SEEDS", 5, int)   # compare_methods: 4 methods x 5 seeds
+EPOCHS = _env("AMC_EPOCHS", 60, int)
+PATIENCE = _env("AMC_PATIENCE", 20, int)
 
 # compare_methods and whitening_seeds. The worst peak seen under the old
 # ceiling was epoch 53, which needs 73 to stop; 100 leaves room above that
 # without spending the budget on cells that were going to stop at 57 anyway.
 # The tag keeps this out of the committed 60-epoch file -- with it empty the
 # run would resume into that file, find 20 of 20 cells done, and do nothing.
-COMPARE_EPOCHS = 100
-COMPARE_TAG = "e100"
+COMPARE_EPOCHS = _env("AMC_COMPARE_EPOCHS", 100, int)
+COMPARE_TAG = _env("AMC_COMPARE_TAG", "e100")
 
 # The second pass. Three augmentation cells peaked at 89, 83 and 82 under the
 # 100 ceiling, so they needed 109, 103 and 102 to stop and ran out of budget
@@ -110,7 +145,12 @@ COMPARE_TAG = "e100"
 # that converged is left alone, because the ceiling only matters to a cell that
 # hits it. Raise COMPARE_EPOCHS to 150 in the same edit -- rerunning them at
 # 100 would reproduce the same problem.
-REDO_UNCONVERGED = False
+REDO_UNCONVERGED = _env("AMC_REDO_UNCONVERGED", False, _flag)
+
+_TASKS = ("compare_methods", "whitening_seeds", "faithful_2016",
+          "faithful_budget", "converged_2016", "converged_2018")
+if TASK not in _TASKS:
+    raise SystemExit(f"AMC_TASK={TASK!r}: expected one of {', '.join(_TASKS)}")
 
 BRANCH = "claude/iacs-modulation-classification-gwwv4m"
 REPO = "https://github.com/YusufBilo78/amc.git"
