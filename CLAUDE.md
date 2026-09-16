@@ -148,14 +148,27 @@ Run scripts from `src/`:
 
 ## Open work
 
-1. Finish `compare_methods_ICRNNA_es_e100.npz` (stopped at 13/20), then
+**New work goes on RadioML 2018.01A only** (decided 2026-09-16). This does not
+retract the 2016 results — in particular the faithful build's 63.21% against
+the paper's 63.24% is the one tie to a published number, and that paper is a
+2016 paper. `rml2016.py` stays.
+
+1. The four-class decision table on 2018 — `train_backbone.py --data rml2018
+   --classes BPSK,QPSK,16QAM,64QAM`, ~10,200 decisions per class at 2048
+   frames/cell. The 2016 rehearsal is measured; watch for the same surprise,
+   where four classes made QAM16 worse than eleven did
+2. Finish `compare_methods_ICRNNA_es_e100.npz` (15/20), then
    `--epochs 150 --redo-unconverged` for the three augmentation cells that
-   ran out of budget. Ten cells, not twenty — the ceiling only matters to a
-   cell that hits it, and it is now stored per cell
-2. Rerun the α sweep — α=0.75 is unverified for the current backbone
-3. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
-4. Port `dann.py` to the current backbone, or drop the comparison
-5. Real SDR capture when hardware and lab access allow. Both domains are
+   ran out of budget. The ceiling only matters to a cell that hits it, and
+   it is now stored per cell
+3. Rerun the α sweep — α=0.75 is unverified for the current backbone
+4. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
+5. Port `dann.py` to the current backbone, or drop the comparison
+6. Real SDR capture when hardware and lab access allow
+
+Parked by the one-dataset decision: adding 2016 as a third cross-domain
+source, which would have needed an `RML2016Domain` reconciling 128-sample
+frames with 1024.. Both domains are
    synthetic today, and that is the single largest weakness of the work
 
 Closed: validating the faithful build against 63.24% (reaches 63.21% trained to

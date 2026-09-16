@@ -696,26 +696,42 @@ also where re-measurement matters most.
 
 ## Open work
 
-1. **Finish `compare_methods_ICRNNA_es_e100.npz`**, which stands at 15 of 20 —
+**One dataset: RadioML 2018.01A.** Decided in the 2026-09-16 meeting. Most of
+this list was already 2018 — the domain-gap table, the α sweep and the sink
+thread all run on it — so what the decision actually changes is that the second
+dataset stops being a place new work goes.
+
+It does not retract anything measured on 2016. Those runs stay in the results
+table and stay quotable, and one of them is load-bearing: the faithful build
+reaching 63.21% against the paper's 63.24% is the only point where this
+pipeline is tied to a published number, and that paper is a 2016 paper. Losing
+that link would cost more than the focus is worth.
+
+1. **The four-class decision table on 2018** — `train_backbone.py --data
+   rml2018 --classes BPSK,QPSK,16QAM,64QAM`, asked for directly in the
+   2026-09-15 meeting. Four outputs, so the model chooses between four answers
+   and the rows sum over four columns; the subset of the 24-class table is not
+   the same measurement and says so where it is printed. At 2,048 frames per
+   cell the test set is about 10,200 decisions per class over three seeds.
+   The 2016 version of this is already measured and is what the design was
+   rehearsed on — see above, including the part where four classes made QAM16
+   *worse*, which is the thing to check for again here
+2. **Finish `compare_methods_ICRNNA_es_e100.npz`**, which stands at 15 of 20 —
    the whitening + standard augmentation row is what is left — then rerun the
    three unconverged augmentation cells with `--epochs 150 --redo-unconverged`.
-   Five cells plus three, not twenty.
-2. **The four-class decision table** — `train_backbone.py --classes
-   BPSK,QPSK,16QAM,64QAM`, asked for directly in the 2026-09-15 meeting. Four
-   outputs, so the model chooses between four answers and the rows sum over
-   four columns; the subset of the 24-class table is not the same measurement
-   and says so where it is printed. Cheap: four classes against twenty-four
+   Five cells plus three, not twenty
 3. Rerun the α sweep — α=0.75 is unverified for the current backbone, and it
    needs the same ceiling for the same reason
 4. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
 5. Port `dann.py` to the current backbone, or drop the comparison
-6. Add RadioML 2016.10a as a third domain (still synthetic, so it only partly
-   addresses the weakness above). `rml2016.py` loads it and
-   `train_backbone.py` trains on it; what does not exist yet is an
-   `RML2016Domain` for the cross-domain scripts, because 2016's 128-sample
-   frames and 2018's 1024 have to be reconciled first and that is a decision,
-   not a detail
-7. Real SDR capture when hardware and lab access allow
+6. Real SDR capture when hardware and lab access allow
+
+**Parked by the one-dataset decision.** Adding RML2016.10a as a third domain.
+`rml2016.py` loads it and `train_backbone.py` trains on it; what never existed
+is an `RML2016Domain` for the cross-domain scripts, because 2016's 128-sample
+frames and 2018's 1024 have to be reconciled first and that is a decision
+rather than a detail. The loader is kept — it costs nothing to keep and the
+faithful build needs it.
 
 **Closed.** Validate `colab/icrnna_faithful_2016.py` against 63.24% — at the
 paper's 58-epoch ceiling it lands 1.49 points under; trained to convergence it
