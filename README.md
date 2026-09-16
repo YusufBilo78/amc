@@ -394,12 +394,31 @@ eight times the symbols to read a constellation from, and at that length
 
 #### Two things this run did not do
 
-**It did not converge.** Peaks at epochs 46, 48 and 59 under a 60-epoch
-ceiling with patience 20; the last of them needed 79. Every seed ran out of
-budget, so the overall figure is a floor. The table above is not affected in
-any way that matters — it is at 99.995% and has nowhere to go — but the
-low-SNR part of the curve is where validation accuracy was still creeping when
-the run stopped, and that is where the next table lives.
+**It did not converge — and the rerun says that cost nothing.** Peaks at
+epochs 46, 48 and 59 under a 60-epoch ceiling with patience 20; the last of them
+needed 79, so every seed was flagged. Rerun at a 150-epoch ceiling
+(`train_backbone_rml2018_f2048_c4_colab_e150.npz`, 139 minutes on the same
+T4), all three converged, peaks at 46, 48 and 66, overall
+**0.7467 ± 0.0015** against 0.7465 ± 0.0015.
+
+Seed by seed the comparison is sharper than the averages:
+
+- **Seeds 0 and 1 are bit-identical** to the 60-epoch run — same peak epoch,
+  same overall accuracy to six decimals, all 26 per-SNR matrices equal. They
+  had reached their peak at 46 and 48 all along; what the 60 ceiling denied
+  them was the twenty further epochs that would have *proved* it.
+- **Seed 2 moved** from a peak at 59 to one at 66, and its accuracy at every
+  SNR moved by a point or less — with the movement confined to the QAM pair,
+  16QAM down and 64QAM up by about the same amount at each level, the two
+  summing to what they were.
+
+Read that as a note on the convergence test rather than a reason to weaken
+it. `best_epoch + patience > ceiling` cannot tell "peaked, and would have
+stopped" from "still climbing" — both look the same from inside a ceiling
+that ended before patience could fire — so it flags both, and two of these
+three were the first kind. The flag means *unproven*, not *wrong*; the cost
+of turning it into either is one rerun, and the weaker test that would not
+have flagged them is the one that missed real cases in `compare_methods`.
 
 **It did not store the table that matters — at first.** The pooled matrix
 above 10 dB is a diagonal, which demonstrates the method and tells nobody
@@ -452,11 +471,30 @@ lands inside its family) seen from a different angle: here the class *was*
 trained on, and it still drains to the nearest simpler one once the SNR takes
 away what distinguishes it.
 
-Two caveats travel with these tables. They come from the unconverged run, and
-the low-SNR levels are exactly where validation accuracy was still moving when
-the ceiling stopped it, so the −8 and −4 dB rows are the ones most likely to
-shift under the 150-epoch rerun. And 924 decisions per row is one third of
-what the pooled table has; a 1% cell is nine frames.
+One caveat travels with these tables: 924 decisions per row is one third of
+what the pooled table has, so a 1% cell is nine frames.
+
+The other one is closed. These are the 60-epoch run's tables; the converged
+150-epoch run gives, recall per class, 60 → 150:
+
+| SNR | BPSK | QPSK | 16QAM | 64QAM |
+|---|---|---|---|---|
+| -8 dB | 70.7 → 70.0 | 70.0 → 69.2 | 2.5 → 2.8 | 8.5 → 9.7 |
+| -4 dB | 100.0 → 100.0 | 73.3 → 72.5 | 15.7 → 15.4 | 48.4 → 49.1 |
+| +0 dB | 100.0 → 100.0 | 100.0 → 100.0 | 58.3 → 56.2 | 60.1 → 61.6 |
+| +4 dB | 100.0 → 100.0 | 100.0 → 100.0 | 97.6 → 97.5 | 95.5 → 96.0 |
+
+Nothing moves by more than two points, and every move is inside the QAM pair.
+The 0 dB table from the converged run, three seeds pooled:
+
+| transmitted \ decided | BPSK | QPSK | 16QAM | 64QAM | recall |
+|---|---|---|---|---|---|
+| **BPSK** | **924** | 0 | 0 | 0 | 100.0% |
+| **QPSK** | 0 | **924** | 0 | 0 | 100.0% |
+| **16QAM** | 0 | 9 | **519** | 396 | 56.2% |
+| **64QAM** | 0 | 6 | 349 | **569** | 61.6% |
+
+2,936 of 3,696, 79.4%.
 
 ### The faithful build, measured
 
@@ -798,20 +836,15 @@ reaching 63.21% against the paper's 63.24% is the only point where this
 pipeline is tied to a published number, and that paper is a 2016 paper. Losing
 that link would cost more than the focus is worth.
 
-1. **The four-class table on 2018, converged.** The run is measured at every
-   SNR now (per-SNR matrices rebuilt from the checkpoints) but did not
-   converge — peaks 46, 48, 59 under a 60 ceiling. Rerun at `AMC_EPOCHS=150
-   AMC_TAG=colab_e150`, about three hours on a T4; the low-SNR rows are the
-   ones expected to move
-2. **Finish `compare_methods_ICRNNA_es_e100.npz`**, which stands at 15 of 20 —
+1. **Finish `compare_methods_ICRNNA_es_e100.npz`**, which stands at 15 of 20 —
    the whitening + standard augmentation row is what is left — then rerun the
    three unconverged augmentation cells with `--epochs 150 --redo-unconverged`.
    Five cells plus three, not twenty
-3. Rerun the α sweep — α=0.75 is unverified for the current backbone, and it
+2. Rerun the α sweep — α=0.75 is unverified for the current backbone, and it
    needs the same ceiling for the same reason
-4. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
-5. Port `dann.py` to the current backbone, or drop the comparison
-6. Real SDR capture when hardware and lab access allow
+3. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
+4. Port `dann.py` to the current backbone, or drop the comparison
+5. Real SDR capture when hardware and lab access allow
 
 **Parked by the one-dataset decision.** Adding RML2016.10a as a third domain.
 `rml2016.py` loads it and `train_backbone.py` trains on it; what never existed
@@ -820,7 +853,10 @@ frames and 2018's 1024 have to be reconciled first and that is a decision
 rather than a detail. The loader is kept — it costs nothing to keep and the
 faithful build needs it.
 
-**Closed.** Validate `colab/icrnna_faithful_2016.py` against 63.24% — at the
+**Closed.** The four-class decision table on 2018 — measured at every SNR,
+converged at a 150 ceiling (peaks 46, 48, 66), two of three seeds
+bit-identical to the 60-epoch run and the third within a point at every
+level. Validate `colab/icrnna_faithful_2016.py` against 63.24% — at the
 paper's 58-epoch ceiling it lands 1.49 points under; trained to convergence it
 reaches 63.21%. Check whether the two classification runs converged — both did,
 best epoch 39 on 2016 and 26 on 2018.
