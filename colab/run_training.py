@@ -46,17 +46,41 @@ import time
 # ==========================================================================
 # Config
 # ==========================================================================
-DATASET = "rml2018"       # "rml2016" (11 classes, fast) or "rml2018" (24)
-SEEDS = 3
-EPOCHS = 60
-PATIENCE = 20
+# Every setting below can be overridden from the environment, so this file can
+# be run straight out of a clone instead of being pasted into a cell and edited
+# in place. Nothing about the run changes; it is the same constants, read from
+# somewhere a %env line can reach:
+#
+#     %env AMC_CLASSES=BPSK,QPSK,16QAM,64QAM
+#     %env AMC_FRAMES_2018=2048
+#     !python /content/amc/colab/run_training.py
+#
+# Unset is the default in each case, so a bare run behaves exactly as before.
+
+
+def _env(name, default, cast=str):
+    raw = os.environ.get(name)
+    if raw is None or raw == "":
+        return default
+    try:
+        return cast(raw)
+    except ValueError:
+        raise SystemExit(f"{name}={raw!r} is not a valid "
+                         f"{cast.__name__}") from None
+
+
+DATASET = _env("AMC_DATASET", "rml2018")   # "rml2016" (11 classes, fast) or
+                                           # "rml2018" (24)
+SEEDS = _env("AMC_SEEDS", 3, int)
+EPOCHS = _env("AMC_EPOCHS", 60, int)
+PATIENCE = _env("AMC_PATIENCE", 20, int)
 # Frames drawn per (class, SNR) cell, per dataset -- they are not comparable
 # quantities. 2018 has 4096 available and each frame costs 4.2x a 2016 one, so
 # 512 is the affordable setting there. 2016 has 1000 and is cheap enough to use
 # all of them, which is also what the paper this backbone comes from does.
-FRAMES_PER_CELL_2018 = 512
-FRAMES_PER_CELL_2016 = 1000
-TAG = "colab"
+FRAMES_PER_CELL_2018 = _env("AMC_FRAMES_2018", 512, int)
+FRAMES_PER_CELL_2016 = _env("AMC_FRAMES_2016", 1000, int)
+TAG = _env("AMC_TAG", "colab")
 
 # Train on a subset of the classes, as a genuinely smaller problem: the model
 # is built with this many outputs, so its confusion matrix rows sum over these
@@ -81,7 +105,10 @@ TAG = "colab"
 # same frames the 24-class run gave those classes. Nothing here depends on
 # them being the same; what is not allowed is quoting one as a slice of the
 # other.
-CLASSES = None
+CLASSES = _env("AMC_CLASSES", None)
+
+if DATASET not in ("rml2016", "rml2018"):
+    raise SystemExit(f"AMC_DATASET={DATASET!r}: expected rml2016 or rml2018")
 
 BRANCH = "claude/iacs-modulation-classification-gwwv4m"
 REPO = "https://github.com/YusufBilo78/amc.git"
