@@ -113,8 +113,33 @@ HIGH_SNR = 10
 PAPER_2016 = 63.24
 
 
+def resolve_classes(wanted: str | None, available: list[str], data: str):
+    """
+    (class_ids, class_names) for a --classes string, or (None, available).
+
+    The ids index the dataset's own class list and are what the loader is
+    given; the names come back in the order they were asked for, because that
+    is the order the confusion matrix rows are printed in and reading a table
+    whose rows are in a different order from the flag that produced it is a
+    reliable way to misread it.
+    """
+    if not wanted:
+        return None, available
+    names = [c.strip() for c in wanted.split(",")]
+    missing = [c for c in names if c not in available]
+    if missing:
+        raise SystemExit(
+            f"--classes: not in {data}: {', '.join(missing)}\n"
+            f"available: {', '.join(available)}")
+    if len(names) != len(set(names)):
+        raise SystemExit(f"--classes: repeated class in {wanted!r}")
+    if len(names) < 2:
+        raise SystemExit("--classes needs at least two classes")
+    return [available.index(c) for c in names], names
+
+
 def load_dataset(name: str, frames_per_cell: int, data_path: str | None,
-                 seed: int = 0):
+                 seed: int = 0, classes: str | None = None):
     """
     (X, y, z, class_names) with X as (n, 2, L) float32 at unit average power.
 
@@ -122,26 +147,51 @@ def load_dataset(name: str, frames_per_cell: int, data_path: str | None,
     so the two paths stay identical from this point on. Intermediates are freed
     explicitly -- at 2018's full frame length each copy of the array is a
     couple of gigabytes.
+
+    `classes` restricts the run to a subset by name. The selection is pushed
+    down into the loader rather than applied to the loaded arrays, which is
+    what makes a four-class run cheap: only those cells are read, so the same
+    memory buys eight times the frames per class that a 24-class run can
+    afford. The labels come back remapped to 0..k-1 in the order asked for, so
+    the model is built with k outputs and is choosing between k answers.
+
+    A subset run therefore does not train on the same frames as the full run
+    would have given those classes -- both loaders draw each cell from one
+    generator walking the classes in order, so iterating four consumes it
+    differently from iterating twenty-four. That is fine, because a subset run
+    is its own experiment and is written to its own file; it is not fine to
+    quote one as if it were a slice of the other.
     """
     if name == "rml2018":
         import radioml
 
+        available = list(radioml.CLASSES)
+        ids, class_names = resolve_classes(classes, available, name)
         with radioml.RadioML(search_dir=data_path) as ds:
-            data = ds.load(frames_per_cell=frames_per_cell,
+            data = ds.load(classes=ids, frames_per_cell=frames_per_cell,
                            test_fraction=0.0, seed=seed)
-        class_names = radioml.CLASSES
     else:
         import rml2016
 
         with rml2016.RML2016(data_path) as ds:
-            data = ds.load(frames_per_cell=frames_per_cell,
+            available = list(ds.classes)
+            ids, class_names = resolve_classes(classes, available, name)
+            data = ds.load(classes=ids, frames_per_cell=frames_per_cell,
                            test_fraction=0.0, seed=seed)
-            class_names = ds.classes
 
     X = np.transpose(data["X_train"], (0, 2, 1)).astype(np.float32)
     y = data["y_train"].astype(np.int64)
     z = data["z_train"].astype(np.int16)
     del data
+
+    if ids is not None:
+        # The loader returns the dataset's own label ids; the model needs
+        # 0..k-1, in the order the names were given.
+        remap = np.full(len(available), -1, dtype=np.int64)
+        for new_id, old_id in enumerate(ids):
+            remap[old_id] = new_id
+        y = remap[y]
+        assert y.min() >= 0, "loader returned a class that was not requested"
 
     X = cnn.normalize_frames(X)
     return X, y, z, class_names
@@ -259,30 +309,7 @@ def main() -> None:
     print(f"loading {args.data} ({args.frames_per_cell} frames per cell) ...")
     t0 = time.time()
     X, y, z, class_names = load_dataset(args.data, args.frames_per_cell,
-                                        args.data_path)
-
-    if args.classes:
-        wanted = [c.strip() for c in args.classes.split(",")]
-        missing = [c for c in wanted if c not in class_names]
-        if missing:
-            raise SystemExit(
-                f"--classes: not in {args.data}: {', '.join(missing)}\n"
-                f"available: {', '.join(class_names)}")
-        if len(wanted) < 2:
-            raise SystemExit("--classes needs at least two classes")
-        # Labels are remapped to 0..k-1 in the order given, so the confusion
-        # matrix rows come out in the order that was asked for rather than in
-        # the dataset's own order.
-        keep = [class_names.index(c) for c in wanted]
-        mask = np.isin(y, keep)
-        remap = np.full(len(class_names), -1, dtype=np.int64)
-        for new_id, old_id in enumerate(keep):
-            remap[old_id] = new_id
-        X, y, z = X[mask], remap[y[mask]], z[mask]
-        class_names = wanted
-        print(f"  --classes: {len(wanted)} of the dataset's classes, "
-              f"{X.shape[0]:,} frames kept")
-
+                                        args.data_path, classes=args.classes)
     snrs = np.unique(z)
     print(f"  {X.shape[0]:,} frames  {X.shape}  "
           f"({X.nbytes / 1e9:.1f} GB)  in {time.time() - t0:.0f}s")

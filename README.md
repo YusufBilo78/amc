@@ -286,6 +286,21 @@ BPSK,QPSK,16QAM,64QAM`, which builds the model with four outputs and so gives
 it four answers to choose between. The two numbers answer different questions
 and neither substitutes for the other.
 
+The subset is pushed down into the loader rather than applied afterwards, and
+that is what makes the run cheap: only those cells are read, so the same memory
+buys four times the frames per class that the 24-class run can afford. At 2,048
+frames per cell the test set holds **308 frames per (class, SNR) cell**, which
+over the eleven SNR levels at or above 10 dB and three seeds is **about 10,200
+decisions per class** — enough that a 1% confusion is a hundred events rather
+than three. Staging is class-restricted too, and takes every frame of the four
+rather than a subsample of all twenty-four: 3.5 GB against 10.5.
+
+Because both loaders draw each cell from one generator walking the classes in
+order, iterating four consumes it differently from iterating twenty-four, so a
+subset run is **not** trained on the frames the 24-class run gave those
+classes. It is its own experiment in its own file, which is the honest thing
+for it to be; what it must not be is quoted as a slice of the other.
+
 ### The faithful build, measured
 
 `colab/icrnna_faithful_2016.py`, built from the paper rather than from a

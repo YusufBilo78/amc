@@ -67,11 +67,20 @@ TAG = "colab"
 #                                       way round; confusion_table.py prints
 #                                       the available names on a mismatch)
 #
-# The staging step is left alone when this is set. Its per-cell draw walks the
-# classes in order from one shared generator, so staging only four classes
-# would not pick the same frames within them as staging all twenty-four; the
-# subset is taken after loading instead, which costs a full stage and keeps the
-# frames identical to every other run on this data.
+# The selection is pushed down into the loader, so only those cells are read
+# and the same memory buys far more frames per class than a 24-class run can
+# afford. On 2018 that is the point of the exercise: FRAMES_PER_CELL_2018 can
+# go to 2048 for four classes, which is four times the frames of the full run
+# and puts the test set past ten thousand decisions per class once the seeds
+# are pooled -- enough that a 1% confusion is a hundred events rather than
+# three.
+#
+# A subset run is its own experiment, written to its own file. Both loaders
+# draw each cell from one generator walking the classes in order, so iterating
+# four consumes it differently from iterating twenty-four and these are not the
+# same frames the 24-class run gave those classes. Nothing here depends on
+# them being the same; what is not allowed is quoting one as a slice of the
+# other.
 CLASSES = None
 
 BRANCH = "claude/iacs-modulation-classification-gwwv4m"
@@ -298,6 +307,22 @@ def main():
     # ==========================================================================
     hr("3. Dataset")
 
+    # Names are what a person writes; the loader and the staging step both
+    # want dataset ids. Resolve once, here, so a typo fails before anything
+    # has been copied.
+    CLASS_IDS = None
+    if CLASSES and DATASET == "rml2018":
+        import radioml          # src is already on sys.path, just above
+
+        names = [c.strip() for c in CLASSES.split(",")]
+        unknown = [c for c in names if c not in radioml.CLASSES]
+        if unknown:
+            raise SystemExit(
+                f"CLASSES: not in rml2018: {', '.join(unknown)}\n"
+                f"available: {', '.join(radioml.CLASSES)}")
+        CLASS_IDS = [list(radioml.CLASSES).index(c) for c in names]
+        print(f"classes: {names} -> ids {CLASS_IDS}\n")
+
 
     if DATASET == "rml2016":
         pkl = first_existing(PKL_HINTS, lambda p: p.is_file())
@@ -325,6 +350,13 @@ def main():
             print(f"found the .npy triple in {npy_dir}")
             data_path = str(npy_dir)
             frames_per_cell = FRAMES_PER_CELL_2018
+            if CLASSES:
+                print("  note: this triple was staged at some frames-per-cell "
+                      "already. If it holds\n  fewer than "
+                      f"{FRAMES_PER_CELL_2018} per cell the loader says so and "
+                      "takes those cells whole,\n  which is a smaller run than "
+                      "this one is asking for -- stage from the HDF5\n"
+                      "  instead if the warning appears.")
         else:
             # Case B: only the HDF5. Extract the frames this run needs onto local
             # disk, keeping every (class, SNR) cell equally represented.
@@ -345,7 +377,16 @@ def main():
 
             import numpy as np
 
-            stage_from_hdf5(h5, STAGE_DIR, FRAMES_PER_CELL_2018, free_gb)
+            # A class subset stages every frame of those classes instead of a
+            # subsample of all of them: four classes whole is 3.5 GB against
+            # 10.5 for a 2048-per-cell subsample of twenty-four, and it leaves
+            # the cells full, so frames_per_cell is free to be raised without
+            # restaging.
+            if CLASS_IDS:
+                stage_from_hdf5(h5, STAGE_DIR, FRAMES_PER_CELL_2018, free_gb,
+                                class_ids=CLASS_IDS)
+            else:
+                stage_from_hdf5(h5, STAGE_DIR, FRAMES_PER_CELL_2018, free_gb)
 
             data_path = str(STAGE_DIR)
             frames_per_cell = FRAMES_PER_CELL_2018
