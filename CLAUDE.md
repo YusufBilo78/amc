@@ -93,7 +93,7 @@ warning stayed silent.
 
 | file | status |
 |---|---|
-| `compare_methods_ICRNNA_es_e100.npz` | **15/20, unfinished** — the same table at a 100-epoch ceiling. The whitening + standard row is what is left. Three finished cells still ran out of budget, all in the standard augmentation row. Finish it, then `--epochs 150 --redo-unconverged`. It does not reproduce the 60-epoch table cell for cell — different machine, so the two are independent samples |
+| `compare_methods_ICRNNA_es_e100.npz` | **20/20, three cells still at the ceiling** — the same table at a 100-epoch ceiling. Whitening + standard: 0.995 ±0.003, peaks 37–66, converged. Three standard-augmentation cells peaked at 89, 83, 82 and ran out of budget; the redo pass at 150 is next. It does not reproduce the 60-epoch table cell for cell — different machine, so the two are independent samples |
 | `compare_methods_ICRNNA_es.npz` | **complete at 20/20** — the finished copy is now the committed one. Two of the three cells with a recorded stopping epoch ran out of budget at the 60-epoch ceiling rather than converging. The 0.804 → 0.993 headline survives that; the small differences in the table do not. See README |
 | `baseline_results.npz` | current — cumulants + SVM, no neural net involved |
 | `sink_vs_geometry.npz` | current — signal geometry, no model involved |
@@ -155,9 +155,9 @@ retract the 2016 results — in particular the faithful build's 63.21% against
 the paper's 63.24% is the one tie to a published number, and that paper is a
 2016 paper. `rml2016.py` stays.
 
-1. Finish `compare_methods_ICRNNA_es_e100.npz` (15/20), then
+1. `compare_methods_ICRNNA_es_e100.npz` is 20/20; run
    `--epochs 150 --redo-unconverged` for the three augmentation cells that
-   ran out of budget. The ceiling only matters to a cell that hits it, and
+   ran out of budget (`AMC_COMPARE_EPOCHS=150 AMC_REDO_UNCONVERGED=1`). The ceiling only matters to a cell that hits it, and
    it is now stored per cell
 2. Rerun the α sweep — α=0.75 is unverified for the current backbone
 3. Rerun the sink/family thread (24-class leave-one-out, the expensive one)

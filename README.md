@@ -97,19 +97,36 @@ would need.
 #### The rerun at 100 epochs, and what it showed about convergence
 
 `compare_methods_ICRNNA_es_e100.npz` is the same table under a 100-epoch
-ceiling. It stands at **15 of 20 cells**; the whole fourth row, whitening plus
-standard augmentation, is still to run. Every finished cell recorded its
-stopping epoch, and those turned out to be the interesting part:
+ceiling, **complete at 20 of 20** (the last five cells took 33 minutes on an
+A100):
+
+| method | in-domain | cross-domain | gap | 16QAM |
+|---|---|---|---|---|
+| none | 0.999 ±0.001 | 0.805 ±0.005 | +0.193 ±0.004 | 0.056 ±0.018 |
+| standard augmentation | 1.000 ±0.000 | 0.807 ±0.005 | +0.192 ±0.005 | 0.043 ±0.023 |
+| whitening a=0.75 | 0.999 ±0.001 | 0.989 ±0.007 | +0.011 ±0.007 | 0.981 ±0.009 |
+| whitening + standard | 1.000 ±0.000 | 0.995 ±0.003 | +0.005 ±0.002 | 0.999 ±0.000 |
+
+Whitening against none: +0.183. Standard augmentation
+against none: +0.002. Combining against whitening
+alone: **+0.006**, which at a pooled seed spread of
+0.005 is not a measurement — the same
+verdict the 60-epoch table gave, now from cells that had room to converge.
+
+Every cell recorded its stopping epoch, and those turned out to be the
+interesting part:
 
 | method | stopping epochs | mean | gradient updates |
 |---|---|---|---|
 | none | 51, 41, 48, 36, 38 | 43 | 9.8k – 13.9k |
 | standard augmentation | 89, 48, 83, 65, 82 | 73 | 13.1k – 24.3k |
-| whitening α=0.75 | 26, 26, 33, 43, 25 | 31 | 6.8k – 11.7k |
+| whitening a=0.75 | 26, 26, 33, 43, 25 | 31 | 6.8k – 11.7k |
+| whitening + standard | 66, 37, 53, 37, 50 | 49 | 10.1k – 18.0k |
 
 **Convergence speed is a property of the method, not just of the dataset.**
-Whitening converges 2.6× faster than the augmentation row and 1.5× faster than
-training with no method at all. That is what the mechanism predicts: whitening
+Whitening converges 2.4× faster than the augmentation row and 1.4× faster than
+training with no method at all; add the augmentation set on top of whitening
+and the stopping epoch rises again, from 31 to 49. That is what the mechanism predicts: whitening
 removes a nuisance dimension, so there is less to fit; augmentation adds
 nuisance variation, so there is more. It also corrects the generalisation
 drawn from the two classification runs — 23k updates was not a constant of the
