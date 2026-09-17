@@ -132,11 +132,19 @@ nuisance variation, so there is more. It also corrects the generalisation
 drawn from the two classification runs — 23k updates was not a constant of the
 optimizer, it was those two problems.
 
-**Three cells still ran out of budget at 100**, all of them in the standard
+**Three cells ran out of budget at 100**, all of them in the standard
 augmentation row: peaks at 89, 83 and 82, which need 109, 103 and 102 to stop.
-That row is the comparison baseline for the headline claim, so it is the worst
-one to have under-trained, and the claim that the literature augmentation set
-does not address this failure mode is not safe until those three are rerun.
+That row is the comparison baseline for the headline claim, so it was the worst
+one to have under-trained. They were rerun under a 150 ceiling
+(`--redo-unconverged`, nine minutes on an A100) and came back **bit-identical**:
+the same peaks at 89, 83 and 82, the same accuracies to the last digit, this
+time with the twenty further epochs that let early stopping fire. The file now
+records a ceiling per cell — 150 for those three, 100 for the rest — and
+`best_epoch + patience <= ceiling` holds in all twenty. This is the third time
+a cell flagged by that test has turned out to be sitting at its true peak (the
+four-class run's seeds 0 and 1 were the first two); the flag has yet to catch a
+cell that was still climbing, and it is kept anyway, because the one time it
+was weakened it missed cells that were.
 
 **The two tables are independent samples, not one refined into the other.**
 No cell reproduces its 60-epoch counterpart bit for bit — the `none` row reads
@@ -155,14 +163,14 @@ against 0.9914 at the lower ceiling and drags that row's spread from ±0.0014 to
 epochs to spare — this is seed-level variation in the whitening row, not an
 under-trained cell, and the row's honest spread is the wider one.
 
-Fixing it does not cost another full table. **The ceiling only matters to a
+Fixing it did not cost another full table. **The ceiling only matters to a
 cell that hits it**: a cell that peaked at epoch 36 peaks at 36 whatever
 ceiling it ran under, so a table whose cells all converged is sound even
-though they ran under different ceilings. `compare_methods.py` now stores the
+though they ran under different ceilings. `compare_methods.py` stores the
 ceiling per cell and takes `--redo-unconverged`, which on resume clears only
-the cells that ran out of budget and reruns those. Ten cells instead of twenty,
-and the per-cell ceilings are in the file so the claim can be checked rather
-than taken on trust.
+the cells that ran out of budget and reruns those — three cells rather than
+twenty — and the per-cell ceilings are in the file so the claim can be checked
+rather than taken on trust.
 
 ### Plain classification on RML2016.10a
 
@@ -853,15 +861,11 @@ reaching 63.21% against the paper's 63.24% is the only point where this
 pipeline is tied to a published number, and that paper is a 2016 paper. Losing
 that link would cost more than the focus is worth.
 
-1. **Finish `compare_methods_ICRNNA_es_e100.npz`**, which stands at 15 of 20 —
-   the whitening + standard augmentation row is what is left — then rerun the
-   three unconverged augmentation cells with `--epochs 150 --redo-unconverged`.
-   Five cells plus three, not twenty
-2. Rerun the α sweep — α=0.75 is unverified for the current backbone, and it
+1. Rerun the α sweep — α=0.75 is unverified for the current backbone, and it
    needs the same ceiling for the same reason
-3. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
-4. Port `dann.py` to the current backbone, or drop the comparison
-5. Real SDR capture when hardware and lab access allow
+2. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
+3. Port `dann.py` to the current backbone, or drop the comparison
+4. Real SDR capture when hardware and lab access allow
 
 **Parked by the one-dataset decision.** Adding RML2016.10a as a third domain.
 `rml2016.py` loads it and `train_backbone.py` trains on it; what never existed
@@ -870,7 +874,7 @@ frames and 2018's 1024 have to be reconciled first and that is a decision
 rather than a detail. The loader is kept — it costs nothing to keep and the
 faithful build needs it.
 
-**Closed.** The four-class decision table on 2018 — measured at every SNR,
+**Closed.** The method table at a ceiling every cell had room under — `compare_methods_ICRNNA_es_e100.npz`, 20 of 20 converged, the three augmentation cells rerun at 150 and bit-identical. The four-class decision table on 2018 — measured at every SNR,
 converged at a 150 ceiling (peaks 46, 48, 66), two of three seeds
 bit-identical to the 60-epoch run and the third within a point at every
 level. Validate `colab/icrnna_faithful_2016.py` against 63.24% — at the
