@@ -163,7 +163,6 @@ bekliyor.**
 
 | eksik | neden önemli |
 |---|---|
-| **α süpürmesi (`whitening_seeds.py`)** | α=0.75 seçimi mevcut backbone için **doğrulanmamış**. "Kısmi whitening tam whitening'i yendi" iddiası — WhiteNet ile somut anlaşmazlığımız — şu an eski ölçüme dayanıyor. 25 hücre, koşulmadı. |
 | **Sink / aile eşiği (24 sınıf leave-one-out)** | İşin **en özgün** parçası: görülmemiş bir modülasyon kendi ailesinin içine düşüyor, beş bağımsız yolla doğrulanmıştı. Mevcut backbone'da **hiç yeniden koşulmadı**. En pahalı iş. |
 | **`dann.py`** | Eski feature extractor üzerine kurulu, porte edilmedi. Sayıları hiçbir şeyle karşılaştırılabilir değil. Ya yaz ya karşılaştırmayı düşür. |
 | **Gerçek SDR kaydı** | **İşin en büyük zayıflığı.** Her iki alan da sentetik. Bu, sonuç değil çalışma olmasının sebebi. Donanım ve laboratuvar erişimi gerekiyor. |
@@ -191,8 +190,9 @@ Bunları sana sordurma. Kendin söyle — güven buradan geliyor.
 
 2. **Whitening özgün değil.** WhiteNet (arXiv:2608.06581) esasen aynı işleme
    ulaşmış, üstelik **gerçek** havadan kayıtlarla. Özgünlük iddiası bulunduğunda
-   düşürüldü. Ayakta kalan: atıf yöntemi, kısmi-vs-tam anlaşmazlığı ve sink
-   bulgusu. `LITERATURE.md`'de duruyor.
+   düşürüldü. Ayakta kalan: atıf yöntemi ve sink bulgusu. "Kısmi whitening tam'ı yener"
+   iddiası (WhiteNet'le tek anlaşmazlığımız) 5 tohumlu yeniden ölçümde
+   **düştü**: α=1.0 en az 0.75 kadar iyi (0.993 vs 0.988) ve daha kararlı. `LITERATURE.md`'de duruyor.
 
 3. **Mekanizma tam çözülmedi.** Projenin çoğunda çalışan açıklama "kısayol
    öğrenme"ydi: model modülasyon derecesini spektral zarftan okuyor. **İki deney

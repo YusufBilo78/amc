@@ -165,7 +165,6 @@ re-measurement.**
 
 | missing | why it matters |
 |---|---|
-| **the α sweep (`whitening_seeds.py`)** | α=0.75 is **unverified** for the current backbone. The claim that partial whitening beats full whitening — our one concrete disagreement with WhiteNet — currently rests on the old measurement. 25 cells, not run. |
 | **the sink / family thread (24-class leave-one-out)** | The **most novel** part of the work: an unseen modulation lands inside its own family, checked five independent ways. **Never rerun** on the current backbone. The most expensive job. |
 | **`dann.py`** | Built on the legacy feature extractor, not ported. Its numbers are comparable to nothing. Either rewrite it or drop the comparison. |
 | **real SDR capture** | **The single largest weakness.** Both domains are synthetic. This is why the work is a study rather than a result. Needs hardware and lab access. |
@@ -195,7 +194,9 @@ Do not make him find these. Say them. The credibility comes from here.
 2. **Whitening is not novel.** WhiteNet (arXiv:2608.06581) arrived at
    essentially the same operation, and on **real** over-the-air captures. The
    novelty claim was dropped on finding it. What survives: the attribution
-   method, the partial-vs-full disagreement, and the sink finding. It is
+   method and the sink finding. The "partial beats full" claim (our one
+   disagreement with WhiteNet) **did not survive** a five-seed rerun: α=1.0 is
+   at least as good as 0.75 (0.993 vs 0.988) and more stable. It is
    recorded in `LITERATURE.md`.
 
 3. **The mechanism is not fully resolved.** The working account through most of

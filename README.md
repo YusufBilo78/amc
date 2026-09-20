@@ -778,11 +778,42 @@ frame's spectrum by a smoothed estimate of its own magnitude envelope,
 `X / smooth(|X|)^α`, with a circular moving average so the wrap-around is not a
 discontinuity.
 
-α is swept from 0 to 1. **Partial whitening beat full whitening** in the earlier
-sweep (α=0.75 against α=1.0), which is a concrete, measurable disagreement with
-WhiteNet's choice of full whitening — on a different task, so not a
-contradiction, but worth reporting. **The sweep has not yet been rerun, so
-α=0.75 is currently unverified for the present backbone.**
+α is swept from 0 to 1, five seeds per point, 100-epoch ceiling
+(`whitening_seeds_e100.npz`, 125 minutes on an A100, every cell converged):
+
+| α | in-domain | cross-domain | gap | 16QAM | stopping epochs |
+|---|---|---|---|---|---|
+| 0.00 | 0.999 ±0.001 | 0.805 ±0.005 | +0.193 | 0.056 ±0.018 | 51, 41, 48, 36, 38 |
+| 0.25 | 0.999 ±0.000 | 0.855 ±0.009 | +0.144 | 0.305 ±0.044 | 35, 47, 40, 31, 25 |
+| 0.50 | 1.000 ±0.000 | 0.940 ±0.019 | +0.060 | 0.739 ±0.096 | 62, 52, 36, 39, 31 |
+| 0.75 | 0.999 ±0.001 | 0.988 ±0.007 | +0.011 | 0.981 ±0.009 | 26, 26, 33, 59, 35 |
+| 1.00 | 0.998 ±0.001 | 0.993 ±0.001 | +0.005 | 0.985 ±0.006 | 26, 22, 35, 30, 36 |
+
+**The claim that partial whitening beats full whitening does not survive.** It
+came from the superseded backbone at one seed per point; on the current one,
+across five seeds, α=1.0 is at least as good as α=0.75 (0.993
+against 0.988, a difference of +0.005 at a pooled spread of
+0.005) and seven times more stable (±0.001 against
+±0.007). The curve is monotone in α and saturates by 0.75. That was
+the one concrete disagreement this project had with WhiteNet's choice of full
+whitening, and it is withdrawn: on this task the two agree.
+
+Two things the sweep does say. The recovery is carried by 16QAM at every step
+— 0.056 → 0.305 → 0.739 → 0.981 → 0.985 — so α is turning one confusion off,
+not lifting everything a little. And the middle of the sweep is where the seeds
+disagree: α=0.5 has a spread of ±0.019 on cross-domain accuracy and
+±0.096 on 16QAM, against ±0.001–0.007 at either end. Half-removing the
+envelope leaves a model that sometimes learns to read through it and sometimes
+does not; removing it fully makes that a non-question.
+
+The existing tables keep α=0.75 because that is what they measured, and 0.005
+is not a reason to rerun them. New work should use α=1.0.
+
+The α=0 row reproduces `compare_methods`' "none" row bit for bit, all five
+seeds, and the α=0.75 row reproduces its whitening row on seeds 0–2 — the two
+seeds that differ were the two run in a different session on a different GPU.
+That is the same pipeline-determinism-within-a-machine seen throughout, and
+it doubles as a check that the two scripts are measuring the same thing.
 
 ### What the mechanism is not
 
@@ -831,7 +862,8 @@ also where re-measurement matters most.
 - **Spectral whitening is not novel.** WhiteNet (arXiv:2608.06581) arrived at
   essentially the same operation, on *real* over-the-air captures, and the claim
   of novelty was dropped on finding it. See `LITERATURE.md`. What survives is the
-  attribution method, the partial-vs-full disagreement, and the sink finding.
+  attribution method and the sink finding; the partial-versus-full disagreement
+  did not survive its own rerun (see the α sweep).
 - **`model_zoo.ICRNNA` is not the published architecture.** It is transcribed
   from a peer's reproduction. Checked against El-Haryqy et al., *Results in
   Engineering* 26 (2025) 104783, it differs in five places: conv1 kernel 5 vs 3,
@@ -861,11 +893,9 @@ reaching 63.21% against the paper's 63.24% is the only point where this
 pipeline is tied to a published number, and that paper is a 2016 paper. Losing
 that link would cost more than the focus is worth.
 
-1. Rerun the α sweep — α=0.75 is unverified for the current backbone, and it
-   needs the same ceiling for the same reason
-2. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
-3. Port `dann.py` to the current backbone, or drop the comparison
-4. Real SDR capture when hardware and lab access allow
+1. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
+2. Port `dann.py` to the current backbone, or drop the comparison
+3. Real SDR capture when hardware and lab access allow
 
 **Parked by the one-dataset decision.** Adding RML2016.10a as a third domain.
 `rml2016.py` loads it and `train_backbone.py` trains on it; what never existed
@@ -874,7 +904,7 @@ frames and 2018's 1024 have to be reconciled first and that is a decision
 rather than a detail. The loader is kept — it costs nothing to keep and the
 faithful build needs it.
 
-**Closed.** The method table at a ceiling every cell had room under — `compare_methods_ICRNNA_es_e100.npz`, 20 of 20 converged, the three augmentation cells rerun at 150 and bit-identical. The four-class decision table on 2018 — measured at every SNR,
+**Closed.** The α sweep — 25 cells, all converged; full whitening is at least as good as partial and the WhiteNet disagreement is withdrawn. The method table at a ceiling every cell had room under — `compare_methods_ICRNNA_es_e100.npz`, 20 of 20 converged, the three augmentation cells rerun at 150 and bit-identical. The four-class decision table on 2018 — measured at every SNR,
 converged at a 150 ceiling (peaks 46, 48, 66), two of three seeds
 bit-identical to the 60-epoch run and the third within a point at every
 level. Validate `colab/icrnna_faithful_2016.py` against 63.24% — at the
