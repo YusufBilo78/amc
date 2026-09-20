@@ -147,8 +147,20 @@ COMPARE_TAG = _env("AMC_COMPARE_TAG", "e100")
 # 100 would reproduce the same problem.
 REDO_UNCONVERGED = _env("AMC_REDO_UNCONVERGED", False, _flag)
 
+# The sink thread: sink_24 is leave-one-class-out on all 24 classes with the
+# backbone; sink_arch is the six-class architecture control, now with ICRNNA
+# in the list. Both stage all 24 classes at SINK_FRAMES per cell (the probe
+# draws 300 per cell, so 512 is the floor that leaves it room) into the same
+# directory the 2018 convergence check used, and both take a ceiling plus
+# patience rather than the fixed fifteen epochs they were written with.
+SINK_FRAMES = _env("AMC_SINK_FRAMES", 512, int)
+SINK_EPOCHS = _env("AMC_SINK_EPOCHS", 60, int)
+SINK_PATIENCE = _env("AMC_SINK_PATIENCE", 10, int)
+SINK_TAG = _env("AMC_SINK_TAG", "e60")
+
 _TASKS = ("compare_methods", "whitening_seeds", "faithful_2016",
-          "faithful_budget", "converged_2016", "converged_2018")
+          "faithful_budget", "converged_2016", "converged_2018",
+          "sink_24", "sink_arch")
 if TASK not in _TASKS:
     raise SystemExit(f"AMC_TASK={TASK!r}: expected one of {', '.join(_TASKS)}")
 
@@ -327,6 +339,44 @@ def main():
         print("Read the per-seed line. 'converged' and the committed 0.5699")
         print("stands; 'NOT converged' and it is a floor, as is anything else")
         print("measured under the same ceiling.")
+        return
+
+    if TASK in ("sink_24", "sink_arch"):
+        script = ("sink_class_24.py" if TASK == "sink_24"
+                  else "sink_across_architectures.py")
+        hr(f"3. The sink thread -- {script}")
+        print("Where does a modulation the model has never seen land? Train on")
+        print("23 classes, probe with the 24th drawn from RadioML itself. The")
+        print("finding on the superseded backbone was 'inside its own family';")
+        print("this is the rerun on the current one.\n")
+
+        h5 = None
+        for hint in H5_HINTS:
+            if (DRIVE / hint).is_file():
+                h5 = DRIVE / hint
+                break
+        if h5 is None:
+            raise SystemExit(
+                "GOLD_XYZ_OSC.0001_1024.hdf5 not found in Drive. Looked at:\n  "
+                + "\n  ".join(str(DRIVE / h) for h in H5_HINTS))
+        print(f"found: {h5}  ({h5.stat().st_size / 1e9:.0f} GB)\n")
+
+        import run_training
+
+        stage = pathlib.Path("/content/amc-data")
+        run_training.stage_from_hdf5(h5, stage, SINK_FRAMES, free_gb)
+        os.environ["AMC_DATA_DIR"] = str(stage)
+
+        cmd = [sys.executable, script,
+               "--epochs", str(SINK_EPOCHS), "--patience", str(SINK_PATIENCE),
+               "--tag", SINK_TAG, "--out-dir", str(OUT_DIR)]
+        print(f"results -> {OUT_DIR}  (Drive: survives the runtime)")
+        print("Written after every run. If this runtime dies, rerun this same")
+        print("cell -- finished runs are skipped, not repeated.\n")
+        print(" ".join(cmd) + "\n")
+        t0 = time.time()
+        sh(cmd, cwd=SRC)
+        hr(f"Done in {(time.time() - t0) / 60:.1f} min")
         return
 
     # ------------------------------------------------- 2018 for both sweeps

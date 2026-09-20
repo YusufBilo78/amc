@@ -29,10 +29,21 @@ all 24 -- chosen to cover top-of-family, middle-of-family, and two awkward
 cases -- because each one costs a full training run.
 
 Data is loaded once and masked per run; only the label mapping changes.
+
+Protocol, matching the rest of the repository: a 70/15/15 split over (class,
+SNR) cells, early stopping on the validation slice, the in-distribution
+accuracy measured once on the test slice. The probe frames are the held-out
+class and are seen by nothing. The stopping epoch is recorded per run and the
+summary says so if any run hit the ceiling -- a sink measured on an
+under-trained model is still a sink, but the in-distribution number next to it
+would be a floor.
+
+    cd src && python sink_class_24.py --out-dir /content/drive/MyDrive/amc-results --tag e60
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import pathlib
 import sys
@@ -79,7 +90,8 @@ TRAIN_SNRS = list(range(-20, 31, 2))
 PROBE_SNRS = list(range(10, 31, 2))
 FRAMES_TRAIN = 256
 FRAMES_PROBE = 300
-EPOCHS = 15
+EPOCHS = 60        # a ceiling; early stopping at PATIENCE decides the stop
+PATIENCE = 10
 SEED = 0
 
 
@@ -103,7 +115,29 @@ def neighbours_of(name: str) -> list[str]:
     return out
 
 
+def parse_args():
+    p = argparse.ArgumentParser()
+    p.add_argument("--out-dir", default=None,
+                   help="where the checkpoint, the .npz and the figure go, "
+                        "and where a partial sweep is resumed from. Defaults "
+                        "to the repository root; point it at durable storage "
+                        "on a machine that is not")
+    p.add_argument("--tag", default="",
+                   help="appended to every output name, so a run under other "
+                        "settings neither overwrites nor resumes this one")
+    p.add_argument("--epochs", type=int, default=EPOCHS)
+    p.add_argument("--patience", type=int, default=PATIENCE)
+    return p.parse_args()
+
+
 def main() -> None:
+    args = parse_args()
+    out_dir = pathlib.Path(args.out_dir) if args.out_dir else ROOT
+    fig_dir = out_dir / "figures" if args.out_dir else FIGURES
+    out_dir.mkdir(parents=True, exist_ok=True)
+    fig_dir.mkdir(parents=True, exist_ok=True)
+    suffix = f"_{args.tag}" if args.tag else ""
+
     classes = list(radioml.CLASSES)
     ds = radioml.RadioML()
     print(f"backend: {ds.backend}")
@@ -150,7 +184,7 @@ def main() -> None:
     # Each run costs several minutes, so results are written to disk as soon
     # as they exist and completed classes are skipped on a restart. A dead
     # battery or a closed lid then costs one run, not the whole sweep.
-    ckpt = ROOT / "sink_class_24_partial.json"
+    ckpt = out_dir / f"sink_class_24_partial{suffix}.json"
     results = json.loads(ckpt.read_text()) if ckpt.exists() else {}
     if results:
         print(f"\nresuming: {len(results)} of {len(HELD_OUT)} already done "
@@ -174,10 +208,14 @@ def main() -> None:
               f"({family_of(held)})  -- training on {len(kept_classes)} classes")
         torch.manual_seed(SEED)
         np.random.seed(SEED)
-        tr, te = cnn.split(X, y, z, test_fraction=0.25, seed=SEED)
+        tr, va, te = cnn.split(X, y, z, test_fraction=0.15, val_fraction=0.15,
+                               seed=SEED)
         model = model_zoo.backbone(len(kept_classes))
-        model = cnn.train_model(model, X[tr], y[tr], X[te], y[te], epochs=EPOCHS)
+        model = cnn.train_model(model, X[tr], y[tr], X[va], y[va],
+                                epochs=args.epochs, patience=args.patience)
         in_dist = float((cnn.predict(model, X[te]) == y[te]).mean())
+        best_epoch = int(getattr(model, "best_epoch", args.epochs))
+        converged = best_epoch + args.patience <= args.epochs
 
         pred = cnn.predict(model, probes[held])
         share = np.bincount(pred, minlength=len(kept_classes)).astype(float)
@@ -198,7 +236,11 @@ def main() -> None:
         results[held] = dict(sink=sink, share=float(share[top[0]]),
                              verdict=verdict, in_dist=in_dist,
                              top3=[(kept_classes[i], float(share[i])) for i in top],
-                             neighbours=nb)
+                             neighbours=nb, best_epoch=best_epoch,
+                             converged=bool(converged), ceiling=args.epochs)
+        if not converged:
+            print(f"    NOT converged: peak at epoch {best_epoch} of "
+                  f"{args.epochs}; the in-dist accuracy is a floor")
         ckpt.write_text(json.dumps(results, indent=2))
 
     print(f"\ntotal {(time.perf_counter()-t_start)/60:.1f} min")
@@ -221,6 +263,12 @@ def main() -> None:
     print(f"same family overall          : "
           f"{counts['ORDER-ADJACENT'] + counts['same family']}/{n}")
     print("=" * 88)
+    short = [h for h in HELD_OUT if not results[h].get("converged", True)]
+    if short:
+        print(f"\nWARNING: {len(short)} of {n} runs did not converge "
+              f"({', '.join(short)}). Their sinks stand -- the probe is never "
+              f"trained or selected on -- but their in-dist accuracies are "
+              f"floors. Rerun those with a higher --epochs.")
 
     # ------------------------------------------------------------------ plot
     fig, ax = plt.subplots(figsize=(11, max(6, 0.42 * len(HELD_OUT))))
@@ -250,15 +298,20 @@ def main() -> None:
     ax.legend(handles, colors.keys(), fontsize=9, loc="lower right")
     ax.grid(alpha=0.25, axis="x")
     fig.tight_layout()
-    fig.savefig(FIGURES / "22_sink_class_24.png", dpi=140)
+    fig.savefig(fig_dir / f"22_sink_class_24{suffix}.png", dpi=140)
     plt.close(fig)
 
-    np.savez(ROOT / "sink_class_24.npz",
+    np.savez(out_dir / f"sink_class_24{suffix}.npz",
              held_out=np.array(HELD_OUT),
              sinks=np.array([results[h]["sink"] for h in HELD_OUT]),
              shares=np.array([results[h]["share"] for h in HELD_OUT]),
-             verdicts=np.array([results[h]["verdict"] for h in HELD_OUT]))
-    print("\nwrote figures/22_sink_class_24.png")
+             verdicts=np.array([results[h]["verdict"] for h in HELD_OUT]),
+             in_dist=np.array([results[h]["in_dist"] for h in HELD_OUT]),
+             best_epochs=np.array([results[h].get("best_epoch", np.nan)
+                                   for h in HELD_OUT], dtype=float),
+             epoch_ceiling=args.epochs, patience=args.patience)
+    print(f"\nwrote {out_dir / f'sink_class_24{suffix}.npz'}")
+    print(f"wrote {fig_dir / f'22_sink_class_24{suffix}.png'}")
 
 
 if __name__ == "__main__":
