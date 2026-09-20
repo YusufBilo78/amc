@@ -718,6 +718,17 @@ colab/run_experiment.py run the open-work sweeps on Colab
 colab/icrnna_faithful_2016.py  paper-faithful ICRNNA, for calibration
 ```
 
+The progress deck for the semester meetings lives in `deck/`. It is
+generated, not drawn: `extract_data.py` reads every quoted number out of the
+committed result files into `deck_data.json`, `crops.py` cuts the panels it
+shows out of `figures/`, and `build.js` (pptxgenjs) writes
+`amc_progress.pptx` from those two inputs alone. Rebuild with
+
+    python deck/extract_data.py && python deck/crops.py
+    cd deck && npm install && node build.js
+
+New results are appended as slides; a withdrawn claim keeps its slide.
+
 ---
 
 ## Rules that keep this honest
