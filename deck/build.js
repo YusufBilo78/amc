@@ -338,20 +338,15 @@ let n = 0;
 
 // ============================ 14. next, and asks ============================
 { const s = pres.addSlide(); dark(s); n++;
-  title(s, "Next, and what would help", null, true);
+  title(s, "Next", null, true);
   const next = [["Just landed", "The sink thread on the current backbone: 16 of 24 held-out classes sink into their own family, and the same-family sink survives on all five architectures. Both runs converged."],
     ["Next", "Port or drop the domain-adversarial baseline (dann.py); then the cumulant classifier on the same four classes at 0 dB as an independent check that the QAM coin flip is the signal's limit, not the model's."],
     ["Growing", "This deck is the running record; new results are appended, withdrawn claims stay."]];
   next.forEach(([h, t], i) => {
     const y = 1.6 + i * 1.35;
     s.addText(h, { x: M, y, w: 2.2, h: 0.5, fontFace: HEAD, fontSize: 15, bold: true, color: ORANGE, isTextBox: true, margin: 0 });
-    s.addText(t, { x: M + 2.3, y, w: 4.6, h: 1.2, fontFace: BODY, fontSize: 12.5, color: "FFFFFF", isTextBox: true, margin: 0, valign: "top" });
+    s.addText(t, { x: M + 2.3, y, w: W - 2 * M - 2.3, h: 1.2, fontFace: BODY, fontSize: 12.5, color: "FFFFFF", isTextBox: true, margin: 0, valign: "top" });
   });
-  s.addShape(pres.ShapeType.roundRect, { x: 7.8, y: 1.55, w: 5.0, h: 4.6, fill: { color: INK }, line: { color: INK, width: 0 }, rectRadius: 0.08 });
-  s.addText("Asks", { x: 8.05, y: 1.7, w: 4.5, h: 0.45, fontFace: HEAD, fontSize: 18, bold: true, color: "FFFFFF", isTextBox: true, margin: 0 });
-  bullets(s, ["SDR access — a USRP or HackRF and a capture protocol. The one thing that turns this from a study into a result.",
-    "Open-set recognition literature: the field adjacent to the sink finding. Who should I be reading?",
-    "Target venue: the contribution is an attribution method, not a benchmark number. Signal processing or machine learning?"], 8.05, 2.25, 4.5, 3.8, 12.5, "FFFFFF");
   s.addText("Repository: YusufBilo78/amc · every figure regenerates from the committed .npz files", { x: M, y: 6.6, w: W - 2 * M, h: 0.4, fontFace: BODY, fontSize: 10.5, color: PALE, isTextBox: true, margin: 0 });
   foot(s, n, true);
 }
