@@ -268,7 +268,43 @@ let n = 0;
   s.addNotes("The middle of the sweep is where seeds disagree: α = 0.5 has a spread of 0.019 on cross-domain accuracy against 0.001–0.007 at either end. Half-removing the envelope leaves a model that sometimes learns to read through it.");
 }
 
-// ============================ 11. what we withdrew ==========================
+// ============================ 11. where an unseen modulation lands ==========
+{ const s = pres.addSlide(); light(s); n++;
+  const k = D.sink24, ar = D.sink_arch;
+  title(s, "Where an unseen modulation lands", "Train on 23 classes, probe with the 24th. Families fixed before the run; now measured on the current backbone.");
+  stat(s, M, 1.75, 3.9, `${k.same} of ${k.n}`, `held-out classes sink into their own family · chance ${k.chance.toFixed(1)}`, TEAL, 40);
+  card(s, M, 3.45, 3.9, 1.55);
+  s.addText([{ text: "All 24 runs converged. ", options: { bold: true } },
+    { text: `Best epochs ${Math.min(...k.rows.map(r => r.best_epoch))} to ${Math.max(...k.rows.map(r => r.best_epoch))} under a ${k.ceiling} ceiling, patience ${k.patience}. ${k.rows.filter(r => r.share > 0.95).length} of the 24 sinks take more than 95% of the probes — the model does not scatter, it decides.` }],
+    { x: M + 0.2, y: 3.55, w: 3.5, h: 1.35, fontFace: BODY, fontSize: 11, color: INK, isTextBox: true, margin: 0, valign: "top" });
+  s.addText(`Merging APSK with QAM — both amplitude-and-phase constellations — would make it ${k.same_if_apsk_qam_merged} of ${k.n}. That reading is post hoc, so the number quoted is ${k.same}.`,
+    { x: M, y: 5.2, w: 3.9, h: 1.3, fontFace: BODY, fontSize: 11, color: MID, italic: true, isTextBox: true, margin: 0, valign: "top" });
+  // the eight misses
+  const misses = k.rows.filter(r => !r.same);
+  const hdr = ["held out", "sink", "share", "second"].map((t, i) => ({ text: t, options: { bold: true, fill: { color: PALE }, color: INK, fontSize: 10, align: i > 1 ? "center" : "left" } }));
+  const rows = [hdr, ...misses.map(r => [
+    { text: r.held, options: { bold: true, color: INK } },
+    { text: r.sink, options: { color: (["APSK", "QAM"].includes(r.family) && ["APSK", "QAM"].includes(D.sink24.rows.find(q => q.held === r.sink).family)) ? ORANGE : INK, bold: true } },
+    { text: (100 * r.share).toFixed(0) + "%", options: { align: "center" } },
+    { text: r.second_share > 0.05 ? `${r.second} ${(100 * r.second_share).toFixed(0)}%` : "—", options: { align: "center", color: GREY } }])];
+  s.addText("The eight misses", { x: 4.9, y: 1.75, w: 4.0, h: 0.35, fontFace: HEAD, fontSize: 14, bold: true, color: INK, isTextBox: true, margin: 0 });
+  s.addTable(rows, { x: 4.9, y: 2.15, w: 4.0, colW: [1.0, 1.0, 0.7, 1.3], fontFace: BODY, fontSize: 10.5, color: INK, border: { type: "solid", pt: 0.5, color: "D5DDE5" }, rowH: 0.31, autoPage: false });
+  s.addText("Orange: an APSK ↔ QAM pair. Four of the eight misses are that pair; two more are FM ↔ GMSK, both constant-envelope. The misses are structured — the hand taxonomy, not the model, is what they disagree with.",
+    { x: 4.9, y: 5.05, w: 4.0, h: 1.45, fontFace: BODY, fontSize: 10.5, color: MID, isTextBox: true, margin: 0, valign: "top" });
+  // the architecture control
+  s.addText("Across five architectures", { x: 9.3, y: 1.75, w: 3.45, h: 0.35, fontFace: HEAD, fontSize: 14, bold: true, color: INK, isTextBox: true, margin: 0 });
+  s.addChart(pres.ChartType.bar, [{ name: "same-family sinks", labels: ar.archs.map(a => a.split(" ")[0]), values: ar.archs.map(a => ar.same[a]) }],
+    { x: 9.2, y: 2.1, w: 3.6, h: 2.9, barDir: "col", barGapWidthPct: 45, chartColors: [NAVY], showValue: true, dataLabelPosition: "outEnd",
+      dataLabelFontSize: 10, dataLabelColor: INK, dataLabelFontFace: BODY, showLegend: false,
+      valAxisMinVal: 0, valAxisMaxVal: 6, valAxisMajorUnit: 1, catAxisLabelFontSize: 9, ...axisQuiet, showCatAxisTitle: false, valAxisTitle: "same-family sinks of 6", catAxisLabelRotate: 0 });
+  const agree = ar.held.filter(h => new Set(ar.archs.map(a => ar.cells[a][h].sink)).size === 1);
+  s.addText(`Chance is ${ar.chance.toFixed(1)} of 6. ${agree.join(", ")} sink to the same class on all five; the two misses on every architecture are FM and OQPSK, the two hard cases the rule put in on purpose. ${ar.unconverged.length} of 30 runs unconverged (${ar.unconverged.join("; ")}) — its sink stands.`,
+    { x: 9.3, y: 5.05, w: 3.45, h: 1.45, fontFace: BODY, fontSize: 10.5, color: MID, isTextBox: true, margin: 0, valign: "top" });
+  foot(s, n);
+  s.addNotes("The ICRNNA column of the control is a bit-identical training to the corresponding rows of the 24-class run: same best epoch, same in-distribution accuracy to every digit. The probe frames are an independent draw and move the shares by at most 0.3 points.");
+}
+
+// ============================ 12. what we withdrew ==========================
 { const s = pres.addSlide(); light(s); n++;
   title(s, "Three things this rerun took away", "Kept in the record, not deleted. Each was believed on the earlier backbone and did not survive re-measurement.");
   const items = [["\"Partial whitening beats full\"", "Our one concrete disagreement with WhiteNet, from one seed per point on the old backbone. Five seeds on the current one: α = 1.0 ≥ 0.75. Withdrawn; on this task we agree with WhiteNet."],
@@ -284,12 +320,12 @@ let n = 0;
   s.addNotes("Negative results are part of the argument. Whitening itself is not novel either: WhiteNet arrived at the same operation on real over-the-air captures; what survives here is the attribution method and the sink finding.");
 }
 
-// ============================ 12. caveats ===================================
+// ============================ 13. caveats ===================================
 { const s = pres.addSlide(); light(s); n++;
   title(s, "Caveats, stated rather than buried");
   const cav = [["Both domains are synthetic", "RadioML is simulated and so is the second transmitter. Until an over-the-air capture exists this is a study of a mechanism, not a measurement of a deployment. The single largest weakness.", RED],
     ["The model is not the published architecture", "It is transcribed from a peer's reproduction and differs from the paper in five places. The paper-faithful build is separate — it reproduces the paper's 63.24% (63.21%), but only trained to convergence, 107 epochs against the paper's 58.", ORANGE],
-    ["The sink finding is measured on the old backbone", "\"An unseen modulation lands inside its own family\" was checked five ways — but on the superseded model. The 24-class leave-one-out on the current backbone is running now.", ORANGE],
+    ["Half the sink checks are still on the old backbone", "The 24-class leave-one-out and the architecture control are re-measured. The embedding check, the discriminating control, label permutation and family recovery are not yet.", ORANGE],
     ["Three seeds is thin on 24 classes", "Seed spread reaches 0.021; a difference under about 0.03 between two configurations is not yet a difference.", MID]];
   cav.forEach(([h, t, c], i) => {
     const col = i % 2, row = Math.floor(i / 2), x = M + col * 6.2, y = 1.55 + row * 2.75;
@@ -300,10 +336,10 @@ let n = 0;
   foot(s, n);
 }
 
-// ============================ 13. next, and asks ============================
+// ============================ 14. next, and asks ============================
 { const s = pres.addSlide(); dark(s); n++;
   title(s, "Next, and what would help", null, true);
-  const next = [["Running now", "24-class leave-one-out on the current backbone, plus the five-architecture control with ICRNNA added. Results at the next meeting."],
+  const next = [["Just landed", "The sink thread on the current backbone: 16 of 24 held-out classes sink into their own family, and the same-family sink survives on all five architectures. Both runs converged."],
     ["Next", "Port or drop the domain-adversarial baseline (dann.py); then the cumulant classifier on the same four classes at 0 dB as an independent check that the QAM coin flip is the signal's limit, not the model's."],
     ["Growing", "This deck is the running record; new results are appended, withdrawn claims stay."]];
   next.forEach(([h, t], i) => {

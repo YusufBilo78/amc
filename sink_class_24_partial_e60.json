@@ -1,0 +1,638 @@
+{
+  "OOK": {
+    "sink": "8ASK",
+    "share": 0.6590909090909091,
+    "verdict": "same family",
+    "in_dist": 0.5478946917074007,
+    "top3": [
+      [
+        "8ASK",
+        0.6590909090909091
+      ],
+      [
+        "4ASK",
+        0.24606060606060606
+      ],
+      [
+        "32QAM",
+        0.057272727272727274
+      ]
+    ],
+    "neighbours": [
+      "4ASK"
+    ],
+    "best_epoch": 43,
+    "converged": true,
+    "ceiling": 60
+  },
+  "4ASK": {
+    "sink": "8ASK",
+    "share": 1.0,
+    "verdict": "ORDER-ADJACENT",
+    "in_dist": 0.5293714089700712,
+    "top3": [
+      [
+        "8ASK",
+        1.0
+      ],
+      [
+        "GMSK",
+        0.0
+      ],
+      [
+        "OQPSK",
+        0.0
+      ]
+    ],
+    "neighbours": [
+      "OOK",
+      "8ASK"
+    ],
+    "best_epoch": 16,
+    "converged": true,
+    "ceiling": 60
+  },
+  "8ASK": {
+    "sink": "4ASK",
+    "share": 1.0,
+    "verdict": "ORDER-ADJACENT",
+    "in_dist": 0.5278278020752937,
+    "top3": [
+      [
+        "4ASK",
+        1.0
+      ],
+      [
+        "GMSK",
+        0.0
+      ],
+      [
+        "OQPSK",
+        0.0
+      ]
+    ],
+    "neighbours": [
+      "4ASK"
+    ],
+    "best_epoch": 22,
+    "converged": true,
+    "ceiling": 60
+  },
+  "BPSK": {
+    "sink": "OQPSK",
+    "share": 0.6160606060606061,
+    "verdict": "different family",
+    "in_dist": 0.47367292685018436,
+    "top3": [
+      [
+        "OQPSK",
+        0.6160606060606061
+      ],
+      [
+        "QPSK",
+        0.32575757575757575
+      ],
+      [
+        "AM-DSB-SC",
+        0.03333333333333333
+      ]
+    ],
+    "neighbours": [
+      "QPSK"
+    ],
+    "best_epoch": 9,
+    "converged": true,
+    "ceiling": 60
+  },
+  "QPSK": {
+    "sink": "16PSK",
+    "share": 0.4636363636363636,
+    "verdict": "same family",
+    "in_dist": 0.5260698053340194,
+    "top3": [
+      [
+        "16PSK",
+        0.4636363636363636
+      ],
+      [
+        "32PSK",
+        0.3287878787878788
+      ],
+      [
+        "8PSK",
+        0.20454545454545456
+      ]
+    ],
+    "neighbours": [
+      "BPSK",
+      "8PSK"
+    ],
+    "best_epoch": 36,
+    "converged": true,
+    "ceiling": 60
+  },
+  "8PSK": {
+    "sink": "32PSK",
+    "share": 0.9975757575757576,
+    "verdict": "same family",
+    "in_dist": 0.4816053511705686,
+    "top3": [
+      [
+        "32PSK",
+        0.9975757575757576
+      ],
+      [
+        "64APSK",
+        0.0012121212121212121
+      ],
+      [
+        "16QAM",
+        0.0012121212121212121
+      ]
+    ],
+    "neighbours": [
+      "QPSK",
+      "16PSK"
+    ],
+    "best_epoch": 9,
+    "converged": true,
+    "ceiling": 60
+  },
+  "16PSK": {
+    "sink": "32PSK",
+    "share": 0.9933333333333333,
+    "verdict": "ORDER-ADJACENT",
+    "in_dist": 0.5121344653117228,
+    "top3": [
+      [
+        "32PSK",
+        0.9933333333333333
+      ],
+      [
+        "8PSK",
+        0.005151515151515152
+      ],
+      [
+        "128APSK",
+        0.0009090909090909091
+      ]
+    ],
+    "neighbours": [
+      "8PSK",
+      "32PSK"
+    ],
+    "best_epoch": 12,
+    "converged": true,
+    "ceiling": 60
+  },
+  "32PSK": {
+    "sink": "16PSK",
+    "share": 0.9681818181818181,
+    "verdict": "ORDER-ADJACENT",
+    "in_dist": 0.5329302804219193,
+    "top3": [
+      [
+        "16PSK",
+        0.9681818181818181
+      ],
+      [
+        "8PSK",
+        0.031818181818181815
+      ],
+      [
+        "OQPSK",
+        0.0
+      ]
+    ],
+    "neighbours": [
+      "16PSK"
+    ],
+    "best_epoch": 13,
+    "converged": true,
+    "ceiling": 60
+  },
+  "16APSK": {
+    "sink": "16QAM",
+    "share": 0.9978787878787879,
+    "verdict": "different family",
+    "in_dist": 0.5222536660663751,
+    "top3": [
+      [
+        "16QAM",
+        0.9978787878787879
+      ],
+      [
+        "32QAM",
+        0.0021212121212121214
+      ],
+      [
+        "OQPSK",
+        0.0
+      ]
+    ],
+    "neighbours": [
+      "32APSK"
+    ],
+    "best_epoch": 16,
+    "converged": true,
+    "ceiling": 60
+  },
+  "32APSK": {
+    "sink": "32QAM",
+    "share": 0.8175757575757576,
+    "verdict": "different family",
+    "in_dist": 0.5585713060629448,
+    "top3": [
+      [
+        "32QAM",
+        0.8175757575757576
+      ],
+      [
+        "128APSK",
+        0.12666666666666668
+      ],
+      [
+        "16APSK",
+        0.03363636363636364
+      ]
+    ],
+    "neighbours": [
+      "16APSK",
+      "64APSK"
+    ],
+    "best_epoch": 31,
+    "converged": true,
+    "ceiling": 60
+  },
+  "64APSK": {
+    "sink": "32QAM",
+    "share": 0.44363636363636366,
+    "verdict": "different family",
+    "in_dist": 0.5421490438212846,
+    "top3": [
+      [
+        "32QAM",
+        0.44363636363636366
+      ],
+      [
+        "128APSK",
+        0.37424242424242427
+      ],
+      [
+        "128QAM",
+        0.1096969696969697
+      ]
+    ],
+    "neighbours": [
+      "32APSK",
+      "128APSK"
+    ],
+    "best_epoch": 16,
+    "converged": true,
+    "ceiling": 60
+  },
+  "128APSK": {
+    "sink": "64APSK",
+    "share": 0.8112121212121212,
+    "verdict": "ORDER-ADJACENT",
+    "in_dist": 0.5454506474573364,
+    "top3": [
+      [
+        "64APSK",
+        0.8112121212121212
+      ],
+      [
+        "32QAM",
+        0.08636363636363636
+      ],
+      [
+        "128QAM",
+        0.051515151515151514
+      ]
+    ],
+    "neighbours": [
+      "64APSK"
+    ],
+    "best_epoch": 16,
+    "converged": true,
+    "ceiling": 60
+  },
+  "16QAM": {
+    "sink": "64APSK",
+    "share": 0.4160606060606061,
+    "verdict": "different family",
+    "in_dist": 0.5194237200926164,
+    "top3": [
+      [
+        "64APSK",
+        0.4160606060606061
+      ],
+      [
+        "128APSK",
+        0.3051515151515152
+      ],
+      [
+        "256QAM",
+        0.1890909090909091
+      ]
+    ],
+    "neighbours": [
+      "32QAM"
+    ],
+    "best_epoch": 18,
+    "converged": true,
+    "ceiling": 60
+  },
+  "32QAM": {
+    "sink": "128QAM",
+    "share": 0.46606060606060606,
+    "verdict": "same family",
+    "in_dist": 0.5310865277420461,
+    "top3": [
+      [
+        "128QAM",
+        0.46606060606060606
+      ],
+      [
+        "256QAM",
+        0.19424242424242424
+      ],
+      [
+        "64QAM",
+        0.18515151515151515
+      ]
+    ],
+    "neighbours": [
+      "16QAM",
+      "64QAM"
+    ],
+    "best_epoch": 13,
+    "converged": true,
+    "ceiling": 60
+  },
+  "64QAM": {
+    "sink": "256QAM",
+    "share": 0.8454545454545455,
+    "verdict": "same family",
+    "in_dist": 0.5228539576365663,
+    "top3": [
+      [
+        "256QAM",
+        0.8454545454545455
+      ],
+      [
+        "128APSK",
+        0.06515151515151515
+      ],
+      [
+        "32QAM",
+        0.0596969696969697
+      ]
+    ],
+    "neighbours": [
+      "32QAM",
+      "128QAM"
+    ],
+    "best_epoch": 12,
+    "converged": true,
+    "ceiling": 60
+  },
+  "128QAM": {
+    "sink": "256QAM",
+    "share": 0.38242424242424244,
+    "verdict": "ORDER-ADJACENT",
+    "in_dist": 0.518566160706629,
+    "top3": [
+      [
+        "256QAM",
+        0.38242424242424244
+      ],
+      [
+        "32QAM",
+        0.28606060606060607
+      ],
+      [
+        "64APSK",
+        0.18878787878787878
+      ]
+    ],
+    "neighbours": [
+      "64QAM",
+      "256QAM"
+    ],
+    "best_epoch": 7,
+    "converged": true,
+    "ceiling": 60
+  },
+  "256QAM": {
+    "sink": "64QAM",
+    "share": 0.7724242424242425,
+    "verdict": "same family",
+    "in_dist": 0.5496955664179745,
+    "top3": [
+      [
+        "64QAM",
+        0.7724242424242425
+      ],
+      [
+        "32QAM",
+        0.13393939393939394
+      ],
+      [
+        "128QAM",
+        0.05303030303030303
+      ]
+    ],
+    "neighbours": [
+      "128QAM"
+    ],
+    "best_epoch": 18,
+    "converged": true,
+    "ceiling": 60
+  },
+  "AM-SSB-WC": {
+    "sink": "AM-SSB-SC",
+    "share": 1.0,
+    "verdict": "ORDER-ADJACENT",
+    "in_dist": 0.5391475859703284,
+    "top3": [
+      [
+        "AM-SSB-SC",
+        1.0
+      ],
+      [
+        "GMSK",
+        0.0
+      ],
+      [
+        "OQPSK",
+        0.0
+      ]
+    ],
+    "neighbours": [
+      "AM-SSB-SC"
+    ],
+    "best_epoch": 14,
+    "converged": true,
+    "ceiling": 60
+  },
+  "AM-SSB-SC": {
+    "sink": "AM-SSB-WC",
+    "share": 0.9015151515151515,
+    "verdict": "ORDER-ADJACENT",
+    "in_dist": 0.5402624131721122,
+    "top3": [
+      [
+        "AM-SSB-WC",
+        0.9015151515151515
+      ],
+      [
+        "8ASK",
+        0.09848484848484848
+      ],
+      [
+        "GMSK",
+        0.0
+      ]
+    ],
+    "neighbours": [
+      "AM-SSB-WC",
+      "AM-DSB-WC"
+    ],
+    "best_epoch": 17,
+    "converged": true,
+    "ceiling": 60
+  },
+  "AM-DSB-WC": {
+    "sink": "AM-DSB-SC",
+    "share": 1.0,
+    "verdict": "ORDER-ADJACENT",
+    "in_dist": 0.5149215333161822,
+    "top3": [
+      [
+        "AM-DSB-SC",
+        1.0
+      ],
+      [
+        "GMSK",
+        0.0
+      ],
+      [
+        "OQPSK",
+        0.0
+      ]
+    ],
+    "neighbours": [
+      "AM-SSB-SC",
+      "AM-DSB-SC"
+    ],
+    "best_epoch": 7,
+    "converged": true,
+    "ceiling": 60
+  },
+  "AM-DSB-SC": {
+    "sink": "AM-DSB-WC",
+    "share": 0.9984848484848485,
+    "verdict": "ORDER-ADJACENT",
+    "in_dist": 0.5539404853786125,
+    "top3": [
+      [
+        "AM-DSB-WC",
+        0.9984848484848485
+      ],
+      [
+        "128APSK",
+        0.0009090909090909091
+      ],
+      [
+        "64QAM",
+        0.00030303030303030303
+      ]
+    ],
+    "neighbours": [
+      "AM-DSB-WC",
+      "FM"
+    ],
+    "best_epoch": 23,
+    "converged": true,
+    "ceiling": 60
+  },
+  "FM": {
+    "sink": "GMSK",
+    "share": 1.0,
+    "verdict": "different family",
+    "in_dist": 0.48786553468827715,
+    "top3": [
+      [
+        "GMSK",
+        1.0
+      ],
+      [
+        "OQPSK",
+        0.0
+      ],
+      [
+        "AM-DSB-SC",
+        0.0
+      ]
+    ],
+    "neighbours": [
+      "AM-DSB-SC"
+    ],
+    "best_epoch": 7,
+    "converged": true,
+    "ceiling": 60
+  },
+  "GMSK": {
+    "sink": "8PSK",
+    "share": 0.743030303030303,
+    "verdict": "different family",
+    "in_dist": 0.4924534774033102,
+    "top3": [
+      [
+        "8PSK",
+        0.743030303030303
+      ],
+      [
+        "FM",
+        0.1778787878787879
+      ],
+      [
+        "AM-SSB-WC",
+        0.07545454545454545
+      ]
+    ],
+    "neighbours": [
+      "OQPSK"
+    ],
+    "best_epoch": 11,
+    "converged": true,
+    "ceiling": 60
+  },
+  "OQPSK": {
+    "sink": "16QAM",
+    "share": 0.7451515151515151,
+    "verdict": "different family",
+    "in_dist": 0.5070319869650973,
+    "top3": [
+      [
+        "16QAM",
+        0.7451515151515151
+      ],
+      [
+        "64QAM",
+        0.09575757575757576
+      ],
+      [
+        "128QAM",
+        0.07454545454545454
+      ]
+    ],
+    "neighbours": [
+      "GMSK"
+    ],
+    "best_epoch": 13,
+    "converged": true,
+    "ceiling": 60
+  }
+}

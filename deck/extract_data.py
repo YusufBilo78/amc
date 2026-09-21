@@ -82,8 +82,41 @@ C = z["confusions"].sum(0)
 D["c4_2016"] = dict(classes=[str(c) for c in z["class_names"]], mat=C.astype(int).tolist(),
                     high=float(z["high"].mean()), recall=[float(C[i, i] / C[i].sum()) for i in range(4)])
 
+# The sink thread on the current backbone: 24-class leave-one-out and the
+# six-class architecture control.
+FAMILIES = {"ASK": ["OOK", "4ASK", "8ASK"], "PSK": ["BPSK", "QPSK", "8PSK", "16PSK", "32PSK"],
+            "APSK": ["16APSK", "32APSK", "64APSK", "128APSK"],
+            "QAM": ["16QAM", "32QAM", "64QAM", "128QAM", "256QAM"],
+            "analog": ["AM-SSB-WC", "AM-SSB-SC", "AM-DSB-WC", "AM-DSB-SC", "FM"],
+            "other": ["GMSK", "OQPSK"]}
+fam = {c: f for f, cs in FAMILIES.items() for c in cs}
+s24 = json.loads((ROOT / "sink_class_24_partial_e60.json").read_text())
+held = [c for cs in FAMILIES.values() for c in cs]
+rows = [dict(held=h, family=fam[h], sink=s24[h]["sink"], share=s24[h]["share"],
+             same=fam[h] == fam[s24[h]["sink"]], second=s24[h]["top3"][1][0],
+             second_share=s24[h]["top3"][1][1], best_epoch=s24[h]["best_epoch"],
+             converged=s24[h]["converged"]) for h in held]
+merged = dict(fam)
+for c in FAMILIES["APSK"] + FAMILIES["QAM"]:
+    merged[c] = "APSK+QAM"
+D["sink24"] = dict(rows=rows, same=sum(r["same"] for r in rows), n=len(rows),
+                   chance=sum((len(FAMILIES[fam[h]]) - 1) / 23 for h in held),
+                   same_if_apsk_qam_merged=sum(merged[h] == merged[s24[h]["sink"]] for h in held),
+                   ceiling=60, patience=10, frames=256)
+arch = json.loads((ROOT / "sink_across_arch_e60.json").read_text())
+archs = ["IQNet (1D CNN)", "ResNet1D", "GRU", "Transformer", "ICRNNA"]
+six = ["8ASK", "32PSK", "128APSK", "256QAM", "FM", "OQPSK"]
+D["sink_arch"] = dict(archs=archs, held=six,
+                      cells={a: {h: dict(sink=arch[f"{a} | {h}"]["sink"], share=arch[f"{a} | {h}"]["share"],
+                                         same=arch[f"{a} | {h}"]["same_family"], converged=arch[f"{a} | {h}"]["converged"])
+                                 for h in six} for a in archs},
+                      same={a: sum(arch[f"{a} | {h}"]["same_family"] for h in six) for a in archs},
+                      chance=sum((len(FAMILIES[fam[h]]) - 1) / 23 for h in six),
+                      unconverged=[k for k, r in arch.items() if not r["converged"]])
+
 OUT.write_text(json.dumps(D, indent=1))
 print("methods:", [(m["name"], round(m["cross"], 3)) for m in D["methods"]])
 print("alpha  :", [(a["alpha"], round(a["cross"], 3)) for a in D["alpha"]])
 print("c4 high:", D["c4"]["mats"]["high"], " 0 dB:", D["c4"]["mats"]["z0"])
+print("sink24:", D["sink24"]["same"], "/", D["sink24"]["n"], " arch:", D["sink_arch"]["same"])
 print("wrote", OUT)

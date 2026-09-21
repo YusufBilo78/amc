@@ -839,29 +839,105 @@ unresolved and is stated as unresolved.
 
 ## Where an unseen modulation lands
 
-Train on 23 of RadioML's 24 classes, probe with the held-out one, and record
-which known class absorbs it. The finding: **an unseen modulation lands inside
-its own modulation family** — QAM into QAM, PSK into PSK — far above the ~0.15
-chance rate.
+Train on 23 of RadioML's 24 classes, probe with the held-out one at 10 dB and
+above, and record which known class absorbs it. The claim under test: **an
+unseen modulation lands inside its own modulation family** — QAM into QAM,
+PSK into PSK — rather than scattering or draining into one dense class.
 
-It was checked five independent ways, each able to come out the other way:
+On the earlier backbone this was checked five independent ways (hand-drawn
+taxonomy, the model's own embedding, four architectures, a discriminating
+control, label permutation). **It has now been re-measured on the current
+backbone**, with the taxonomy fixed before the run as before:
 
-1. **Hand-drawn taxonomy** — families defined before any result was seen.
-2. **The model's own embedding** — similarity read from learned features rather
-   than from a hand taxonomy, with the circularity broken.
-3. **Four architectures** — CNN, residual CNN, recurrent, attention-only. Same
-   sinks, including the same mistakes.
-4. **A discriminating control** — a case where "nearest family" and "densest
-   class" predict *opposite* answers. Family won.
-5. **Label permutation** — ruling out an output-index artifact.
+| family | members |
+|---|---|
+| ASK | OOK, 4ASK, 8ASK |
+| PSK | BPSK, QPSK, 8PSK, 16PSK, 32PSK |
+| APSK | 16APSK, 32APSK, 64APSK, 128APSK |
+| QAM | 16QAM, 32QAM, 64QAM, 128QAM, 256QAM |
+| analog | AM-SSB-WC, AM-SSB-SC, AM-DSB-WC, AM-DSB-SC, FM |
+| other | GMSK, OQPSK |
 
-Made useful by family recovery (`family_recovery.py`): even when the exact class
-is unrecoverable, summing prediction mass over each family recovers the correct
-family well above chance.
+### The 24-class leave-one-out, measured
 
-**None of this has been rerun on the current backbone.** It is the most
-expensive thread to redo — 24-class leave-one-out — and the most novel, so it is
-also where re-measurement matters most.
+`sink_class_24_e60.npz` / `sink_class_24_partial_e60.json` — ICRNNA, 256
+frames per (class, SNR) cell, 70/15/15 split, early stopping on validation
+with patience 10 under a 60-epoch ceiling. **All 24 runs converged**: best
+epochs 7 to 43, so the latest stop was epoch 53, seven inside the ceiling.
+
+**16 of 24 held-out classes sink into their own family. Chance is 3.5.**
+Ten of the sixteen land on the order-adjacent member (4ASK ↔ 8ASK, 16PSK ↔
+32PSK, 128APSK → 64APSK, 128QAM → 256QAM, and all four AM variants pairwise);
+six land elsewhere in the family (OOK → 8ASK, QPSK → 16PSK, 8PSK → 32PSK,
+32QAM → 128QAM, 64QAM → 256QAM, 256QAM → 64QAM). The sink is usually
+decisive — 15 of the 24 top shares are above 75%, ten of them above 95%.
+
+The eight misses, in full, because they are the informative part:
+
+| held out | sink | share | second |
+|---|---|---|---|
+| BPSK | OQPSK | 62% | QPSK 33% |
+| 16APSK | 16QAM | 100% | — |
+| 32APSK | 32QAM | 82% | 128APSK 13% |
+| 64APSK | 32QAM | 44% | 128APSK 37% |
+| 16QAM | 64APSK | 42% | 128APSK 31% |
+| FM | GMSK | 100% | — |
+| GMSK | 8PSK | 74% | FM 18% |
+| OQPSK | 16QAM | 75% | 64QAM 10% |
+
+Four of the eight are APSK ↔ QAM. Both are amplitude-and-phase constellations
+— APSK is QAM on rings — and the model treats them as one family: 16APSK goes
+to 16QAM with 100% of its probes, and 16QAM's top three sinks are all APSK
+or QAM. Two more are FM ↔ GMSK, both constant-envelope frequency
+modulations, and BPSK → OQPSK is a phase-shift keying landing on an offset
+phase-shift keying that the taxonomy filed under "other". So the misses are
+not scatter; they are a disagreement between the hand-drawn families and the
+signal-level ones. **That reading is post hoc.** Merging APSK with QAM would
+give 20 of 24, but the taxonomy was fixed in advance precisely so that this
+kind of rescoring is not available, and the number quoted is 16.
+
+Figure: `figures/22_sink_class_24_e60.png`.
+
+### The architecture control, measured
+
+`sink_across_arch_e60.json` — six held-out classes fixed in advance (the
+highest order of each digital family plus FM and OQPSK), five architectures:
+IQNet (1-D CNN), ResNet1D, GRU, Transformer and the backbone itself. 30 runs,
+same protocol, 29 converged; `Transformer | 32PSK` peaked at epoch 56 under
+the 60 ceiling with patience 10, so its sink stands and its in-distribution
+accuracy is a floor.
+
+| held out | IQNet | ResNet1D | GRU | Transformer | ICRNNA |
+|---|---|---|---|---|---|
+| 8ASK | 4ASK 100% | 4ASK 100% | 4ASK 100% | 4ASK 100% | 4ASK 100% |
+| 32PSK | 16PSK 92% | 16PSK 100% | 16PSK 82% | 16PSK 70% | 16PSK 97% |
+| 128APSK | 64APSK 54% | 64APSK 61% | 64APSK 38% | 64APSK 86% | 64APSK 81% |
+| 256QAM | 64QAM 70% | 64QAM 63% | 64QAM 50% | 64APSK 21% | 64QAM 77% |
+| FM | AM-DSB-WC 62% | GMSK 100% | GMSK 100% | 32PSK 85% | GMSK 100% |
+| OQPSK | 16QAM 26% | 16PSK 39% | 16APSK 55% | 16QAM 38% | 16QAM 75% |
+| **same family** | **5/6** | **4/6** | **4/6** | **3/6** | **4/6** |
+
+Chance is 0.78 of 6. Three of the six held-out classes have the same sink on
+all five architectures; 256QAM has the same sink on four. The two hard cases
+are the two the rule put in on purpose — FM and OQPSK — and they miss on
+every architecture except IQNet's FM, which lands on an AM class. The
+finding is not a property of one inductive bias.
+
+The ICRNNA column doubles as a reproducibility check. The two scripts draw the
+same training frames from the same seed, and the six ICRNNA rows have the
+same best epoch and the same in-distribution accuracy to every digit as the
+corresponding rows of the 24-class run — the trainings are bit-identical.
+The probe frames are an independent draw, and moving them shifts the sink
+shares by at most 0.3 points and changes no sink.
+
+Figure: `figures/26_sink_across_architectures_e60.png`.
+
+### What is still on the old backbone
+
+The embedding-based check, the discriminating control, the label permutation
+and family recovery (`family_recovery.py`) have not been rerun. The two
+results above are the load-bearing ones; the rest are corroboration and are
+queued behind them.
 
 ---
 
@@ -904,9 +980,10 @@ reaching 63.21% against the paper's 63.24% is the only point where this
 pipeline is tied to a published number, and that paper is a 2016 paper. Losing
 that link would cost more than the focus is worth.
 
-1. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
-2. Port `dann.py` to the current backbone, or drop the comparison
-3. Real SDR capture when hardware and lab access allow
+1. Port `dann.py` to the current backbone, or drop the comparison
+2. Real SDR capture when hardware and lab access allow
+3. The remaining sink corroborations on the current backbone — embedding
+   similarity, the discriminating control, label permutation, family recovery
 
 **Parked by the one-dataset decision.** Adding RML2016.10a as a third domain.
 `rml2016.py` loads it and `train_backbone.py` trains on it; what never existed
@@ -915,7 +992,7 @@ frames and 2018's 1024 have to be reconciled first and that is a decision
 rather than a detail. The loader is kept — it costs nothing to keep and the
 faithful build needs it.
 
-**Closed.** The α sweep — 25 cells, all converged; full whitening is at least as good as partial and the WhiteNet disagreement is withdrawn. The method table at a ceiling every cell had room under — `compare_methods_ICRNNA_es_e100.npz`, 20 of 20 converged, the three augmentation cells rerun at 150 and bit-identical. The four-class decision table on 2018 — measured at every SNR,
+**Closed.** The sink thread on the current backbone — 16 of 24 held-out classes sink into their own family against a chance of 3.5, all 24 runs converged, and the six-class control holds on all five architectures. The α sweep — 25 cells, all converged; full whitening is at least as good as partial and the WhiteNet disagreement is withdrawn. The method table at a ceiling every cell had room under — `compare_methods_ICRNNA_es_e100.npz`, 20 of 20 converged, the three augmentation cells rerun at 150 and bit-identical. The four-class decision table on 2018 — measured at every SNR,
 converged at a 150 ceiling (peaks 46, 48, 66), two of three seeds
 bit-identical to the 60-epoch run and the third within a point at every
 level. Validate `colab/icrnna_faithful_2016.py` against 63.24% — at the

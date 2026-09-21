@@ -612,5 +612,500 @@
    0.8791111111111111,
    0.9111111111111111
   ]
+ },
+ "sink24": {
+  "rows": [
+   {
+    "held": "OOK",
+    "family": "ASK",
+    "sink": "8ASK",
+    "share": 0.6590909090909091,
+    "same": true,
+    "second": "4ASK",
+    "second_share": 0.24606060606060606,
+    "best_epoch": 43,
+    "converged": true
+   },
+   {
+    "held": "4ASK",
+    "family": "ASK",
+    "sink": "8ASK",
+    "share": 1.0,
+    "same": true,
+    "second": "GMSK",
+    "second_share": 0.0,
+    "best_epoch": 16,
+    "converged": true
+   },
+   {
+    "held": "8ASK",
+    "family": "ASK",
+    "sink": "4ASK",
+    "share": 1.0,
+    "same": true,
+    "second": "GMSK",
+    "second_share": 0.0,
+    "best_epoch": 22,
+    "converged": true
+   },
+   {
+    "held": "BPSK",
+    "family": "PSK",
+    "sink": "OQPSK",
+    "share": 0.6160606060606061,
+    "same": false,
+    "second": "QPSK",
+    "second_share": 0.32575757575757575,
+    "best_epoch": 9,
+    "converged": true
+   },
+   {
+    "held": "QPSK",
+    "family": "PSK",
+    "sink": "16PSK",
+    "share": 0.4636363636363636,
+    "same": true,
+    "second": "32PSK",
+    "second_share": 0.3287878787878788,
+    "best_epoch": 36,
+    "converged": true
+   },
+   {
+    "held": "8PSK",
+    "family": "PSK",
+    "sink": "32PSK",
+    "share": 0.9975757575757576,
+    "same": true,
+    "second": "64APSK",
+    "second_share": 0.0012121212121212121,
+    "best_epoch": 9,
+    "converged": true
+   },
+   {
+    "held": "16PSK",
+    "family": "PSK",
+    "sink": "32PSK",
+    "share": 0.9933333333333333,
+    "same": true,
+    "second": "8PSK",
+    "second_share": 0.005151515151515152,
+    "best_epoch": 12,
+    "converged": true
+   },
+   {
+    "held": "32PSK",
+    "family": "PSK",
+    "sink": "16PSK",
+    "share": 0.9681818181818181,
+    "same": true,
+    "second": "8PSK",
+    "second_share": 0.031818181818181815,
+    "best_epoch": 13,
+    "converged": true
+   },
+   {
+    "held": "16APSK",
+    "family": "APSK",
+    "sink": "16QAM",
+    "share": 0.9978787878787879,
+    "same": false,
+    "second": "32QAM",
+    "second_share": 0.0021212121212121214,
+    "best_epoch": 16,
+    "converged": true
+   },
+   {
+    "held": "32APSK",
+    "family": "APSK",
+    "sink": "32QAM",
+    "share": 0.8175757575757576,
+    "same": false,
+    "second": "128APSK",
+    "second_share": 0.12666666666666668,
+    "best_epoch": 31,
+    "converged": true
+   },
+   {
+    "held": "64APSK",
+    "family": "APSK",
+    "sink": "32QAM",
+    "share": 0.44363636363636366,
+    "same": false,
+    "second": "128APSK",
+    "second_share": 0.37424242424242427,
+    "best_epoch": 16,
+    "converged": true
+   },
+   {
+    "held": "128APSK",
+    "family": "APSK",
+    "sink": "64APSK",
+    "share": 0.8112121212121212,
+    "same": true,
+    "second": "32QAM",
+    "second_share": 0.08636363636363636,
+    "best_epoch": 16,
+    "converged": true
+   },
+   {
+    "held": "16QAM",
+    "family": "QAM",
+    "sink": "64APSK",
+    "share": 0.4160606060606061,
+    "same": false,
+    "second": "128APSK",
+    "second_share": 0.3051515151515152,
+    "best_epoch": 18,
+    "converged": true
+   },
+   {
+    "held": "32QAM",
+    "family": "QAM",
+    "sink": "128QAM",
+    "share": 0.46606060606060606,
+    "same": true,
+    "second": "256QAM",
+    "second_share": 0.19424242424242424,
+    "best_epoch": 13,
+    "converged": true
+   },
+   {
+    "held": "64QAM",
+    "family": "QAM",
+    "sink": "256QAM",
+    "share": 0.8454545454545455,
+    "same": true,
+    "second": "128APSK",
+    "second_share": 0.06515151515151515,
+    "best_epoch": 12,
+    "converged": true
+   },
+   {
+    "held": "128QAM",
+    "family": "QAM",
+    "sink": "256QAM",
+    "share": 0.38242424242424244,
+    "same": true,
+    "second": "32QAM",
+    "second_share": 0.28606060606060607,
+    "best_epoch": 7,
+    "converged": true
+   },
+   {
+    "held": "256QAM",
+    "family": "QAM",
+    "sink": "64QAM",
+    "share": 0.7724242424242425,
+    "same": true,
+    "second": "32QAM",
+    "second_share": 0.13393939393939394,
+    "best_epoch": 18,
+    "converged": true
+   },
+   {
+    "held": "AM-SSB-WC",
+    "family": "analog",
+    "sink": "AM-SSB-SC",
+    "share": 1.0,
+    "same": true,
+    "second": "GMSK",
+    "second_share": 0.0,
+    "best_epoch": 14,
+    "converged": true
+   },
+   {
+    "held": "AM-SSB-SC",
+    "family": "analog",
+    "sink": "AM-SSB-WC",
+    "share": 0.9015151515151515,
+    "same": true,
+    "second": "8ASK",
+    "second_share": 0.09848484848484848,
+    "best_epoch": 17,
+    "converged": true
+   },
+   {
+    "held": "AM-DSB-WC",
+    "family": "analog",
+    "sink": "AM-DSB-SC",
+    "share": 1.0,
+    "same": true,
+    "second": "GMSK",
+    "second_share": 0.0,
+    "best_epoch": 7,
+    "converged": true
+   },
+   {
+    "held": "AM-DSB-SC",
+    "family": "analog",
+    "sink": "AM-DSB-WC",
+    "share": 0.9984848484848485,
+    "same": true,
+    "second": "128APSK",
+    "second_share": 0.0009090909090909091,
+    "best_epoch": 23,
+    "converged": true
+   },
+   {
+    "held": "FM",
+    "family": "analog",
+    "sink": "GMSK",
+    "share": 1.0,
+    "same": false,
+    "second": "OQPSK",
+    "second_share": 0.0,
+    "best_epoch": 7,
+    "converged": true
+   },
+   {
+    "held": "GMSK",
+    "family": "other",
+    "sink": "8PSK",
+    "share": 0.743030303030303,
+    "same": false,
+    "second": "FM",
+    "second_share": 0.1778787878787879,
+    "best_epoch": 11,
+    "converged": true
+   },
+   {
+    "held": "OQPSK",
+    "family": "other",
+    "sink": "16QAM",
+    "share": 0.7451515151515151,
+    "same": false,
+    "second": "64QAM",
+    "second_share": 0.09575757575757576,
+    "best_epoch": 13,
+    "converged": true
+   }
+  ],
+  "same": 16,
+  "n": 24,
+  "chance": 3.4782608695652164,
+  "same_if_apsk_qam_merged": 20,
+  "ceiling": 60,
+  "patience": 10,
+  "frames": 256
+ },
+ "sink_arch": {
+  "archs": [
+   "IQNet (1D CNN)",
+   "ResNet1D",
+   "GRU",
+   "Transformer",
+   "ICRNNA"
+  ],
+  "held": [
+   "8ASK",
+   "32PSK",
+   "128APSK",
+   "256QAM",
+   "FM",
+   "OQPSK"
+  ],
+  "cells": {
+   "IQNet (1D CNN)": {
+    "8ASK": {
+     "sink": "4ASK",
+     "share": 1.0,
+     "same": true,
+     "converged": true
+    },
+    "32PSK": {
+     "sink": "16PSK",
+     "share": 0.9203030303030303,
+     "same": true,
+     "converged": true
+    },
+    "128APSK": {
+     "sink": "64APSK",
+     "share": 0.5363636363636364,
+     "same": true,
+     "converged": true
+    },
+    "256QAM": {
+     "sink": "64QAM",
+     "share": 0.7036363636363636,
+     "same": true,
+     "converged": true
+    },
+    "FM": {
+     "sink": "AM-DSB-WC",
+     "share": 0.6175757575757576,
+     "same": true,
+     "converged": true
+    },
+    "OQPSK": {
+     "sink": "16QAM",
+     "share": 0.26181818181818184,
+     "same": false,
+     "converged": true
+    }
+   },
+   "ResNet1D": {
+    "8ASK": {
+     "sink": "4ASK",
+     "share": 0.9996969696969698,
+     "same": true,
+     "converged": true
+    },
+    "32PSK": {
+     "sink": "16PSK",
+     "share": 0.9954545454545455,
+     "same": true,
+     "converged": true
+    },
+    "128APSK": {
+     "sink": "64APSK",
+     "share": 0.6066666666666667,
+     "same": true,
+     "converged": true
+    },
+    "256QAM": {
+     "sink": "64QAM",
+     "share": 0.6293939393939394,
+     "same": true,
+     "converged": true
+    },
+    "FM": {
+     "sink": "GMSK",
+     "share": 1.0,
+     "same": false,
+     "converged": true
+    },
+    "OQPSK": {
+     "sink": "16PSK",
+     "share": 0.3936363636363636,
+     "same": false,
+     "converged": true
+    }
+   },
+   "GRU": {
+    "8ASK": {
+     "sink": "4ASK",
+     "share": 1.0,
+     "same": true,
+     "converged": true
+    },
+    "32PSK": {
+     "sink": "16PSK",
+     "share": 0.8181818181818182,
+     "same": true,
+     "converged": true
+    },
+    "128APSK": {
+     "sink": "64APSK",
+     "share": 0.37727272727272726,
+     "same": true,
+     "converged": true
+    },
+    "256QAM": {
+     "sink": "64QAM",
+     "share": 0.49787878787878787,
+     "same": true,
+     "converged": true
+    },
+    "FM": {
+     "sink": "GMSK",
+     "share": 1.0,
+     "same": false,
+     "converged": true
+    },
+    "OQPSK": {
+     "sink": "16APSK",
+     "share": 0.5463636363636364,
+     "same": false,
+     "converged": true
+    }
+   },
+   "Transformer": {
+    "8ASK": {
+     "sink": "4ASK",
+     "share": 1.0,
+     "same": true,
+     "converged": true
+    },
+    "32PSK": {
+     "sink": "16PSK",
+     "share": 0.6966666666666667,
+     "same": true,
+     "converged": false
+    },
+    "128APSK": {
+     "sink": "64APSK",
+     "share": 0.8603030303030303,
+     "same": true,
+     "converged": true
+    },
+    "256QAM": {
+     "sink": "64APSK",
+     "share": 0.20909090909090908,
+     "same": false,
+     "converged": true
+    },
+    "FM": {
+     "sink": "32PSK",
+     "share": 0.8506060606060606,
+     "same": false,
+     "converged": true
+    },
+    "OQPSK": {
+     "sink": "16QAM",
+     "share": 0.3806060606060606,
+     "same": false,
+     "converged": true
+    }
+   },
+   "ICRNNA": {
+    "8ASK": {
+     "sink": "4ASK",
+     "share": 1.0,
+     "same": true,
+     "converged": true
+    },
+    "32PSK": {
+     "sink": "16PSK",
+     "share": 0.9675757575757575,
+     "same": true,
+     "converged": true
+    },
+    "128APSK": {
+     "sink": "64APSK",
+     "share": 0.8087878787878788,
+     "same": true,
+     "converged": true
+    },
+    "256QAM": {
+     "sink": "64QAM",
+     "share": 0.7715151515151515,
+     "same": true,
+     "converged": true
+    },
+    "FM": {
+     "sink": "GMSK",
+     "share": 1.0,
+     "same": false,
+     "converged": true
+    },
+    "OQPSK": {
+     "sink": "16QAM",
+     "share": 0.7463636363636363,
+     "same": false,
+     "converged": true
+    }
+   }
+  },
+  "same": {
+   "IQNet (1D CNN)": 5,
+   "ResNet1D": 4,
+   "GRU": 4,
+   "Transformer": 3,
+   "ICRNNA": 4
+  },
+  "chance": 0.7826086956521738,
+  "unconverged": [
+   "Transformer | 32PSK"
+  ]
  }
 }

@@ -96,6 +96,8 @@ warning stayed silent.
 | `compare_methods_ICRNNA_es_e100.npz` | **complete and converged, 20/20 — quote this one for the method table.** Ceiling 100, except the three standard-augmentation cells rerun at 150 (bit-identical to their 100-ceiling runs, peaks 89/83/82). none 0.805, augmentation 0.807, whitening 0.989, whitening+augmentation 0.995; combining adds +0.006 at 1.1 s.d., not a measurement. It does not reproduce the 60-epoch table cell for cell — different machine, so the two are independent samples |
 | `whitening_seeds_e100.npz` | **current** — the α sweep, 5 seeds × 5 alphas, all converged (peaks 22–62 under 100). Cross-domain 0.805 / 0.855 / 0.940 / 0.988 / 0.993 for α = 0 / 0.25 / 0.5 / 0.75 / 1.0. **Full whitening is at least as good as partial**; the old 'α=0.75 beats 1.0' claim is withdrawn. α=0 row bit-identical to compare_methods' none row |
 | `compare_methods_ICRNNA_es.npz` | **complete at 20/20** — the finished copy is now the committed one. Two of the three cells with a recorded stopping epoch ran out of budget at the 60-epoch ceiling rather than converging. The 0.804 → 0.993 headline survives that; the small differences in the table do not. See README |
+| `sink_class_24_e60.npz`, `sink_class_24_partial_e60.json` | **current** — the 24-class leave-one-out on the current backbone. 16 of 24 held-out classes sink into their own pre-registered family against a chance of 3.5; all 24 runs converged (best epochs 7–43 under 60, patience 10). Four of the eight misses are APSK ↔ QAM, two are FM ↔ GMSK — structured, but the count quoted is the pre-registered 16, not a rescored 20 |
+| `sink_across_arch_e60.json` | **current** — the six-class architecture control, five architectures including ICRNNA: same-family 5/6, 4/6, 4/6, 3/6, 4/6 against a chance of 0.78. 29 of 30 runs converged; `Transformer \| 32PSK` peaked at 56 under 60, sink stands, in-dist is a floor. The ICRNNA rows are bit-identical trainings to the 24-class run's (same best epoch and accuracy to every digit) |
 | `baseline_results.npz` | current — cumulants + SVM, no neural net involved |
 | `sink_vs_geometry.npz` | current — signal geometry, no model involved |
 | `overfit_2x2.json` | current — architecture comparison |
@@ -107,8 +109,9 @@ warning stayed silent.
 | `train_backbone_rml2018_f2048_c4_colab.npz` | **superseded by the row above, kept** — same run at a 60 ceiling, flagged unconverged — the four-class table on 2018. BPSK/QPSK/16QAM/64QAM, 2048 frames/cell, 3 seeds: **40,654 of 40,656 correct above 10 dB**, 0.7465 overall. Peaks at 46, 48, 59 under a 60 ceiling, so the overall number is a floor; the high-SNR table is saturated and unaffected. Carries a confusion matrix at every SNR (rebuilt from the checkpoints, verified): at 0 dB the QAM pair is a coin flip and PSK is perfect; at −8 dB both QAMs drain into QPSK ~70% |
 | `train_backbone_rml2018_f512_colab.npz` | **current** — ICRNNA on RadioML 2018.01A, 24 classes, 512 frames/cell, 3 seeds, 0.5699 overall / 0.8716 at SNR ≥ 10 dB. Checked: converged, best epoch 26, fourteen epochs inside the ceiling |
 
-Apart from one incomplete experiment and the two classification runs,
-**nothing else is measured on the current backbone.** That is the honest starting position, not an oversight. The
+The embedding, discriminating-control, label-permutation and family-recovery
+checks of the sink finding are **still on the old backbone**; everything
+else above is current. That is the honest starting position, not an oversight. The
 `README.md` "Open work" list is the queue, in order.
 
 Results from the earlier backbone were moved out of the repository into
@@ -156,14 +159,15 @@ retract the 2016 results — in particular the faithful build's 63.21% against
 the paper's 63.24% is the one tie to a published number, and that paper is a
 2016 paper. `rml2016.py` stays.
 
-1. Rerun the sink/family thread (24-class leave-one-out, the expensive one)
-2. Port `dann.py` to the current backbone, or drop the comparison
-3. Real SDR capture when hardware and lab access allow
+1. Port `dann.py` to the current backbone, or drop the comparison
+2. Real SDR capture when hardware and lab access allow
+3. The remaining sink corroborations — embedding similarity, the
+   discriminating control, label permutation, family recovery
 
 Parked by the one-dataset decision: adding 2016 as a third cross-domain
 source, which would have needed an `RML2016Domain` reconciling 128-sample
 frames with 1024.. Both domains are
    synthetic today, and that is the single largest weakness of the work
 
-Closed: the α sweep (full whitening ≥ partial; the WhiteNet disagreement withdrawn); the method table at a 100/150 ceiling, 20/20 converged (three redone cells bit-identical); the four-class table on 2018 (converged at 150, bit-identical seeds 0 and 1); validating the faithful build against 63.24% (reaches 63.21% trained to
+Closed: the sink thread on the current backbone (16/24 same-family, all converged; the five-architecture control holds); the α sweep (full whitening ≥ partial; the WhiteNet disagreement withdrawn); the method table at a 100/150 ceiling, 20/20 converged (three redone cells bit-identical); the four-class table on 2018 (converged at 150, bit-identical seeds 0 and 1); validating the faithful build against 63.24% (reaches 63.21% trained to
 convergence), and both convergence checks (best epoch 39 on 2016, 26 on 2018).
