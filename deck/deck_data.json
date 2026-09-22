@@ -89,6 +89,12 @@
    "qam16": 0.9846818181818182
   }
  ],
+ "c4_from14": {
+  "threshold": 14,
+  "decisions": 33264,
+  "errors": 0,
+  "levels": 9
+ },
  "c4": {
   "classes": [
    "BPSK",

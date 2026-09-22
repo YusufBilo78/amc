@@ -203,6 +203,8 @@ let n = 0;
   s.addImage({ path: "c16qam.png", x: 8.7, y: 1.85, w: 2.0, h: 2.0 });
   s.addImage({ path: "c64qam.png", x: 10.8, y: 1.85, w: 2.0, h: 2.0 });
   s.addText("16QAM and 64QAM at 20 dB: the pair that carries almost every error in this project", { x: 8.7, y: 3.9, w: 4.1, h: 0.6, fontFace: BODY, fontSize: 10.5, color: MID, italic: true, isTextBox: true, margin: 0 });
+  const z14 = D.c4_from14;
+  stat(s, M, 4.45, 7.6, `${z14.errors} errors in ${z14.decisions.toLocaleString("en-US")} decisions`, `from +${z14.threshold} dB up: ${z14.levels} SNR levels, all four classes, all three seeds — the hypothesis held in the simulated environment, as asked`, TEAL, 30);
   card(s, 8.7, 4.65, 4.1, 2.1, "FFF4EE");
   s.addText("Converged", { x: 8.9, y: 4.72, w: 3.7, h: 0.35, fontFace: HEAD, fontSize: 13, bold: true, color: INK, isTextBox: true, margin: 0 });
   s.addText(`Peaks at epochs ${c4.best_epochs.join(", ")} under a 150 ceiling. Two of the three seeds are bit-identical to the earlier 60-epoch run — the lower ceiling had only denied them the proof.`,

@@ -50,6 +50,9 @@ def mat(lo, hi):
     return by[:, pick].sum(axis=(0, 1)).astype(int).tolist()
 
 
+pick14 = [k for k, s_ in enumerate(snrs) if s_ >= 14]
+M14 = by[:, pick14].sum(axis=(0, 1))
+D["c4_from14"] = dict(threshold=14, decisions=int(M14.sum()), errors=int(M14.sum() - np.trace(M14)), levels=len(pick14))
 D["c4"] = dict(classes=names, snrs=snrs, curve=z["curves"].mean(0).round(4).tolist(),
                overall=float(z["overall"].mean()), overall_sd=float(z["overall"].std()),
                high=float(z["high"].mean()), best_epochs=[int(e) for e in z["best_epochs"]],

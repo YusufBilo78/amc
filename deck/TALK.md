@@ -30,7 +30,7 @@ Before anything about domain shift: does the model classify at all. On 24 classe
 
 ## 7. The decision table  (1:30)
 
-This is the table you asked for. Rows are what we transmitted, columns are what the model decided. Every row is 10,164 decisions: 308 test frames per class and SNR, 11 SNR levels from 10 to 30 dB, three seeds. Each decision is a different frame, different symbols, different channel, different noise. 40,654 of 40,656 correct. The two errors are both 64QAM decided as 16QAM. All three seeds converged, peaks at epochs 46, 48 and 66 under a ceiling of 150.
+This is the table you asked for. Rows are what we transmitted, columns are what the model decided. Every row is 10,164 decisions: 308 test frames per class and SNR, 11 SNR levels from 10 to 30 dB, three seeds. Each decision is a different frame, different symbols, different channel, different noise. 40,654 of 40,656 correct. The two errors are both 64QAM decided as 16QAM, at 10 and 12 dB. From 14 dB up there are none: 33,264 decisions, zero errors, all four classes, all three seeds. That is the 100 percent you asked us to establish in the simulated environment before moving on. All three seeds converged, peaks at epochs 46, 48 and 66 under a ceiling of 150.
 
 ## 8. Decisions by SNR  (1:15)
 
