@@ -192,6 +192,70 @@ Two facts worth internalising:
 
 ---
 
+## The dataset paper, read in full (O'Shea, Roy & Clancy 2018)
+
+Read 2026-09-22 against the questions in `READING_LIST.md`, because a
+colleague suggested that "some signals in 2018 are especially degraded" and
+a switch to 2016 was on the table.
+
+**How the synthetic data is generated (Section III, Table I).** Every
+example draws its own channel: root-raised-cosine roll-off α ~ U(0.1, 0.4),
+timing offset Δt ~ U(0, 16) samples, sample-rate and carrier offsets
+~ N(0, σ_clk), carrier phase ~ U(0, 2π), Rayleigh multipath with delay
+spread τ. The paper trains on several variants (AWGN, σ_clk = 0.0001,
+σ_clk = 0.01, τ = 0.5 … 4) and does **not** say which of them the released
+2018.01A file is. Frames are 1,024 samples, SNR −20 to +30 dB Es/N0. The
+"difficult" 24-class set deliberately applies impairments "beyond that which
+one would expect" for the high-order modes and keeps the window short.
+
+**Which classes the paper itself reports as hard (Figs. 12–15, 17, 19, 21).**
+At high SNR the per-class curves plateau below 1 for 128QAM and 256QAM
+(~0.85), 64QAM (~0.9), 32PSK (~0.93), and the AM pairs: AM-SSB-SC and
+AM-DSB-SC around 0.85, the with-carrier variants higher. The paper's own
+explanation: for high-order QAM/PSK "significant error is expected simply
+due to lack of information and similar symbol structure using this or any
+other known prior method" at 1,024 samples; for AM, with-carrier against
+suppressed-carrier confusion, and "we suspect additional voice data set size
+might improve performance" — i.e. the analog message content is a small
+voice corpus. Every confusion matrix in the paper, synthetic or OTA, shows
+the same three blocks: 16/32PSK, 64/128/256QAM, and the AM WC/SC pairs.
+
+**Our own 24-class run reproduces that picture exactly**
+(`train_backbone_rml2018_f512_colab.npz`, ≥10 dB, 2,574 decisions per
+class): AM-DSB-WC 45.9% (leaks to AM-DSB-SC), 64QAM 56.4% (to 256QAM and
+128QAM), 256QAM 61.5%, AM-SSB-WC 61.6%, 128QAM 69.9%, 16APSK 74.7% (to
+16QAM). Everything else is above 79%, and BPSK, QPSK, 8PSK, FM, GMSK are at
+100.0%. So "some signals are degraded" is true and published, and it is
+confined to the high-order QAM/APSK block and the AM carrier pairs.
+
+**None of those classes is in the four-class table.** BPSK, QPSK, 16QAM and
+64QAM: 40,654 of 40,656 above 10 dB. 64QAM at 56% in the 24-class run is
+confusion with 128QAM and 256QAM, which the four-class task does not
+contain; with them absent it is 10,162 of 10,164.
+
+**2016 is not cleaner; it is worse on exactly this table.** Our 11-class
+RML2016.10a run (`train_backbone_rml2016_f1000_colab.npz`, ≥10 dB): WBFM
+39.6% (leaks to AM-DSB, a known defect of that dataset), AM-SSB 89.5%, and
+QAM16/QAM64 confuse each other 8–9% at high SNR because 128-sample frames
+carry too few symbols. The four-class rehearsal on 2016 put QAM16 at 87.9%
+where 2018 puts it at 100%. The paper's Fig. 18 is the mechanism: about 3%
+accuracy per doubling of window length up to 512–1,024 samples.
+
+**OTA.** The paper captured 1.44 M over-the-air examples at ~10 dB with two
+USRP B210s; trained directly they reach 95.6%. A model trained on σ_clk =
+0.0001 synthetic data and evaluated on OTA without fine-tuning loses ~7
+points (94% → 87%); the confusions before fine-tuning are the AM carrier
+pairs and the high-order QAM/APSK modes — the same blocks. That 7-point
+synthetic→real drop is the literature's counterpart to the gap this project
+measures, and it lands on the same classes.
+
+**Decision this supports:** stay on 2018. The degraded classes are known,
+explained by the authors, reproduced by us, and outside the four-class
+table; the one dataset that avoids them at 1,024 samples is the one already
+in use.
+
+---
+
 ## Where this leaves the project
 
 **Drop:** any claim that spectral whitening is a new idea for RF domain
@@ -224,6 +288,6 @@ generalization + RF signal classification; domain adaptation + modulation
 classification; sink class / default class / collapse under distribution shift;
 open-set recognition + nearest class; RadioML generation parameters.
 
-Full text read: O'Shea, Roy & Clancy (arXiv:1712.04578); Henneke & Kurth
+Full text read: O'Shea, Roy & Clancy (arXiv:1712.04578; reread in full 2026-09-22, notes above); Henneke & Kurth
 (arXiv:2510.23186); WhiteNet (arXiv:2608.06581, HTML). Abstract or summary
 only: the remainder.
