@@ -130,6 +130,9 @@ Best epoch plus patience fits under the ceiling. For the four-class table: peaks
 **"Why only two errors, is that plausible?"**
 Above 10 dB with 1,024-sample frames these four constellations are separable. The two errors are 64QAM at 10 or 12 dB read as 16QAM, the one direction that physics allows: a noisy 64QAM can look like 16QAM, a 16QAM cannot look like 64QAM. On the 2016 dataset with 128-sample frames the same pair still confuses 7 to 11 percent at high SNR; the frame length is the difference.
 
+**"What do you mean by removing the envelope?"**
+Every transmitter shapes its signal with a filter before sending it. That filter gives the spectrum a shape, the envelope: how the power falls off at the edges of the band. The symbols do not depend on it; the shape is a fingerprint of the transmitter, not of the modulation. So I take the frame's spectrum, estimate that shape by smoothing it, and divide it out. What is left is a flat spectrum with the same phase, the same symbols, the same timing. The model then sees the modulation and not the transmitter. One sentence: divide the spectrum by its own smoothed magnitude, so the pulse-shaping filter's fingerprint is gone and the symbols stay. If asked whether information is lost: only the envelope; the phase spectrum is untouched and in-domain accuracy stays at 0.999.
+
 **"What is whitening, physically?"**
 Divide the frame's spectrum by a smoothed estimate of its own magnitude spectrum. It flattens the envelope the pulse-shaping filter imposed. The symbols and their timing are untouched; only the shape of the spectrum is removed. It is not new; WhiteNet did it on real captures. What is ours is showing by intervention that the envelope is the cause.
 
