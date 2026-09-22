@@ -17,6 +17,10 @@ Three tasks, matching the numbered list in README.md "Open work":
                       different experiment from one that stopped at 60.
   "whitening_seeds"   item 2 -- rerun the alpha sweep with error bars, because
                       alpha=0.75 is unverified for the current backbone
+  "compare_methods_2016"  the method table with RML2016.10a as the training
+                      domain: 128-sample frames, SNR -20..18, synthetic
+                      domain generated at the same length. The 2016 track,
+                      kept apart from the 2018 results by file name
   "faithful_2016"     item 5 -- run the paper-faithful ICRNNA against 63.24%
   "converged_2018"    the open question: the 2018 classification run again,
                       with a ceiling high enough that early stopping decides.
@@ -158,9 +162,9 @@ SINK_EPOCHS = _env("AMC_SINK_EPOCHS", 60, int)
 SINK_PATIENCE = _env("AMC_SINK_PATIENCE", 10, int)
 SINK_TAG = _env("AMC_SINK_TAG", "e60")
 
-_TASKS = ("compare_methods", "whitening_seeds", "faithful_2016",
-          "faithful_budget", "converged_2016", "converged_2018",
-          "sink_24", "sink_arch")
+_TASKS = ("compare_methods", "compare_methods_2016", "whitening_seeds",
+          "faithful_2016", "faithful_budget", "converged_2016",
+          "converged_2018", "sink_24", "sink_arch")
 if TASK not in _TASKS:
     raise SystemExit(f"AMC_TASK={TASK!r}: expected one of {', '.join(_TASKS)}")
 
@@ -295,6 +299,39 @@ def main():
         print("cell skips seeds that already finished.\n")
         sh([sys.executable, str(REPO_DIR / "colab" / "icrnna_faithful_2016.py")],
            cwd=REPO_DIR / "colab")
+        return
+
+    if TASK == "compare_methods_2016":
+        hr("3. The method table on RML2016.10a -- 128-sample frames")
+        print("Same four methods, same protocol, the 2016 file as the training")
+        print("domain and a synthetic domain generated at 128 samples. Writes")
+        print(f"compare_methods_ICRNNA_es_rml2016_{COMPARE_TAG}.npz; the 2018")
+        print("table is untouched. The pickle is 225 MB and is read straight")
+        print("from Drive, nothing to stage.\n")
+        pkl = None
+        for hint in PKL_HINTS_2016:
+            if (DRIVE / hint).is_file():
+                pkl = DRIVE / hint
+                break
+        if pkl is None:
+            found = list(DRIVE.rglob("RML2016.10a_dict.pkl"))
+            if not found:
+                raise SystemExit("RML2016.10a_dict.pkl not found in Drive.")
+            pkl = found[0]
+        print(f"data: {pkl}\n")
+        cmd = [sys.executable, "compare_methods.py", "--arch", "ICRNNA",
+               "--source", "rml2016", "--data-path", str(pkl),
+               "--seeds", str(SEEDS), "--epochs", str(COMPARE_EPOCHS),
+               "--patience", str(PATIENCE), "--tag", COMPARE_TAG,
+               "--out-dir", str(OUT_DIR)]
+        if REDO_UNCONVERGED:
+            cmd.append("--redo-unconverged")
+        print(f"results -> {OUT_DIR}  (Drive: survives the runtime)")
+        print("Written after every cell; a rerun resumes.\n")
+        print(" ".join(cmd) + "\n")
+        t0 = time.time()
+        sh(cmd, cwd=SRC)
+        hr(f"Done in {(time.time() - t0) / 60:.1f} min")
         return
 
     if TASK == "converged_2018":

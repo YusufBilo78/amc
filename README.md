@@ -985,12 +985,16 @@ that link would cost more than the focus is worth.
 3. The remaining sink corroborations on the current backbone — embedding
    similarity, the discriminating control, label permutation, family recovery
 
-**Parked by the one-dataset decision.** Adding RML2016.10a as a third domain.
-`rml2016.py` loads it and `train_backbone.py` trains on it; what never existed
-is an `RML2016Domain` for the cross-domain scripts, because 2016's 128-sample
-frames and 2018's 1024 have to be reconciled first and that is a decision
-rather than a detail. The loader is kept — it costs nothing to keep and the
-faithful build needs it.
+**The 2016 track, in parallel.** Not a third domain in the 2018 experiments
+but the same protocol run again with RML2016.10a as the training domain, so
+the two datasets can be compared table for table without ever being mixed:
+`domains.RML2016Domain` loads the pickle at its native 128 samples, the
+synthetic domain is generated at 128 samples to match, the SNR grid is the
+2016 one (−20..18 dB), and whitening smooths over the same fraction of the
+spectrum at either length. `compare_methods.py --source rml2016` writes
+`compare_methods_ICRNNA_es_rml2016_*.npz`; the Colab task is
+`compare_methods_2016`. The four-class decision table on 2016 gets more seeds
+so that it reaches the same ~10,000 decisions per class as the 2018 one.
 
 **Closed.** The sink thread on the current backbone — 16 of 24 held-out classes sink into their own family against a chance of 3.5, all 24 runs converged, and the six-class control holds on all five architectures. The α sweep — 25 cells, all converged; full whitening is at least as good as partial and the WhiteNet disagreement is withdrawn. The method table at a ceiling every cell had room under — `compare_methods_ICRNNA_es_e100.npz`, 20 of 20 converged, the three augmentation cells rerun at 150 and bit-identical. The four-class decision table on 2018 — measured at every SNR,
 converged at a 150 ceiling (peaks 46, 48, 66), two of three seeds

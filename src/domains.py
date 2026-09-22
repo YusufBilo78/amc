@@ -5,13 +5,20 @@ The project's question is "how much accuracy is lost when the test data comes
 from somewhere else?", so *source* has to be a first-class concept rather than
 something hardcoded in each script.
 
-A Domain supplies labelled 1024-sample complex baseband frames tagged with SNR.
-Three exist:
+A Domain supplies labelled complex baseband frames tagged with SNR. Four
+exist:
 
-    RadioMLDomain     the DeepSig benchmark file
+    RadioMLDomain     the DeepSig 2018.01A file, 1024-sample frames
+    RML2016Domain     the DeepSig RML2016.10a pickle, 128-sample frames
     SyntheticDomain   modem.py, parameterised -- several distinct domains
-                      can be made by varying pulse shaping and impairments
+                      can be made by varying pulse shaping and impairments;
+                      `n_samples` sets the frame length so it can stand next
+                      to either RadioML file
     CaptureDomain     .npz files written by an SDR capture session
+
+Every domain exposes `frame_len`. A cross-domain experiment pairs domains of
+the same frame length and the same SNR grid; mixing lengths is a different
+experiment and the scripts refuse it rather than resample.
 
 CaptureDomain is written now, before any hardware exists, so that the on-disk
 format is fixed. When lab access happens the capture script only has to write
@@ -51,6 +58,7 @@ class Domain(abc.ABC):
     """A named source of labelled IQ frames."""
 
     name: str
+    frame_len: int = 1024
 
     @property
     @abc.abstractmethod
@@ -67,7 +75,7 @@ class Domain(abc.ABC):
     ) -> dict[str, np.ndarray]:
         """
         Returns:
-            X : (n, 2, 1024) float32, unit average power per frame
+            X : (n, 2, frame_len) float32, unit average power per frame
             y : (n,) int64, indices into `classes`
             z : (n,) int16, SNR in dB
         """
@@ -75,7 +83,7 @@ class Domain(abc.ABC):
     # ------------------------------------------------------------------
     @staticmethod
     def _finalize(frames: np.ndarray) -> np.ndarray:
-        """(n, 1024) complex -> (n, 2, 1024) float32 at unit average power."""
+        """(n, L) complex -> (n, 2, L) float32 at unit average power."""
         X = np.stack([frames.real, frames.imag], axis=1).astype(np.float32)
         power = np.mean(X[:, 0] ** 2 + X[:, 1] ** 2, axis=1, keepdims=True)
         return X / (np.sqrt(power)[:, None] + 1e-12)
@@ -123,6 +131,57 @@ class RadioMLDomain(Domain):
         self._ds.close()
 
 
+class RML2016Domain(Domain):
+    """
+    DeepSig RML2016.10a: 11 classes, 128-sample frames, SNR -20..18 dB.
+
+    The file names the QAMs the other way round (QAM16, QAM64); the canonical
+    names used everywhere else in this repository are 16QAM and 64QAM, so the
+    translation lives here and nowhere else. PAM4, GFSK, WBFM, AM-DSB and
+    AM-SSB are the same names ALIASES already maps for the synthetic side.
+    """
+
+    name = "rml2016"
+    frame_len = 128
+    SNRS: tuple[int, ...] = tuple(range(-20, 19, 2))
+
+    _TO_FILE = {"16QAM": "QAM16", "64QAM": "QAM64"}
+
+    def __init__(self, path=None):
+        import rml2016
+
+        self._module = rml2016
+        self._ds = rml2016.RML2016(path)
+        self._index = {name: i for i, name in enumerate(self._ds.classes)}
+        self.frame_len = int(self._ds.frame_len)
+
+    @property
+    def available_classes(self) -> tuple[str, ...]:
+        back = {v: k for k, v in self._TO_FILE.items()}
+        return tuple(back.get(c, c) for c in self._ds.classes)
+
+    def load(self, classes, snrs, frames_per_cell, seed=0):
+        ids = [self._index[self._to_native(c)] for c in classes]
+        data = self._ds.load(classes=ids, snrs=snrs,
+                             frames_per_cell=frames_per_cell,
+                             test_fraction=0.0, seed=seed)
+        frames = self._module.RML2016.to_complex(data["X_train"])
+        remap = {native_id: pos for pos, native_id in enumerate(ids)}
+        y = np.array([remap[v] for v in data["y_train"]], dtype=np.int64)
+        return {"X": self._finalize(frames), "y": y,
+                "z": data["z_train"].astype(np.int16)}
+
+    def _to_native(self, canonical: str) -> str:
+        name = self._TO_FILE.get(canonical, canonical)
+        if name not in self._index:
+            raise KeyError(f"{canonical!r} is not in RML2016.10a "
+                           f"(has: {', '.join(self._ds.classes)})")
+        return name
+
+    def close(self):
+        self._ds.close()
+
+
 class SyntheticDomain(Domain):
     """
     modem.py, parameterised.
@@ -133,11 +192,13 @@ class SyntheticDomain(Domain):
     """
 
     def __init__(self, name="synthetic", sps=8, beta=0.35,
-                 cfo_norm=0.0, iq_gain_db=0.0, iq_phase_deg=0.0):
+                 cfo_norm=0.0, iq_gain_db=0.0, iq_phase_deg=0.0,
+                 n_samples=1024):
         import modem
 
         self._modem = modem
         self.name = name
+        self.frame_len = int(n_samples)
         self.sps = sps
         self.beta = beta
         self.cfo_norm = cfo_norm
@@ -168,7 +229,7 @@ class SyntheticDomain(Domain):
 
     def _generate(self, native: str, snr_db: float, rng) -> np.ndarray:
         x = self._modem.generate(
-            native, 1024, snr_db=snr_db, sps=self.sps, rng=rng,
+            native, self.frame_len, snr_db=snr_db, sps=self.sps, rng=rng,
             cfo_norm=self.cfo_norm, beta=self.beta,
         )
         if self.iq_gain_db or self.iq_phase_deg:

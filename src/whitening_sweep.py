@@ -58,7 +58,7 @@ SMOOTH_BINS = 33     # envelope smoothing width, in FFT bins
 
 
 def spectral_whiten(frames_iq: np.ndarray, alpha: float,
-                    smooth_bins: int = SMOOTH_BINS) -> np.ndarray:
+                    smooth_bins: int | None = None) -> np.ndarray:
     """
     Flatten each frame's spectral envelope by `alpha`, preserving phase.
 
@@ -66,9 +66,18 @@ def spectral_whiten(frames_iq: np.ndarray, alpha: float,
     wraps around, so the smoothing has to wrap too -- a non-circular filter
     would fabricate an artificial roll-off at the band edges, which is exactly
     the kind of artifact this is meant to remove.
+
+    The smoothing width is a fraction of the spectrum, not a bin count:
+    SMOOTH_BINS of a 1024-point spectrum, scaled to the frame actually given
+    and kept odd, so a 128-sample RML2016 frame is smoothed over the same
+    bandwidth as a 1024-sample RadioML 2018 frame.
     """
     if alpha <= 0:
         return frames_iq
+
+    if smooth_bins is None:
+        n = frames_iq.shape[1]
+        smooth_bins = max(3, int(round(SMOOTH_BINS * n / 1024)) | 1)
 
     spec = np.fft.fft(frames_iq, axis=1)
     env = uniform_filter1d(np.abs(spec), size=smooth_bins, axis=1, mode="wrap")

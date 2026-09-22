@@ -47,7 +47,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 FIGURES = ROOT / "figures"
 
 CLASSES = list(domains.SHARED_CLASSES)
-SNRS = list(range(-20, 31, 2))
+SNRS = list(range(-20, 31, 2))          # RadioML 2018; RML2016 is -20..18
 SEEDS = [0, 1, 2, 3]
 EPOCHS = 15
 BEST_ALPHA = 0.75
@@ -90,6 +90,17 @@ def main() -> None:
     global SEEDS, EPOCHS
     p = argparse.ArgumentParser()
     p.add_argument("--arch", choices=("ICRNNA", "IQNet"), default="ICRNNA")
+    p.add_argument("--source", choices=("rml2018", "rml2016"), default="rml2018",
+                   help="which RadioML file is the training domain. rml2016 "
+                        "means 128-sample frames and the 2016 SNR grid, "
+                        "-20..18 dB; the synthetic domain is generated at "
+                        "the same length so the two sides stay comparable. "
+                        "Output files get a _rml2016 suffix, so a 2016 table "
+                        "never resumes into a 2018 one")
+    p.add_argument("--data-path", default=None,
+                   help="for --source rml2016: directory or file of "
+                        "RML2016.10a_dict.pkl. Default searches the usual "
+                        "places")
     p.add_argument("--seeds", type=int, default=len(SEEDS))
     p.add_argument("--epochs", type=int, default=EPOCHS)
     p.add_argument("--redo-unconverged", action="store_true",
@@ -123,13 +134,18 @@ def main() -> None:
                         "best-validation checkpointing; without it the "
                         "original 70/30 fixed-length recipe is used")
     args = p.parse_args()
+    global SNRS
     SEEDS = list(range(args.seeds))
     EPOCHS = args.epochs
+    if args.source == "rml2016":
+        SNRS = list(domains.RML2016Domain.SNRS)
 
     # The default configuration keeps the original output filenames so the
     # numbers in the README are not silently overwritten by a different setup.
     tag = ("" if args.arch == "IQNet" and args.patience is None
            else f"_{args.arch}" + ("_es" if args.patience else ""))
+    if args.source == "rml2016":
+        tag += "_rml2016"
     if args.tag:
         tag += f"_{args.tag}"
     out_dir = pathlib.Path(args.out_dir) if args.out_dir else ROOT
@@ -145,11 +161,19 @@ def main() -> None:
           f"protocol {'70/15/15 + early stopping' if args.patience else '70/30 fixed'}")
     print(f"-> {npz_path.name}\n")
 
-    src = domains.RadioMLDomain()
-    a = src.load(CLASSES, SNRS, frames_per_cell=768, seed=0)
+    if args.source == "rml2016":
+        # Every frame of every cell: 1000 per cell, 5 classes, 20 levels.
+        src = domains.RML2016Domain(args.data_path)
+        a = src.load(CLASSES, SNRS, frames_per_cell=1000, seed=0)
+    else:
+        src = domains.RadioMLDomain()
+        a = src.load(CLASSES, SNRS, frames_per_cell=768, seed=0)
     src.close()
-    dst = domains.SyntheticDomain()
+    dst = domains.SyntheticDomain(n_samples=src.frame_len)
     b = dst.load(CLASSES, SNRS, frames_per_cell=400, seed=1)
+    assert a["X"].shape[-1] == b["X"].shape[-1] == src.frame_len
+    print(f"source {src.name}: {len(a['X'])} frames of {src.frame_len} samples, "
+          f"SNR {SNRS[0]}..{SNRS[-1]} dB; synthetic: {len(b['X'])} frames\n")
 
     a_iq = (a["X"][:, 0] + 1j * a["X"][:, 1]).astype(np.complex64)
     b_iq = (b["X"][:, 0] + 1j * b["X"][:, 1]).astype(np.complex64)

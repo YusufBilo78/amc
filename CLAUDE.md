@@ -164,10 +164,15 @@ the paper's 63.24% is the one tie to a published number, and that paper is a
 3. The remaining sink corroborations — embedding similarity, the
    discriminating control, label permutation, family recovery
 
-Parked by the one-dataset decision: adding 2016 as a third cross-domain
-source, which would have needed an `RML2016Domain` reconciling 128-sample
-frames with 1024.. Both domains are
-   synthetic today, and that is the single largest weakness of the work
+**The 2016 track (started 2026-09-22, kept out of the meeting deck).** Not a
+third cross-domain source but a parallel copy of the 2018 protocol on
+RML2016.10a: `domains.RML2016Domain` (128-sample frames, SNR −20..18,
+QAM16/QAM64 translated to the canonical 16QAM/64QAM), `SyntheticDomain(n_samples=128)`,
+`compare_methods.py --source rml2016`, Colab task `compare_methods_2016`.
+Whitening's smoothing width now scales with frame length (33 bins of 1024
+→ 5 of 128), so the same α means the same bandwidth on both. Output files
+carry `_rml2016`; nothing 2018 is touched. Both domains are synthetic on
+this track too, and that remains the single largest weakness of the work.
 
 Closed: the sink thread on the current backbone (16/24 same-family, all converged; the five-architecture control holds); the α sweep (full whitening ≥ partial; the WhiteNet disagreement withdrawn); the method table at a 100/150 ceiling, 20/20 converged (three redone cells bit-identical); the four-class table on 2018 (converged at 150, bit-identical seeds 0 and 1); validating the faithful build against 63.24% (reaches 63.21% trained to
 convergence), and both convergence checks (best epoch 39 on 2016, 26 on 2018).
