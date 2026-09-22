@@ -138,16 +138,17 @@ let n = 0;
   s.addText([{ text: "Red", options: { bold: true, color: RED } }, { text: ": under 80%. " }, { text: "Orange", options: { bold: true, color: ORANGE } }, { text: `: the four classes of the decision table. 64QAM's ${pct(c24.recall[c24.classes.indexOf("64QAM")])} here is confusion with 128QAM and 256QAM, which the four-class task does not contain; there it is 10,162 of 10,164.` }],
     { x: M, y: 6.7, w: 7.3, h: 0.45, fontFace: BODY, fontSize: 10, color: MID, isTextBox: true, margin: 0 });
   const bad = r24.filter(x => x.r < 0.8).map(x => x.c);
-  card(s, 8.2, 1.7, 4.55, 2.35);
+  card(s, 8.2, 1.7, 4.55, 2.8);
   s.addText("What the paper says is hard, and why", { x: 8.4, y: 1.8, w: 4.2, h: 0.35, fontFace: HEAD, fontSize: 13, bold: true, color: INK, isTextBox: true, margin: 0 });
-  bullets(s, ["64 / 128 / 256QAM and 16 / 32PSK: at 1,024 samples \"significant error is expected simply due to lack of information and similar symbol structure\", by any method",
+  bullets(s, ["The impairment is deliberate: every frame draws its own channel — roll-off U(0.1, 0.4), carrier and clock offsets, Rayleigh fading — and the 24-class set applies impairments \"beyond that which one would expect\" for its high-order modes, in a 1,024-sample window",
+    "64 / 128 / 256QAM and 16 / 32PSK: \"significant error is expected simply due to lack of information and similar symbol structure\", by any method",
     "AM with-carrier vs suppressed-carrier: the analog message is a small voice corpus",
-    `Our six classes under 80%: ${bad.join(", ")}. Same blocks.`], 8.4, 2.2, 4.2, 1.8, 10.5);
-  card(s, 8.2, 4.2, 4.55, 2.5, "FDE9DF");
-  s.addText("Why not RML2016 instead", { x: 8.4, y: 4.3, w: 4.2, h: 0.35, fontFace: HEAD, fontSize: 13, bold: true, color: INK, isTextBox: true, margin: 0 });
+    `Our six classes under 80%: ${bad.join(", ")}. Same blocks.`], 8.4, 2.2, 4.2, 2.2, 10);
+  card(s, 8.2, 4.65, 4.55, 2.15, "FDE9DF");
+  s.addText("Why not RML2016 instead", { x: 8.4, y: 4.75, w: 4.2, h: 0.35, fontFace: HEAD, fontSize: 13, bold: true, color: INK, isTextBox: true, margin: 0 });
   bullets(s, [`128-sample frames: 16QAM and 64QAM confuse each other even above 10 dB — QAM16 recall ${pct(r16["QAM16"])}, QAM64 ${pct(r16["QAM64"])}; on 2018 both are 100.0%`,
     `WBFM at ${pct(r16["WBFM"])}, drained into AM-DSB: a known defect of that file`,
-    "Every degraded 2018 class is outside the four-class table; the 2016 defects are inside it"], 8.4, 4.7, 4.2, 1.95, 10.5);
+    "Every degraded 2018 class is outside the four-class table; the 2016 defects are inside it"], 8.4, 5.15, 4.2, 1.6, 10);
   foot(s, n);
   s.addNotes("O'Shea, Roy & Clancy, IEEE JSTSP 12(1) 2018, Figs. 12–15 and 17. The paper also deliberately applies impairments 'beyond that which one would expect' to the 24-class set. Their synthetic-to-over-the-air drop is about 7 points and lands on the same blocks.");
 }
