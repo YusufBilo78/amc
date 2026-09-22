@@ -256,6 +256,81 @@ in use.
 
 ---
 
+## MSTFFNet (Sensors 26(16):5208, published 17 August 2026), read in full
+
+Wu, Xiang, Dong, Wang & Xiao, Air Force Engineering University, Xi'an. MDPI
+Sensors; received 9 July, accepted 15 August. Open access; no code release
+(data statement says "email the authors").
+
+**What it is.** A dual-stream model for RML2016.10a/10b at the native 128
+samples. Stream 1: the raw I/Q sequence through three parallel 1-D conv
+branches (kernels 3, 5, 7) with channel and temporal attention, two stages
+(64, 128 channels), giving 32 tokens of 128 dims. Stream 2: an STFT of the
+frame (64-point FFT, 64-sample Hann window, hop 2, bins 0–32 kept, so a
+4 × 33 × 33 tensor of Re, Im, |Z|, ∠Z) through 2-D convs, a residual block
+and a frequency-attention gate, then two paths (frequency-mean and four
+adaptively pooled bands) to another 32 × 128 token sequence. The two are
+fused per token by a 1 × 1 conv, passed through one BiLSTM (hidden 64) and
+two blocks of depthwise conv + additive (linear) attention + FFN, pooled to
+a 128-d vector. A side head predicts one of eight 5-dB SNR bins from the
+I/Q tokens; the soft bin probabilities weight learnable 16-d embeddings and
+the result is *concatenated* to the feature before a 2-layer MLP. 1.98 M
+parameters, 124 MMACs. Loss: 0.7 CE (label smoothing 0.1) + 0.3 focal,
+plus auxiliary CE, cross-modal InfoNCE, supervised contrastive and the
+SNR-bin CE at small weights. AdamW, cosine, 100 epochs, 6:2:2 split per
+SNR.
+
+**Numbers.** RML2016.10a overall 67.33 %, RML2016.10b 70.87 %. Highest
+single-SNR point 94.50 %. The gain over the six retrained baselines (GIGNet
+63.80, FE-SKViT 63.34, AVGNet 62.93, MCLDNN 62.02, GRU 57.47, LSTM 56.40 on
+10a) is almost entirely low-SNR: [−20, 0] dB 45.79 vs 39.88 for GIGNet;
+[0, 18] dB 93.45 vs 92.92, i.e. tied at high SNR. Ablations: dropping the
+SNR conditioning costs 2.98 overall and 4.38 at low SNR; an oracle SNR bin
+adds only 0.54 over the self-estimate; STFT-only is 10.5 points below the
+dual model, I/Q-only 5.85 below. **Every number is a single training run
+with one seed and one split**; the authors say so and call the
+differences "descriptive". The 60/20/20 split is stratified per SNR but
+there is no early-stopping or convergence report.
+
+**Where it agrees with us.** WBFM at 31.72 % overall and under 50 % at
+high SNR, drained into AM-DSB — the same defect as our 39.6 %, and they
+say the same thing: 128 samples are too short for wideband FM. And on
+page 15: "all misclassifications occur within modulation families that
+are physically similar, rather than being randomly distributed across
+classes" — the sink finding, observed from the other direction.
+
+**Where it is silent.** Not evaluated on RadioML 2018.01A. No cross-dataset,
+cross-transmitter or over-the-air test; the conclusion lists all three as
+future work. So it addresses the benchmark question and not ours.
+
+**What it means for this project.**
+
+1. *For the decision table:* nothing. Its advantage is below 0 dB, where
+   the four-class table is at the signal's limit for any method; at high
+   SNR it ties with a 0.41 M MCLDNN.
+2. *For the domain gap:* a testable prediction. The model feeds the STFT
+   magnitude directly, i.e. the spectral envelope this project identified
+   as the cause of the gap is an explicit input channel. The prediction is
+   that MSTFFNet loses **more** than ICRNNA when the transmitter changes,
+   and that whitening its input recovers it. That is a clean experiment for
+   the 2016 track: same frames, same protocol, `--arch MSTFFNet`. If it
+   holds, the attribution generalises to a model built on the opposite
+   design philosophy; if it does not, that is the more interesting result.
+3. *For the sink thread:* a sixth column in the architecture control, and
+   a question the SNR-conditioning head raises — whether an SNR-aware
+   classifier still sinks everything into QPSK below −8 dB or spreads it.
+4. *Against the ICRNNA numbers on 2016:* our 3-seed converged ICRNNA is
+   62.23 % overall and the faithful build 63.21 %; MSTFFNet's 67.33 % is
+   about 4 points above, all of it from below 0 dB, single run.
+
+Reimplementing it from the paper is feasible — the architecture is
+specified to the layer — but the exact numbers are not reproducible without
+their code and seed, and the STFT front end is hardwired to 128-sample
+frames (64-window, hop 2 → 33 frames), so a 1,024-sample version is a
+re-parameterisation, not a port.
+
+---
+
 ## Where this leaves the project
 
 **Drop:** any claim that spectral whitening is a new idea for RF domain
@@ -288,6 +363,6 @@ generalization + RF signal classification; domain adaptation + modulation
 classification; sink class / default class / collapse under distribution shift;
 open-set recognition + nearest class; RadioML generation parameters.
 
-Full text read: O'Shea, Roy & Clancy (arXiv:1712.04578; reread in full 2026-09-22, notes above); Henneke & Kurth
+Full text read: O'Shea, Roy & Clancy (arXiv:1712.04578; reread in full 2026-09-22, notes above); MSTFFNet (Sensors 26(16):5208, read in full 2026-09-22, notes above); Henneke & Kurth
 (arXiv:2510.23186); WhiteNet (arXiv:2608.06581, HTML). Abstract or summary
 only: the remainder.
