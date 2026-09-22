@@ -104,7 +104,8 @@ warning stayed silent.
 | `train_backbone_rml2016_f1000_colab.npz` | **current** — ICRNNA on RML2016.10a, 3 seeds, 0.6223 overall / 0.9148 at SNR ≥ 10 dB. Checked: converged, best epoch 39, one epoch inside the ceiling |
 | `icrnna_faithful_results.json`, at the paper's 58-epoch ceiling | **current** — paper-faithful ICRNNA on RML2016.10a, 3 seeds, 61.75% ± 0.07 against the paper's 63.24%, at the paper's 58-epoch ceiling |
 | `icrnna_faithful_e150_results.json` | **current** — the same build trained to convergence (peak at epoch 107): 63.21% against the paper's 63.24%. The deficit above was the epoch budget |
-| `train_backbone_rml2016_f1000_c4_colab.npz` | **current** — the four-class decision table Moshe asked for. BPSK/QPSK/QAM16/QAM64 on RML2016.10a, 3 seeds, 0.7086 overall / 0.9439 at SNR ≥ 10 dB, 9,000 pooled decisions. Converged: peaks at 19, 23, 33 under a 60 ceiling. Note QAM16 is **worse** here than in the 11-class run (87.9 vs 91.8), seed ranges not overlapping |
+| `train_backbone_rml2016_f1000_c4_colab_s14.npz` | **current — quote this one for the four-class table on 2016.** BPSK/QPSK/QAM16/QAM64, all 1000 frames per cell, 14 seeds, ceiling 100, patience 20, all converged (peaks 16–46). 42,000 decisions above 10 dB, 2,421 errors (0.9424); 0.7080 overall; a matrix at every SNR, 2,100 decisions per cell. QAM16 recall is flat at 86–88% from +2 dB to +18 dB and QAM64 at 91–93%: the QAM pair does not separate with SNR at 128 samples, so this is a frame-length ceiling, not a noise one. BPSK and QPSK sit at 99–99.7%, never 100 |
+| `train_backbone_rml2016_f1000_c4_colab.npz` | superseded by the row above, kept — the four-class decision table Moshe asked for. BPSK/QPSK/QAM16/QAM64 on RML2016.10a, 3 seeds, 0.7086 overall / 0.9439 at SNR ≥ 10 dB, 9,000 pooled decisions. Converged: peaks at 19, 23, 33 under a 60 ceiling. Note QAM16 is **worse** here than in the 11-class run (87.9 vs 91.8), seed ranges not overlapping |
 | `train_backbone_rml2018_f2048_c4_colab_e150.npz` | **current** — the four-class table on 2018, converged: peaks 46, 48, 66 under a 150 ceiling, 0.7467 overall, 40,654 of 40,656 above 10 dB, a matrix at every SNR. Seeds 0 and 1 bit-identical to the 60-epoch file below; seed 2 within a point at every level. Quote this one |
 | `train_backbone_rml2018_f2048_c4_colab.npz` | **superseded by the row above, kept** — same run at a 60 ceiling, flagged unconverged — the four-class table on 2018. BPSK/QPSK/16QAM/64QAM, 2048 frames/cell, 3 seeds: **40,654 of 40,656 correct above 10 dB**, 0.7465 overall. Peaks at 46, 48, 59 under a 60 ceiling, so the overall number is a floor; the high-SNR table is saturated and unaffected. Carries a confusion matrix at every SNR (rebuilt from the checkpoints, verified): at 0 dB the QAM pair is a coin flip and PSK is perfect; at −8 dB both QAMs drain into QPSK ~70% |
 | `train_backbone_rml2018_f512_colab.npz` | **current** — ICRNNA on RadioML 2018.01A, 24 classes, 512 frames/cell, 3 seeds, 0.5699 overall / 0.8716 at SNR ≥ 10 dB. Checked: converged, best epoch 26, fourteen epochs inside the ceiling |
@@ -154,18 +155,25 @@ Run scripts from `src/`:
 
 ## Open work
 
-**New work goes on RadioML 2018.01A only** (decided 2026-09-16). This does not
-retract the 2016 results — in particular the faithful build's 63.21% against
-the paper's 63.24% is the one tie to a published number, and that paper is a
-2016 paper. `rml2016.py` stays.
+**Focus moved to RML2016.10a on 2026-09-22.** The 2026-09-16 decision was
+2018 only; it was reversed six days later because the people around the
+project all work on 2016 and results have to be comparable with theirs. Nothing
+measured on 2018 is retracted: the four-class table at 40,654 of 40,656 above
+10 dB, the method table, the α sweep and the sink thread stand as the 2018
+record, and the meeting deck built on them stays as it is. New work goes on
+2016 first; a 2018 counterpart is run only when a 2016 result needs it.
 
-1. Port `dann.py` to the current backbone, or drop the comparison
-2. Real SDR capture when hardware and lab access allow
-3. The remaining sink corroborations — embedding similarity, the
+1. The method table on 2016 (`AMC_TASK=compare_methods_2016`) — the cell was
+   given but has not been run; nothing under that name is in Drive
+2. MSTFFNet reimplemented in `model_zoo` for the 2016 track: the prediction
+   in `LITERATURE.md` (a larger transmitter-change loss than ICRNNA, recovered
+   by whitening) and a sixth column in the architecture control
+3. Port `dann.py` to the current backbone, or drop the comparison
+4. Real SDR capture when hardware and lab access allow
+5. The remaining sink corroborations — embedding similarity, the
    discriminating control, label permutation, family recovery
 
-**The 2016 track (started 2026-09-22, kept out of the meeting deck).** Not a
-third cross-domain source but a parallel copy of the 2018 protocol on
+**The 2016 machinery (built 2026-09-22).** The 2018 protocol, run again on
 RML2016.10a: `domains.RML2016Domain` (128-sample frames, SNR −20..18,
 QAM16/QAM64 translated to the canonical 16QAM/64QAM), `SyntheticDomain(n_samples=128)`,
 `compare_methods.py --source rml2016`, Colab task `compare_methods_2016`.

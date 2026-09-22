@@ -392,6 +392,29 @@ same lesson as the `compare_methods` rows: the update count is a property of
 the problem, not a constant of the optimizer, so a ceiling that was safe for
 one configuration says nothing about another.
 
+**Rerun at 14 seeds (2026-09-22), `train_backbone_rml2016_f1000_c4_colab_s14.npz`
+— quote this one.** Same four classes, all 1000 frames per cell, ceiling 100
+with patience 20; every seed converged, peaks between 16 and 46. Above
+10 dB that is 42,000 decisions, 2,421 of them wrong:
+
+| transmitted \ decided | BPSK | QPSK | QAM16 | QAM64 | recall |
+|---|---|---|---|---|---|
+| BPSK | 10,430 | 55 | 0 | 15 | 99.3% |
+| QPSK | 55 | 10,388 | 44 | 13 | 98.9% |
+| QAM16 | 55 | 63 | 9,108 | 1,274 | 86.7% |
+| QAM64 | 59 | 62 | 726 | 9,653 | 91.9% |
+
+The per-SNR matrices (2,100 decisions per cell) show what the pooled table
+cannot: QAM16 recall is 83% at 0 dB and then **flat between 86% and 88%
+from +2 dB to +18 dB**; QAM64 is flat between 91% and 93%. More SNR does not
+separate the pair. On 2018, at 1,024 samples, the same pair is 100.0% from
++14 dB up. So the 2016 ceiling is set by the frame — 128 samples is 16
+symbols at 8 samples per symbol, and sixteen symbols of a 64-point
+constellation can look like a 16-point one — not by noise. BPSK and QPSK
+never reach 100 either: 99.0–99.8% at every level from 0 dB up, with the
+misses spread evenly over the other three classes, which reads as a small
+fraction of degenerate frames in the file rather than a classifier limit.
+
 ### The four-class decision table on 2018 — the one that was asked for
 
 `train_backbone.py --data rml2018 --classes BPSK,QPSK,16QAM,64QAM --seeds 3`,
