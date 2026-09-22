@@ -4,6 +4,7 @@
 const pptxgen = require("pptxgenjs");
 const fs = require("fs");
 const D = JSON.parse(fs.readFileSync("deck_data.json", "utf8"));
+const TALK = require("./talk.js");
 
 // ---- palette: deep navy ink, signal-orange accent, cool greys ----------------
 const NAVY = "0B2545", INK = "13315C", MID = "5C7A99", PALE = "DCE6F0", BG = "FFFFFF";
@@ -27,6 +28,7 @@ function title(slide, text, sub, onDark = false) {
     color: onDark ? PALE : MID, italic: true, isTextBox: true, margin: 0, valign: "top" });
 }
 function foot(slide, n, onDark = false) {
+  if (TALK[n]) slide.addNotes(TALK[n] + "\n\n");
   slide.addText(`${n}`, { x: W - M - 0.5, y: 7.0, w: 0.5, h: 0.3, fontFace: BODY, fontSize: 10,
     color: onDark ? PALE : GREY, align: "right", isTextBox: true, margin: 0 });
 }
@@ -82,7 +84,7 @@ let n = 0;
   s.addText("RadioML 2018.01A · ICRNNA backbone · progress report, September 2026", { x: M, y: 4.2, w: W - 2 * M, h: 0.5, fontFace: BODY, fontSize: 16, color: PALE, isTextBox: true, margin: 0 });
   s.addText("Yusuf Bilal Çetinkaya", { x: M, y: 4.75, w: W - 2 * M, h: 0.5, fontFace: BODY, fontSize: 16, color: "FFFFFF", isTextBox: true, margin: 0 });
   s.addImage({ path: "c64qam.png", x: 9.4, y: 1.4, w: 3.3, h: 3.3, transparency: 15 });
-  s.addNotes("Every number in this deck is read from a results file in the repository; nothing is quoted from the earlier backbone.");
+  s.addNotes(TALK[1] + "\n\nEvery number in this deck is read from a results file in the repository; nothing is quoted from the earlier backbone.");
 }
 
 // ============================ 2. the problem ================================
