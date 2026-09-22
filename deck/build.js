@@ -125,7 +125,34 @@ let n = 0;
   s.addNotes("Decided with Moshe on 16 September: new work goes on 2018 only. The 2016 results are not retracted.");
 }
 
-// ============================ 4. inputs / outputs / model ===================
+// ============================ 4. what the dataset paper says is hard =======
+{ const s = pres.addSlide(); light(s); n++;
+  const r24 = c24.classes.map((c, i) => ({ c, r: c24.recall[i] })).sort((a, b) => a.r - b.r);
+  const c16 = D.c11_2016, r16 = Object.fromEntries(c16.classes.map((c, i) => [c, c16.recall[i]]));
+  const four = new Set(c4.classes);
+  title(s, "Which classes the dataset itself cannot separate", "The paper that made RadioML 2018 reports it; our 24-class run reproduces it; the four-class table avoids it.");
+  s.addChart(pres.ChartType.bar, [{ name: "recall ≥ 10 dB", labels: r24.map(x => x.c), values: r24.map(x => +(100 * x.r).toFixed(1)) }],
+    { x: M, y: 1.7, w: 7.3, h: 5.0, barDir: "bar", barGapWidthPct: 35, chartColors: r24.map(x => four.has(x.c) ? ORANGE : (x.r < 0.8 ? RED : PALE)),
+      showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0.0", dataLabelFontSize: 8, dataLabelColor: INK, dataLabelFontFace: BODY, showLegend: false,
+      valAxisMinVal: 0, valAxisMaxVal: 100, valAxisMajorUnit: 25, catAxisLabelFontSize: 8, ...axisQuiet, showCatAxisTitle: false, valAxisTitle: `recall above 10 dB, %  (${c24.n_per_class.toLocaleString("en-US")} decisions per class)` });
+  s.addText([{ text: "Red", options: { bold: true, color: RED } }, { text: ": under 80%. " }, { text: "Orange", options: { bold: true, color: ORANGE } }, { text: `: the four classes of the decision table. 64QAM's ${pct(c24.recall[c24.classes.indexOf("64QAM")])} here is confusion with 128QAM and 256QAM, which the four-class task does not contain; there it is 10,162 of 10,164.` }],
+    { x: M, y: 6.7, w: 7.3, h: 0.45, fontFace: BODY, fontSize: 10, color: MID, isTextBox: true, margin: 0 });
+  const bad = r24.filter(x => x.r < 0.8).map(x => x.c);
+  card(s, 8.2, 1.7, 4.55, 2.35);
+  s.addText("What the paper says is hard, and why", { x: 8.4, y: 1.8, w: 4.2, h: 0.35, fontFace: HEAD, fontSize: 13, bold: true, color: INK, isTextBox: true, margin: 0 });
+  bullets(s, ["64 / 128 / 256QAM and 16 / 32PSK: at 1,024 samples \"significant error is expected simply due to lack of information and similar symbol structure\", by any method",
+    "AM with-carrier vs suppressed-carrier: the analog message is a small voice corpus",
+    `Our six classes under 80%: ${bad.join(", ")}. Same blocks.`], 8.4, 2.2, 4.2, 1.8, 10.5);
+  card(s, 8.2, 4.2, 4.55, 2.5, "FDE9DF");
+  s.addText("Why not RML2016 instead", { x: 8.4, y: 4.3, w: 4.2, h: 0.35, fontFace: HEAD, fontSize: 13, bold: true, color: INK, isTextBox: true, margin: 0 });
+  bullets(s, [`128-sample frames: 16QAM and 64QAM confuse each other even above 10 dB — QAM16 recall ${pct(r16["QAM16"])}, QAM64 ${pct(r16["QAM64"])}; on 2018 both are 100.0%`,
+    `WBFM at ${pct(r16["WBFM"])}, drained into AM-DSB: a known defect of that file`,
+    "Every degraded 2018 class is outside the four-class table; the 2016 defects are inside it"], 8.4, 4.7, 4.2, 1.95, 10.5);
+  foot(s, n);
+  s.addNotes("O'Shea, Roy & Clancy, IEEE JSTSP 12(1) 2018, Figs. 12–15 and 17. The paper also deliberately applies impairments 'beyond that which one would expect' to the 24-class set. Their synthetic-to-over-the-air drop is about 7 points and lands on the same blocks.");
+}
+
+// ============================ 5. inputs / outputs / model ===================
 { const s = pres.addSlide(); light(s); n++;
   title(s, "Input, output, model, protocol", "Defined once here, and unchanged for every result that follows.");
   const boxes = [["INPUT", "one I/Q frame\n2 × 1,024 float32\nunit average power", NAVY],
@@ -151,7 +178,7 @@ let n = 0;
   s.addNotes("The backbone is transcribed from a peer's reproduction and differs from the published ICRNNA in five places; it is not called 'the published architecture'. The faithful build is a separate file and does reproduce the paper.");
 }
 
-// ============================ 5. does it classify? ==========================
+// ============================ 6. does it classify? ==========================
 { const s = pres.addSlide(); light(s); n++;
   title(s, "First, does the backbone classify?", "Not the contribution — but the cross-domain numbers must start from a competent classifier.");
   s.addChart(pres.ChartType.line, [
@@ -168,7 +195,7 @@ let n = 0;
   s.addNotes("Deep residual networks on the whole dataset are reported near 95% above 8 dB; this is 512 of 4096 frames per cell with a 786k recurrent model. Closing that gap is not the goal.");
 }
 
-// ============================ 6. the decision table =========================
+// ============================ 7. the decision table =========================
 { const s = pres.addSlide(); light(s); n++;
   title(s, "The decision table", `Four modulations in, ${highTot.toLocaleString("en-US")} decisions above 10 dB, three seeds pooled — how often did we say what?`);
   matrixTable(s, c4.classes, c4.mats.high, M, 1.9, 7.6, `${highOk.toLocaleString("en-US")} of ${highTot.toLocaleString("en-US")} correct. Both errors are 64QAM decided as 16QAM. Rows sum to 10,164: 308 test frames per (class, SNR) cell × 11 levels × 3 seeds.`);
@@ -183,7 +210,7 @@ let n = 0;
   s.addNotes("This is the table asked for on 15 September. The same table on RML2016 (128-sample frames) still confuses the QAM pair 7–11% at high SNR; at 1,024 samples that confusion is gone. The frame is the difference.");
 }
 
-// ============================ 7. where decisions go by SNR ==================
+// ============================ 8. where decisions go by SNR ==================
 { const s = pres.addSlide(); light(s); n++;
   title(s, "Where the decisions go, by SNR", "A perfect table at high SNR says nothing. The informative tables are lower down.");
   const snrs = c4.snrs.filter(v => v >= -14 && v <= 10);
@@ -202,7 +229,57 @@ let n = 0;
   s.addNotes("924 decisions per row at each single level; a 1% cell is nine frames. Both matrices are from the converged run.");
 }
 
-// ============================ 8. the domain gap =============================
+// ============================ 9. the SNR table =============================
+{ const s = pres.addSlide(); light(s); n++;
+  title(s, "The SNR table", "Four classes, every SNR level, 924 decisions per cell: recall per class and the overall accuracy.");
+  const hdr = ["SNR (dB)", ...c4.classes, "all four"].map((t, i) => ({ text: t, options: { bold: true, fill: { color: PALE }, color: INK, fontSize: 9.5, align: "center" } }));
+  const shade = v => v >= 0.99 ? "FFFFFF" : v >= 0.9 ? "EAF4F2" : v >= 0.6 ? "FDE9DF" : "F9D2C4";
+  const rowsFor = idx => [hdr, ...idx.map(k => {
+    const snr = c4.snrs[k], rec = c4.recall_by_snr[String(snr)];
+    return [{ text: `${snr > 0 ? "+" : ""}${snr}`, options: { bold: true, align: "center", color: INK } },
+      ...rec.map(v => ({ text: (100 * v).toFixed(1), options: { align: "center", fill: { color: shade(v) }, color: INK } })),
+      { text: (100 * c4.curve[k]).toFixed(1), options: { align: "center", bold: true, color: INK } }];
+  })];
+  const half = Math.ceil(c4.snrs.length / 2);
+  const opts = { w: 5.9, colW: [1.0, 0.98, 0.98, 0.98, 0.98, 0.98], fontFace: BODY, fontSize: 9.5, border: { type: "solid", pt: 0.5, color: "D5DDE5" }, rowH: 0.31, autoPage: false };
+  s.addTable(rowsFor([...Array(half).keys()]), { x: M, y: 1.7, ...opts });
+  s.addTable(rowsFor([...Array(c4.snrs.length - half).keys()].map(k => k + half)), { x: M + 6.3, y: 1.7, ...opts });
+  s.addText("Recall in percent. Shading: white ≥ 99, green ≥ 90, light orange ≥ 60, orange below. Each cell is 308 test frames × 3 seeds = 924 decisions; the last column pools the four classes, 3,696 decisions per level. Chance is 25.",
+    { x: M, y: 6.15, w: W - 2 * M, h: 0.55, fontFace: BODY, fontSize: 10, color: MID, isTextBox: true, margin: 0, valign: "top" });
+  foot(s, n);
+}
+
+// ============================ 10. why accuracy falls with SNR ===============
+{ const s = pres.addSlide(); light(s); n++;
+  title(s, "Why accuracy falls, and why it falls in that order", "Noise has to be compared with the distance between a constellation's points, not with the signal alone.");
+  // minimum distance between neighbouring points, unit average symbol energy
+  const dmin = { BPSK: 2, QPSK: Math.SQRT2, "16QAM": 2 / Math.sqrt(10), "64QAM": 2 / Math.sqrt(42) };
+  const snrsShow = [-8, -4, 0, 4, 8, 12];
+  const sigma = snr => Math.sqrt(0.5 / Math.pow(10, snr / 10));
+  const hdr = ["", ...snrsShow.map(v => `${v > 0 ? "+" : ""}${v} dB`)].map(t => ({ text: t, options: { bold: true, fill: { color: PALE }, color: INK, fontSize: 10, align: "center" } }));
+  const tone = r => r >= 2 ? "EAF4F2" : r >= 1 ? "FDE9DF" : "F9D2C4";
+  const rowsD = [hdr, ...c4.classes.map(c => [{ text: `${c}  d = ${dmin[c].toFixed(2)}`, options: { bold: true, color: INK, fontSize: 10 } },
+    ...snrsShow.map(v => { const r = dmin[c] / sigma(v); return { text: r.toFixed(1), options: { align: "center", fill: { color: tone(r) }, color: INK, fontSize: 10 } }; })])];
+  const rowsR = [hdr, ...c4.classes.map((c, i) => [{ text: c, options: { bold: true, color: INK, fontSize: 10 } },
+    ...snrsShow.map(v => { const r = c4.recall_by_snr[String(v)][i]; return { text: (100 * r).toFixed(0) + "%", options: { align: "center", fill: { color: r >= 0.99 ? "EAF4F2" : r >= 0.6 ? "FDE9DF" : "F9D2C4" }, color: INK, fontSize: 10 } }; })])];
+  const topts = { w: 6.3, colW: [1.74, 0.76, 0.76, 0.76, 0.76, 0.76, 0.76], fontFace: BODY, border: { type: "solid", pt: 0.5, color: "D5DDE5" }, rowH: 0.34, autoPage: false };
+  s.addText("Predicted: minimum distance ÷ noise σ per axis", { x: M, y: 1.7, w: 6.3, h: 0.3, fontFace: HEAD, fontSize: 12.5, bold: true, color: INK, isTextBox: true, margin: 0 });
+  s.addTable(rowsD, { x: M, y: 2.05, ...topts });
+  s.addText("Measured: recall at the same levels (924 decisions each)", { x: M, y: 3.95, w: 6.3, h: 0.3, fontFace: HEAD, fontSize: 12.5, bold: true, color: INK, isTextBox: true, margin: 0 });
+  s.addTable(rowsR, { x: M, y: 4.3, ...topts });
+  s.addText("d is the distance between neighbouring points at unit average symbol energy; σ = √(1 / (2·SNR)) is the noise standard deviation per I or Q axis. Below 1 the neighbours overlap; above 2 they are clear. A rule of thumb for the order and the thresholds, not a prediction of the exact numbers: the model sees ~128 symbols per frame and does not need to decode any of them.",
+    { x: M, y: 6.15, w: 6.3, h: 0.9, fontFace: BODY, fontSize: 9.5, color: MID, isTextBox: true, margin: 0, valign: "top" });
+  card(s, 7.3, 1.7, 5.45, 4.95);
+  s.addText("The mechanism", { x: 7.55, y: 1.85, w: 5.0, h: 0.35, fontFace: HEAD, fontSize: 14, bold: true, color: INK, isTextBox: true, margin: 0 });
+  bullets(s, ["All four signals have the same power. What differs is how close their constellation points sit: BPSK's two points are 2 apart, 64QAM's neighbours 0.31 apart. Noise of the same size erases 64QAM's structure 16 dB before it touches BPSK.",
+    "Which-QAM is the first decision to go, between +6 and 0 dB: 16QAM and 64QAM both become a square cloud, and the model flips a coin between them.",
+    "PSK against QAM is the next, between 0 and −4 dB: the cloud loses its amplitude levels and both QAMs look like a noisy QPSK, so they sink into it rather than scatter.",
+    "PSK against PSK is last: BPSK's two points survive to −8 dB and below.",
+    "So the accuracy curve is not one thing degrading; it is three decisions closing at three SNRs, in the order the constellation geometry sets."], 7.55, 2.3, 5.0, 4.3, 11);
+  foot(s, n);
+}
+
+// ============================ 11. the domain gap =============================
 { const s = pres.addSlide(); light(s); n++;
   title(s, "The gap, and what closes it", "Five shared classes, five seeds each, every cell converged. In-domain never moves; cross-domain does.");
   s.addChart(pres.ChartType.bar, [
@@ -224,7 +301,7 @@ let n = 0;
   s.addNotes(`Stopping epochs by method: none ${none.epochs.join("/")}, augmentation ${aug.epochs.join("/")}, whitening ${wht.epochs.join("/")}, both ${both.epochs.join("/")}. Whitening converges about 2.4× faster than augmentation — it removes a nuisance dimension, augmentation adds one.`);
 }
 
-// ============================ 9. attribution by intervention ================
+// ============================ 12. attribution by intervention ================
 { const s = pres.addSlide(); light(s); n++;
   title(s, "What causes it — by intervention, not correlation", "Four explanations tested and refuted. One intervention that moves the prediction.");
   const refuted = [["Occupied bandwidth", "matching it did not recover 16QAM"], ["Constellation density", "density is not what the model reads"],
@@ -247,7 +324,7 @@ let n = 0;
   s.addNotes("The working story for most of the project was shortcut learning — the model reads modulation order off the envelope. Two experiments killed it: handing 16QAM frames a 64QAM envelope left the prediction at 16QAM. The envelope does not carry the class; removing it still helps. That is stated as unresolved.");
 }
 
-// ============================ 10. the fix: whitening and alpha ==============
+// ============================ 13. the fix: whitening and alpha ==============
 { const s = pres.addSlide(); light(s); n++;
   title(s, "The fix: remove the envelope", "X / smooth(|X|)^α — divide each frame's spectrum by a smoothed estimate of its own magnitude envelope.");
   s.addChart([
@@ -270,7 +347,7 @@ let n = 0;
   s.addNotes("The middle of the sweep is where seeds disagree: α = 0.5 has a spread of 0.019 on cross-domain accuracy against 0.001–0.007 at either end. Half-removing the envelope leaves a model that sometimes learns to read through it.");
 }
 
-// ============================ 11. where an unseen modulation lands ==========
+// ============================ 14. where an unseen modulation lands ==========
 { const s = pres.addSlide(); light(s); n++;
   const k = D.sink24, ar = D.sink_arch;
   title(s, "Where an unseen modulation lands", "Train on 23 classes, probe with the 24th. Families fixed before the run; now measured on the current backbone.");
@@ -306,7 +383,7 @@ let n = 0;
   s.addNotes("The ICRNNA column of the control is a bit-identical training to the corresponding rows of the 24-class run: same best epoch, same in-distribution accuracy to every digit. The probe frames are an independent draw and move the shares by at most 0.3 points.");
 }
 
-// ============================ 12. what we withdrew ==========================
+// ============================ 15. what we withdrew ==========================
 { const s = pres.addSlide(); light(s); n++;
   title(s, "Three things this rerun took away", "Kept in the record, not deleted. Each was believed on the earlier backbone and did not survive re-measurement.");
   const items = [["\"Partial whitening beats full\"", "Our one concrete disagreement with WhiteNet, from one seed per point on the old backbone. Five seeds on the current one: α = 1.0 ≥ 0.75. Withdrawn; on this task we agree with WhiteNet."],
@@ -322,7 +399,7 @@ let n = 0;
   s.addNotes("Negative results are part of the argument. Whitening itself is not novel either: WhiteNet arrived at the same operation on real over-the-air captures; what survives here is the attribution method and the sink finding.");
 }
 
-// ============================ 13. caveats ===================================
+// ============================ 16. caveats ===================================
 { const s = pres.addSlide(); light(s); n++;
   title(s, "Caveats, stated rather than buried");
   const cav = [["Both domains are synthetic", "RadioML is simulated and so is the second transmitter. Until an over-the-air capture exists this is a study of a mechanism, not a measurement of a deployment. The single largest weakness.", RED],
@@ -338,7 +415,7 @@ let n = 0;
   foot(s, n);
 }
 
-// ============================ 14. next, and asks ============================
+// ============================ 17. next, and asks ============================
 { const s = pres.addSlide(); dark(s); n++;
   title(s, "Next", null, true);
   const next = [["Just landed", "The sink thread on the current backbone: 16 of 24 held-out classes sink into their own family, and the same-family sink survives on all five architectures. Both runs converged."],

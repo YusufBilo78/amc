@@ -76,6 +76,14 @@ D["faithful"] = dict(e58=round(e58["summary"]["mean_test_acc"], 2),
                      paper=float(e150["paper_target"]),
                      e150_peak=int(e150["per_seed"][0]["best_epoch"]))
 
+# 11-class run on 2016, per-class recall above 10 dB, for the dataset slide.
+z = load("train_backbone_rml2016_f1000_colab.npz")
+C = z["confusions"].sum(0)
+D["c11_2016"] = dict(classes=[str(c) for c in z["class_names"]], high=float(z["high"].mean()),
+                     recall=[float(C[i, i] / C[i].sum()) for i in range(len(C))],
+                     n_per_class=int(C[0].sum()))
+D["c24"]["n_per_class"] = int(np.load(ROOT / "train_backbone_rml2018_f512_colab.npz", allow_pickle=True)["confusions"].sum(0)[0].sum())
+
 # Four-class rehearsal on 2016.
 z = load("train_backbone_rml2016_f1000_c4_colab.npz")
 C = z["confusions"].sum(0)
