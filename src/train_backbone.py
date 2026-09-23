@@ -289,6 +289,14 @@ def main() -> None:
                         "Slicing four rows out of a finished 24-class table is "
                         "a different thing; confusion_table.py --classes does "
                         "that and says so")
+    p.add_argument("--frame-len", type=int, default=None,
+                   help="keep only the first N samples of every frame. The "
+                        "frame-length experiment: how much of the decision "
+                        "table survives when the model sees 64 or 32 samples "
+                        "instead of 2016's 128. Cropping is the same for "
+                        "train and test, the model is built for the cropped "
+                        "length, and the output name carries _L<N>, so a "
+                        "cropped run is its own file")
     p.add_argument("--tag", default="",
                    help="appended to the output filenames, so a run with "
                         "different settings does not overwrite an earlier one")
@@ -306,8 +314,9 @@ def main() -> None:
     # A subset run is a different experiment from the full one, so it has to
     # land in a different file even when --tag is not given.
     subset = f"_c{len(args.classes.split(','))}" if args.classes else ""
+    crop = f"_L{args.frame_len}" if args.frame_len else ""
     stem = (f"train_backbone_{args.data}_f{args.frames_per_cell}"
-            f"{subset}{suffix}")
+            f"{subset}{crop}{suffix}")
 
     out_dir = pathlib.Path(args.out_dir) if args.out_dir else ROOT
     fig_dir = out_dir / "figures" if args.out_dir else FIGURES
@@ -319,6 +328,15 @@ def main() -> None:
     t0 = time.time()
     X, y, z, class_names = load_dataset(args.data, args.frames_per_cell,
                                         args.data_path, classes=args.classes)
+    if args.frame_len:
+        if args.frame_len >= X.shape[-1]:
+            raise SystemExit(f"--frame-len {args.frame_len}: frames are only "
+                             f"{X.shape[-1]} samples long")
+        # The first N samples of every frame, then renormalised to unit
+        # power over what is kept. Same crop for every frame, so no frame
+        # has more information than another.
+        X = cnn.normalize_frames(np.ascontiguousarray(X[:, :, :args.frame_len]))
+        print(f"  cropped every frame to its first {args.frame_len} samples")
     snrs = np.unique(z)
     print(f"  {X.shape[0]:,} frames  {X.shape}  "
           f"({X.nbytes / 1e9:.1f} GB)  in {time.time() - t0:.0f}s")
@@ -365,7 +383,8 @@ def main() -> None:
                  snrs=snrs, best_epochs=best_epochs,
                  class_names=np.array(class_names), dataset=args.data,
                  frames_per_cell=args.frames_per_cell, epochs=args.epochs,
-                 patience=args.patience, high_snr_threshold=HIGH_SNR)
+                 patience=args.patience, high_snr_threshold=HIGH_SNR,
+                 frame_len=int(X.shape[-1]))
 
     for j, seed in enumerate(seeds):
         if not np.isnan(overall[j]):

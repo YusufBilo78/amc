@@ -163,15 +163,36 @@ measured on 2018 is retracted: the four-class table at 40,654 of 40,656 above
 record, and the meeting deck built on them stays as it is. New work goes on
 2016 first; a 2018 counterpart is run only when a 2016 result needs it.
 
-1. The method table on 2016 (`AMC_TASK=compare_methods_2016`) — the cell was
-   given but has not been run; nothing under that name is in Drive
-2. MSTFFNet reimplemented in `model_zoo` for the 2016 track: the prediction
-   in `LITERATURE.md` (a larger transmitter-change loss than ICRNNA, recovered
-   by whitening) and a sixth column in the architecture control
-3. Port `dann.py` to the current backbone, or drop the comparison
-4. Real SDR capture when hardware and lab access allow
-5. The remaining sink corroborations — embedding similarity, the
-   discriminating control, label permutation, family recovery
+**What Moshe asked for on 2026-09-22, all to be done on 2016** (transcript in
+the session; the deck he saw was the 2018 one):
+
+1. **Open the box.** Explain the detector end to end: what ICRNNA is, layer
+   by layer with sizes and parameter counts; where it came from (El-Haryqy
+   et al. 2025 via a peer's reproduction, five differences, the faithful
+   build at 63.21 vs 63.24); how it was trained; and, stated plainly, what
+   was written with an AI assistant, what was asked and what came back.
+   "Right now it looks like magic."
+2. **Define the noise exactly.** What "10 dB" is the ratio of, who made the
+   noise, its properties. For 2016 that is the GNU Radio dynamic channel
+   model of the 2016 dataset papers: read them and quote them.
+3. **One SNR at a time.** The matrix at a single level, then lower: 10, 6,
+   then ~3 dB (2 or 4 on the 2 dB grid). Error rate against SNR.
+4. **Frame length.** State the input length (128 samples = 16 symbols on
+   2016). Then shorten it: `--frame-len 64`, `--frame-len 32`, same four
+   classes, and see the table degrade. `AMC_FRAME_LEN` in the Colab runner.
+5. **Every graph says how many decisions are behind each point.** Define
+   recall; show precision next to it. The QPSK "recall rises as SNR falls"
+   curve is the sink: at −20 dB the model calls 84% of everything QPSK and
+   QPSK precision is 25%, i.e. chance. Not a frame-length effect.
+6. Do not make it more complicated than the four-class box. Break it.
+
+Then, still on 2016:
+
+7. The method table (`AMC_TASK=compare_methods_2016`) — not yet run
+8. MSTFFNet reimplemented for the whitening prediction in `LITERATURE.md`
+9. Port `dann.py` to the current backbone, or drop the comparison
+10. Real SDR capture when hardware and lab access allow
+11. The remaining sink corroborations on the current backbone
 
 **The 2016 machinery (built 2026-09-22).** The 2018 protocol, run again on
 RML2016.10a: `domains.RML2016Domain` (128-sample frames, SNR −20..18,

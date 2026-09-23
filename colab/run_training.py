@@ -81,6 +81,9 @@ PATIENCE = _env("AMC_PATIENCE", 20, int)
 FRAMES_PER_CELL_2018 = _env("AMC_FRAMES_2018", 512, int)
 FRAMES_PER_CELL_2016 = _env("AMC_FRAMES_2016", 1000, int)
 TAG = _env("AMC_TAG", "colab")
+# The frame-length experiment: keep only the first N samples of every frame.
+# Unset means the native length (128 on 2016, 1024 on 2018).
+FRAME_LEN = _env("AMC_FRAME_LEN", None, int)
 
 # Train on a subset of the classes, as a genuinely smaller problem: the model
 # is built with this many outputs, so its confusion matrix rows sum over these
@@ -472,13 +475,16 @@ def main():
            "--out-dir", str(OUT_DIR)]
     if CLASSES:
         cmd += ["--classes", CLASSES]
+    if FRAME_LEN:
+        cmd += ["--frame-len", str(FRAME_LEN)]
     print(" ".join(cmd) + "\n")
     t0 = time.time()
     sh(cmd, cwd=SRC)
 
     hr(f"Done in {(time.time() - t0) / 60:.1f} min")
     subset = f"_c{len(CLASSES.split(','))}" if CLASSES else ""
-    stem = f"train_backbone_{DATASET}_f{frames_per_cell}{subset}_{TAG}"
+    crop = f"_L{FRAME_LEN}" if FRAME_LEN else ""
+    stem = f"train_backbone_{DATASET}_f{frames_per_cell}{subset}{crop}_{TAG}"
     print(f"results  : {OUT_DIR / (stem + '.npz')}")
     print(f"figures  : {OUT_DIR / 'figures'}/29_{stem}_accuracy.png")
     print(f"           {OUT_DIR / 'figures'}/30_{stem}_confusion.png")
