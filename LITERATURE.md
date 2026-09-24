@@ -331,6 +331,38 @@ re-parameterisation, not a port.
 
 ---
 
+## CSA-DiffRF (CMSS 2026, IEEE conference), read in full — not citable as evidence
+
+Sigamani et al., "Diffusion Based RF Signal Generation and Augmentation for
+Automatic Modulation Classification in 6G Networks", Proc. 2nd Int. Conf.
+on Modern Sustainable Systems, 2026, pp. 329–334, DOI
+10.1109/CMSS69636.2026.11689541. Six pages.
+
+A conditional DDPM (U-Net, conditioned on modulation and SNR embeddings)
+generates synthetic RML2016.10a frames at 128 samples; they are added at
+100% to the training set of a CNN-Transformer. Reported: 92.7%
+"classification accuracy" against CNN 84.2, CLDNN 86.8, Transformer 88.1,
+wavelet augmentation 89.0, GAN augmentation 89.4.
+
+**Why it is not usable.** The accuracy is not defined. On RML2016.10a's 11
+classes over −20..+18 dB the best published overall figures are in the low
+to high 60s (MSTFFNet 67.33, the faithful ICRNNA 63.21), and with chance at
+9% below −10 dB an all-SNR mean of 92.7 is not possible; the SNR range
+behind the number is never stated, and neither is the baseline CNN's 84.2.
+Single run, no seeds, no per-class results, no confusion matrix. The
+title and introduction promise evaluation under Rayleigh/Rician fading,
+Doppler and CFO; no such experiment is reported. Sample quality is argued
+from constellation plots and a t-SNE only.
+
+**What is worth taking.** Only the pointer: the method it builds on is
+Xu, Huang, Zhang, Qian & Yang, "Diffusion-based radio signal augmentation
+for automatic modulation classification", *Electronics* 13(11):2063, 2024.
+That is the one to read if generative augmentation becomes relevant —
+which it may, because on 2016 the literature augmentation set is what
+closes the cross-domain gap (0.920 → 0.968), not whitening.
+
+---
+
 ## Where this leaves the project
 
 **Drop:** any claim that spectral whitening is a new idea for RF domain
