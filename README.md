@@ -438,6 +438,34 @@ Moshe asked for on 22 September and it came out the way he predicted —
 shorter frames, more errors — with the added information that the errors
 are confined to the one decision that needs many symbols.
 
+### Frame length on 2016: 128, 64 and 32 samples
+
+Adding the 32-sample run (`train_backbone_rml2016_f1000_c4_L32_colab_s14.npz`,
+4 symbols per frame, 14 seeds, converged) completes the series. Above
+10 dB, 42,000 decisions each:
+
+| samples | symbols | errors | BPSK | QPSK | QAM16 | QAM64 |
+|---|---|---|---|---|---|---|
+| 128 | 16 | 2,421 | 99.3% | 98.9% | 86.7% | 91.9% |
+| 64 | 8 | 6,443 | 99.4% | 98.4% | 65.9% | 74.9% |
+| 32 | 4 | 10,431 | 99.4% | 92.0% | 46.3% | 62.9% |
+
+The decisions fail in order of how many symbols they need. BPSK never
+moves. The QAM pair degrades first and at 32 samples is a coin flip
+between the two (4,864 against 5,029 for QAM16). At 32 samples QPSK starts
+to fail too, and it fails into BPSK — 809 frames — which is what counting
+symbols predicts: a QPSK frame whose four symbols all fall on one diagonal
+is indistinguishable from BPSK, and that happens to at most 2 in 16 random
+four-symbol frames (the pulse shaping spreads neighbouring symbols into
+the window, so the observed 7.7% is below the bound). At 64 samples the
+same bound is 2 in 256 and the observed QPSK→BPSK rate is 1.3%.
+
+The recall in every column is again flat from +2 dB upward. So on this
+file there are two separate levers: SNR sets where the curve rises, frame
+length sets how high it can go. Moshe's prediction on 22 September —
+shorter frames, more errors — holds, and the errors land where the
+geometry says they must.
+
 ### The method table on 2016, and why it is not the 2018 table
 
 `compare_methods_ICRNNA_es_rml2016_e100.npz` — the same four methods, the
