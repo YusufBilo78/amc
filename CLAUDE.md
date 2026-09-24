@@ -175,6 +175,8 @@ the session; the deck he saw was the 2018 one):
    build at 63.21 vs 63.24); how it was trained; and, stated plainly, what
    was written with an AI assistant, what was asked and what came back.
    "Right now it looks like magic."
+   **Drafted: `DETECTOR.md`.** The pre-repository part of the AI disclosure
+   is left for Yusuf to fill.
 2. **Define the noise exactly.** What "10 dB" is the ratio of, who made the
    noise, its properties. For 2016 that is the GNU Radio dynamic channel
    model of the 2016 dataset papers: read them and quote them.

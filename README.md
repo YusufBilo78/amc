@@ -1063,8 +1063,8 @@ queued behind them.
   two max-pools vs one, one BatchNorm after the LSTM stack vs one per layer, no
   attention dropout or LayerNorm, and one dense layer of 128 at dropout 0.5 vs
   two of 128 and 64 at 0.3. **Do not call the current model "the published
-  architecture".** The faithful build has now been run — see below — and does
-  not reproduce the paper either.
+  architecture".** The faithful build has now been run and, trained to
+  convergence, reproduces the paper (63.21% against 63.24%).
 - **`dann.py` has not been ported.** It builds on a legacy feature extractor
   with no equivalent in the current backbone, so its numbers are not comparable
   to the rest until it is rewritten.
