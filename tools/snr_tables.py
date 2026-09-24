@@ -35,8 +35,10 @@ def col(c):
 
 
 def sheet_name(stem, suffix):
+    """Excel caps sheet names at 31 characters; trim the run name, never the
+    suffix, so the recall/matrices pairing survives."""
     base = stem.replace("train_backbone_", "").replace("_colab", "")
-    return (base + " " + suffix)[:31]
+    return base[:31 - len(suffix) - 1] + " " + suffix
 
 
 def write_run(wb, path, md):

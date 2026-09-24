@@ -105,6 +105,8 @@ warning stayed silent.
 | `icrnna_faithful_results.json`, at the paper's 58-epoch ceiling | **current** — paper-faithful ICRNNA on RML2016.10a, 3 seeds, 61.75% ± 0.07 against the paper's 63.24%, at the paper's 58-epoch ceiling |
 | `icrnna_faithful_e150_results.json` | **current** — the same build trained to convergence (peak at epoch 107): 63.21% against the paper's 63.24%. The deficit above was the epoch budget |
 | `train_backbone_rml2016_f1000_c4_colab_s14.npz` | **current — quote this one for the four-class table on 2016.** BPSK/QPSK/QAM16/QAM64, all 1000 frames per cell, 14 seeds, ceiling 100, patience 20, all converged (peaks 16–46). 42,000 decisions above 10 dB, 2,421 errors (0.9424); 0.7080 overall; a matrix at every SNR, 2,100 decisions per cell. QAM16 recall is flat at 86–88% from +2 dB to +18 dB and QAM64 at 91–93%: the QAM pair does not separate with SNR at 128 samples, so this is a frame-length ceiling, not a noise one. BPSK and QPSK sit at 99–99.7%, never 100 |
+| `train_backbone_rml2016_f1000_c4_L64_colab_s14.npz` | **current** — the same four-class run with every frame cropped to its first **64 samples (8 symbols)**, 14 seeds, all converged (peaks 25–38 under 100). Above 10 dB: 6,443 errors in 42,000 (15.3%) against 2,421 at 128 samples. The loss is almost entirely the QAM pair: QAM16 recall 65.9% (was 86.7), QAM64 74.9% (was 91.9); BPSK 99.3 and QPSK 98.4 barely move. Flat with SNR again from +2 dB up, so this is the symbol-count ceiling moving, as Moshe predicted |
+| `compare_methods_ICRNNA_es_rml2016_e100.npz` | **current, partly unconverged** — the method table with RML2016.10a as the training domain, 5 shared classes, 128 samples, **14 seeds** (AMC_SEEDS carried over), ceiling 100. none: in 0.948, cross 0.920, gap +0.028, 16QAM 0.770. Standard augmentation: 0.969 / 0.968, gap +0.002, 16QAM 0.918. Whitening α=0.75: **0.864 / 0.843**, 16QAM 0.645. Whitening+standard 0.930 / 0.913 but 10 of 14 cells unconverged (peaks to 100); augmentation 1 of 14. **The 2018 result does not transfer**: on 2016 the gap is small, the literature augmentation closes it, and whitening costs 8 points in-domain. See README |
 | `train_backbone_rml2016_f1000_c4_colab.npz` | superseded by the row above, kept — the four-class decision table Moshe asked for. BPSK/QPSK/QAM16/QAM64 on RML2016.10a, 3 seeds, 0.7086 overall / 0.9439 at SNR ≥ 10 dB, 9,000 pooled decisions. Converged: peaks at 19, 23, 33 under a 60 ceiling. Note QAM16 is **worse** here than in the 11-class run (87.9 vs 91.8), seed ranges not overlapping |
 | `train_backbone_rml2018_f2048_c4_colab_e150.npz` | **current** — the four-class table on 2018, converged: peaks 46, 48, 66 under a 150 ceiling, 0.7467 overall, 40,654 of 40,656 above 10 dB, a matrix at every SNR. Seeds 0 and 1 bit-identical to the 60-epoch file below; seed 2 within a point at every level. Quote this one |
 | `train_backbone_rml2018_f2048_c4_colab.npz` | **superseded by the row above, kept** — same run at a 60 ceiling, flagged unconverged — the four-class table on 2018. BPSK/QPSK/16QAM/64QAM, 2048 frames/cell, 3 seeds: **40,654 of 40,656 correct above 10 dB**, 0.7465 overall. Peaks at 46, 48, 59 under a 60 ceiling, so the overall number is a floor; the high-SNR table is saturated and unaffected. Carries a confusion matrix at every SNR (rebuilt from the checkpoints, verified): at 0 dB the QAM pair is a coin flip and PSK is perfect; at −8 dB both QAMs drain into QPSK ~70% |
@@ -180,6 +182,8 @@ the session; the deck he saw was the 2018 one):
 4. **Frame length.** State the input length (128 samples = 16 symbols on
    2016). Then shorten it: `--frame-len 64`, `--frame-len 32`, same four
    classes, and see the table degrade. `AMC_FRAME_LEN` in the Colab runner.
+   **64 done** (errors above 10 dB 2,421 → 6,443, all in the QAM pair);
+   32 not yet run.
 5. **Every graph says how many decisions are behind each point.** Define
    recall; show precision next to it. The QPSK "recall rises as SNR falls"
    curve is the sink: at −20 dB the model calls 84% of everything QPSK and
@@ -188,7 +192,13 @@ the session; the deck he saw was the 2018 one):
 
 Then, still on 2016:
 
-7. The method table (`AMC_TASK=compare_methods_2016`) — not yet run
+7. The method table on 2016 — **run, and it contradicts 2018** (see the
+   results row). Finish it: rerun the unconverged cells at 150
+   (`AMC_COMPARE_EPOCHS=150`, `AMC_REDO_UNCONVERGED=1`). Then test why
+   whitening hurts at 128 samples: the envelope is estimated from one
+   128-point periodogram smoothed over 5 bins, a far noisier estimate than
+   33 bins of 1024 even though the fraction of the band is the same.
+   Unmeasured; a smoothing-width sweep on 2016 is the test
 8. MSTFFNet reimplemented for the whitening prediction in `LITERATURE.md`
 9. Port `dann.py` to the current backbone, or drop the comparison
 10. Real SDR capture when hardware and lab access allow

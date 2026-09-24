@@ -415,6 +415,61 @@ never reach 100 either: 99.0–99.8% at every level from 0 dB up, with the
 misses spread evenly over the other three classes, which reads as a small
 fraction of degenerate frames in the file rather than a classifier limit.
 
+### Frame length on 2016: 128 samples against 64
+
+`train_backbone_rml2016_f1000_c4_L64_colab_s14.npz` — the four-class 2016
+run above with every frame cut to its first 64 samples, i.e. 8 symbols
+instead of 16. Same 14 seeds, same split, all converged. Above 10 dB, 42,000
+decisions:
+
+| transmitted \ decided | BPSK | QPSK | QAM16 | QAM64 | recall (64) | recall (128) |
+|---|---|---|---|---|---|---|
+| BPSK | 10,433 | 66 | 0 | 1 | 99.4% | 99.3% |
+| QPSK | 136 | 10,337 | 17 | 10 | 98.4% | 98.9% |
+| QAM16 | 60 | 158 | 6,922 | 3,360 | 65.9% | 86.7% |
+| QAM64 | 89 | 103 | 2,443 | 7,865 | 74.9% | 91.9% |
+
+Errors go from 2,421 to 6,443, and 5,803 of them are QAM16 and QAM64 read
+as each other. The PSK rows do not move. Per SNR the QAM recall is again
+flat from +2 dB up (QAM16 63–69%, QAM64 72–77%), just lower: halving the
+number of symbols lowers the ceiling, and adding SNR does not lift it. At
+0 dB the pooled accuracy is 82.3% against 92.8%. This is the experiment
+Moshe asked for on 22 September and it came out the way he predicted —
+shorter frames, more errors — with the added information that the errors
+are confined to the one decision that needs many symbols.
+
+### The method table on 2016, and why it is not the 2018 table
+
+`compare_methods_ICRNNA_es_rml2016_e100.npz` — the same four methods, the
+same protocol, RML2016.10a as the training domain and the synthetic domain
+generated at 128 samples. Five shared classes, 14 seeds, ceiling 100.
+
+| method | in-domain | cross-domain | gap | 16QAM cross |
+|---|---|---|---|---|
+| none | 0.948 ±0.009 | 0.920 ±0.011 | +0.028 | 0.770 ±0.050 |
+| standard augmentation | 0.969 ±0.005 | 0.968 ±0.010 | +0.002 | 0.918 ±0.033 |
+| whitening α=0.75 | 0.864 ±0.007 | 0.843 ±0.004 | +0.021 | 0.645 ±0.051 |
+| whitening + standard | 0.930 ±0.007 | 0.913 ±0.006 | +0.017 | 0.862 ±0.013 |
+
+**Every conclusion of the 2018 table is reversed here.** The gap is small
+(0.028 against 0.194). The literature augmentation set — rotation,
+conjugate flip, additive noise — closes it, and lifts in-domain accuracy as
+well. Whitening does not close it and costs 8.4 points in-domain, where on
+2018 it cost nothing. The last row is a floor: 10 of its 14 cells, and one
+augmentation cell, ran out of budget before early stopping fired.
+
+Two things this does not yet say. It does not say the 2018 attribution is
+wrong: that was shown by intervention on 2018 frames, and a 2016 table
+cannot refute it. And it does not say why whitening hurts at 128 samples.
+The obvious candidate is the envelope estimate itself: at 128 samples the
+envelope is a single 128-point periodogram smoothed over 5 bins, which is
+the same fraction of the band as 33 bins of 1,024 but a much noisier
+estimate, so dividing by it may inject more noise than it removes. That is
+a hypothesis; a smoothing-width sweep on 2016 would test it. What the table
+does say is that the claim "whitening closes the gap at no in-domain cost"
+holds for 1,024-sample RadioML 2018 and must not be stated without that
+qualifier.
+
 ### The four-class decision table on 2018 — the one that was asked for
 
 `train_backbone.py --data rml2018 --classes BPSK,QPSK,16QAM,64QAM --seeds 3`,
