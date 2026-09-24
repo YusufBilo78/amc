@@ -363,6 +363,36 @@ closes the cross-domain gap (0.920 → 0.968), not whitening.
 
 ---
 
+## "Automatic Modulation Recognition and Spectrum Monitoring in Cognitive Radio" (ICISC 2026), read in full — internally inconsistent, not citable
+
+Mudda et al., Proc. 10th Int. Conf. on Inventive Systems and Control, 2026,
+pp. 826–831, DOI 10.1109/ICISC69558.2026.11681655.
+
+A plain 1-D ResNet on RML2016.10a (11 classes, 128 samples, 70/15/15,
+max-abs normalisation), plus an FFT of the input presented as "spectrum
+monitoring". Claims 88.20% overall accuracy.
+
+**Why it cannot be right as reported:**
+
+1. Fig. 5 shows 42% accuracy at −20 dB. Chance on 11 classes is 9%; at
+   −20 dB every model on this file is at chance — our four-class run is at
+   25.1% there, exactly chance for four.
+2. The confusion matrix (Fig. 4) spreads its errors evenly, 1–3 per
+   off-diagonal cell. RML2016.10a's errors concentrate in two places,
+   QAM16↔QAM64 and WBFM→AM-DSB; the paper's own text names the QAM
+   confusion, and its matrix shows 4 QAM64→QAM16 decisions.
+3. WBFM is shown at ~98%. It is the file's known defect: 39.6% in our
+   11-class run, 31.72% in MSTFFNet, both drained into AM-DSB.
+4. The test set is stated as ~33,000 samples; the matrix rows sum to
+   ~900, about 9,900 in total.
+
+88.2% overall is also ~20 points above the best published all-SNR figures
+on this file. Single run, no seeds, no convergence report. Useful only as
+an illustration of why every number in this project carries its
+definition and its count.
+
+---
+
 ## Where this leaves the project
 
 **Drop:** any claim that spectral whitening is a new idea for RF domain
