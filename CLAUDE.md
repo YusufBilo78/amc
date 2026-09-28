@@ -182,6 +182,10 @@ the session; the deck he saw was the 2018 one):
    model of the 2016 dataset papers: read them and quote them.
 3. **One SNR at a time.** The matrix at a single level, then lower: 10, 6,
    then ~3 dB (2 or 4 on the 2 dB grid). Error rate against SNR.
+   **Done: `SNR_2016.md`, figures 31–33, `tools/single_snr.py`.** 448 / 473
+   / 453 / 486 wrong of 8,400 at 10 / 6 / 4 / 2 dB: flat from +2 dB up, the
+   errors are the QAM pair; the box breaks below 0 dB (609, 1,042, 2,174,
+   2,842 at 0 / −2 / −4 / −6).
 4. **Frame length.** State the input length (128 samples = 16 symbols on
    2016). Then shorten it: `--frame-len 64`, `--frame-len 32`, same four
    classes, and see the table degrade. `AMC_FRAME_LEN` in the Colab runner.
@@ -192,6 +196,9 @@ the session; the deck he saw was the 2018 one):
    recall; show precision next to it. The QPSK "recall rises as SNR falls"
    curve is the sink: at −20 dB the model calls 84% of everything QPSK and
    QPSK precision is 25%, i.e. chance. Not a frame-length effect.
+   **Done for 2016 in figure 33 / `SNR_2016.md`:** the 2016 four-class sink
+   is BPSK + QPSK together (98.8% of −20 dB decisions), the split between
+   them arbitrary per seed (12–86% BPSK); both precisions at 25%.
 6. Do not make it more complicated than the four-class box. Break it.
 
 Then, still on 2016:
