@@ -181,6 +181,13 @@ the session; the deck he saw was the 2018 one):
 2. **Define the noise exactly.** What "10 dB" is the ratio of, who made the
    noise, its properties. For 2016 that is the GNU Radio dynamic channel
    model of the 2016 dataset papers: read them and quote them.
+   **Drafted: `NOISE_2016.md`.** The paper defines nothing; the generator
+   code sets `noise_amp = 10**(-label/10)`, an *amplitude*, and the chain
+   rebuilt in GNU Radio 3.10 (`tools/rml2016_channel_snr.py`) gives a true
+   per-sample SNR of about 2 × label + 2.4 dB (label 10 → 22.5 dB, Es/N0
+   31.6). **Unconfirmed on the pickle itself**: `tools/measure_rml2016_snr.py`
+   measures it from the frames' out-of-band noise floor; run it on Colab.
+   Until then quote the label, never the derived SNR, as a measurement
 3. **One SNR at a time.** The matrix at a single level, then lower: 10, 6,
    then ~3 dB (2 or 4 on the 2 dB grid). Error rate against SNR.
    **Done: `SNR_2016.md`, figures 31–33, `tools/single_snr.py`.** 448 / 473

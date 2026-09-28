@@ -256,6 +256,18 @@ in use.
 
 ---
 
+## The 2016 dataset paper (O'Shea & West, GRCon 2016), read in full 2026-09-28
+
+"Radio Machine Learning Dataset Generation with GNU Radio", Proc. 6th GNU
+Radio Conference. Mostly a survey; §2 is the dataset. It names the channel
+(GNU Radio Dynamic Channel Model: SRO, CFO, selective fading, AWGN) but gives
+**no parameters and no definition of SNR** — AWGN "at a specific noise power
+level corresponding to the desired signal to noise ratio" is all. It says
+frames are scaled to unit energy; the published generator scales by the sum
+of magnitudes instead. Parameters, and what the SNR label turns out to mean,
+are in `NOISE_2016.md`, taken from the generator code (github.com/radioML/
+dataset, commit 4ecf612) rather than from the paper.
+
 ## MSTFFNet (Sensors 26(16):5208, published 17 August 2026), read in full
 
 Wu, Xiang, Dong, Wang & Xiao, Air Force Engineering University, Xi'an. MDPI
