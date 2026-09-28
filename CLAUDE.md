@@ -108,6 +108,7 @@ warning stayed silent.
 | `train_backbone_rml2016_f1000_c4_L64_colab_s14.npz` | **current** — the same four-class run with every frame cropped to its first **64 samples (8 symbols)**, 14 seeds, all converged (peaks 25–38 under 100). Above 10 dB: 6,443 errors in 42,000 (15.3%) against 2,421 at 128 samples. The loss is almost entirely the QAM pair: QAM16 recall 65.9% (was 86.7), QAM64 74.9% (was 91.9); BPSK 99.3 and QPSK 98.4 barely move. Flat with SNR again from +2 dB up, so this is the symbol-count ceiling moving, as Moshe predicted |
 | `train_backbone_rml2016_f1000_c4_L32_colab_s14.npz` | **current** — the same run cropped to **32 samples (4 symbols)**, 14 seeds, converged (peaks 34–75 under 100). Above 10 dB: 10,431 errors in 42,000. QAM16 46.3% and QAM64 62.9% — the pair is a coin flip, slightly biased to QAM64; QPSK drops to 92.0%, losing 809 frames to BPSK, which is what four symbols predict (a QPSK frame whose four symbols all fall on one diagonal looks like BPSK: at most 2/16). BPSK still 99.4% |
 | `compare_methods_ICRNNA_es_rml2016_e100.npz` | **current, complete and converged, 56/56** — the method table with RML2016.10a as the training domain, 5 shared classes, 128 samples, **14 seeds**, ceiling 100, the eleven unconverged cells rerun at 150 on 2026-09-28 (seven bit-identical, four found later peaks worth ≤ 0.5 points). none: in 0.948, cross 0.920, gap +0.028, 16QAM 0.770. Standard augmentation: 0.969 / 0.968, gap +0.002, 16QAM 0.918. Whitening α=0.75: **0.864 / 0.843**, 16QAM 0.645. Whitening+standard 0.931 / 0.913, 16QAM 0.867 — below augmentation alone in all 14 seeds. **The 2018 result does not transfer**: on 2016 the gap is small, the literature augmentation closes it, and whitening costs 8 points in-domain. See README |
+| `whitening_smoothing_rml2016_e100.npz` | **current** — why whitening hurt on 2016. α = 0.75, envelope smoothed over 3/5/9/17/33/65 bins of 128, 5 seeds, all converged (peaks 19–48 under 100); none and 5-bin rows **bit-identical** to seeds 0–4 of the method table. In-domain vs none: −13.3 / −8.3 / −2.7 / −0.1 / **+1.3** / +0.8 points; at 33 bins whitening beats none in all 5 seeds, so the 8-point cost was the envelope estimate (too few bins averaged), not whitening. Cross-domain never clearly beats none (best +0.6 at 65 bins) and never nears augmentation's 0.968: whitening does not close the 2016 gap at any width. Figure 34 |
 | `train_backbone_rml2016_f1000_c4_colab.npz` | superseded by the row above, kept — the four-class decision table Moshe asked for. BPSK/QPSK/QAM16/QAM64 on RML2016.10a, 3 seeds, 0.7086 overall / 0.9439 at SNR ≥ 10 dB, 9,000 pooled decisions. Converged: peaks at 19, 23, 33 under a 60 ceiling. Note QAM16 is **worse** here than in the 11-class run (87.9 vs 91.8), seed ranges not overlapping |
 | `train_backbone_rml2018_f2048_c4_colab_e150.npz` | **current** — the four-class table on 2018, converged: peaks 46, 48, 66 under a 150 ceiling, 0.7467 overall, 40,654 of 40,656 above 10 dB, a matrix at every SNR. Seeds 0 and 1 bit-identical to the 60-epoch file below; seed 2 within a point at every level. Quote this one |
 | `train_backbone_rml2018_f2048_c4_colab.npz` | **superseded by the row above, kept** — same run at a 60 ceiling, flagged unconverged — the four-class table on 2018. BPSK/QPSK/16QAM/64QAM, 2048 frames/cell, 3 seeds: **40,654 of 40,656 correct above 10 dB**, 0.7465 overall. Peaks at 46, 48, 59 under a 60 ceiling, so the overall number is a floor; the high-SNR table is saturated and unaffected. Carries a confusion matrix at every SNR (rebuilt from the checkpoints, verified): at 0 dB the QAM pair is a coin flip and PSK is perfect; at −8 dB both QAMs drain into QPSK ~70% |
@@ -208,13 +209,11 @@ Then, still on 2016:
    whitening hurts at 128 samples: the envelope is estimated from one
    128-point periodogram smoothed over 5 bins, a far noisier estimate than
    33 bins of 1024 even though the fraction of the band is the same.
-   The premise is measured (synthetic, no training): relative error of the
-   per-frame envelope is 0.277 at 128 samples / 5 bins against 0.106 at
-   1024 / 33, and even 65 bins (half the band) only reaches 0.118. The test
-   is built: `src/whitening_smoothing.py`, Colab tasks
-   `whitening_smoothing_2016` (bins 3..65, 5 seeds; none and 5-bin rows must
-   match seeds 0-4 of the method table) and `whitening_crop_2018` (2018
-   cropped to 128: a cost there says frame length, none says 2016 itself)
+   **Answered** (`whitening_smoothing_rml2016_e100.npz`, see the results
+   row): the cost is the estimate. It vanishes by 17 bins and turns into a
+   +1.3-point gain at 33; whitening still does not close the 2016 gap.
+   Optional confirmation: Colab task `whitening_crop_2018` (2018 cropped to
+   128 samples, bins 5 and 33) should show the same cost at 5 bins
 8. MSTFFNet reimplemented for the whitening prediction in `LITERATURE.md`
 9. Port `dann.py` to the current backbone, or drop the comparison
 10. Real SDR capture when hardware and lab access allow

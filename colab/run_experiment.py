@@ -531,10 +531,11 @@ def main():
         hr("4. Why whitening hurts on 2016 -- the crop test on 2018")
         print("RadioML 2018 frames cut to their first 128 samples, where the")
         print("envelope estimate is as noisy as on 2016. none against whitening")
-        print("at 5 bins. A cost here says frame length; none says it is")
-        print("something about RML2016.10a itself.\n")
+        print("at 5 and 33 bins. On 2016 the 5-bin cost was the estimate; if")
+        print("2018 at 128 samples shows the same cost at 5 bins and none at 33,")
+        print("the explanation holds on a second dataset.\n")
         cmd = [sys.executable, "whitening_smoothing.py", "--source", "rml2018",
-               "--frame-len", "128", "--bins", "5",
+               "--frame-len", "128", "--bins", "5,33",
                "--seeds", str(SMOOTH_SEEDS), "--epochs", str(SMOOTH_EPOCHS),
                "--patience", str(PATIENCE), "--out-dir", str(OUT_DIR)]
     else:

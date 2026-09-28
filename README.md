@@ -509,10 +509,56 @@ The obvious candidate is the envelope estimate itself: at 128 samples the
 envelope is a single 128-point periodogram smoothed over 5 bins, which is
 the same fraction of the band as 33 bins of 1,024 but a much noisier
 estimate, so dividing by it may inject more noise than it removes. That is
-a hypothesis; a smoothing-width sweep on 2016 would test it. What the table
+a hypothesis, and the sweep below confirmed it. What the table
 does say is that the claim "whitening closes the gap at no in-domain cost"
 holds for 1,024-sample RadioML 2018 and must not be stated without that
 qualifier.
+
+#### Why whitening hurt: the smoothing width, measured
+
+`whitening_smoothing.py --source rml2016` (`whitening_smoothing_rml2016_e100.npz`,
+figure 34): the same protocol, α = 0.75, the envelope smoothed over 3 to 65
+bins of the 128-point spectrum, 5 seeds, all converged (peaks 19–48 under
+100). The `none` row and the 5-bin row reproduce seeds 0–4 of the method
+table **bit-identically**, so this is the same experiment with one knob
+turned.
+
+The premise was measured first, with no training: the relative error of a
+frame's envelope estimate is 0.277 at 128 samples and 5 bins, against 0.106
+at 1,024 samples and 33 bins — 2.6 times noisier for the same share of the
+band.
+
+| smoothing | share of band | in-domain | cross-domain | in-domain vs none |
+|---|---|---|---|---|
+| none | — | 0.948 ±0.006 | 0.917 ±0.011 | — |
+| 3 bins | 2% | 0.816 ±0.003 | 0.806 ±0.006 | −13.3, 5 of 5 seeds lower |
+| **5 bins** (the method table) | 4% | 0.866 ±0.006 | 0.845 ±0.006 | **−8.3**, 5 of 5 lower |
+| 9 bins | 7% | 0.921 ±0.004 | 0.889 ±0.009 | −2.7, 5 of 5 lower |
+| 17 bins | 13% | 0.947 ±0.004 | 0.906 ±0.006 | −0.1, 3 of 5 higher |
+| 33 bins | 26% | **0.962 ±0.001** | 0.908 ±0.003 | **+1.3, 5 of 5 higher** |
+| 65 bins | 51% | 0.956 ±0.006 | 0.923 ±0.009 | +0.8, 5 of 5 higher |
+
+**The eight points were the envelope estimate, not whitening.** The cost
+falls steadily as the smoothing widens, is gone by 17 bins, and at 33 bins
+whitening is *better* than no whitening in-domain, in every seed. That
+last part is what separates the two readings the sweep alone was feared
+unable to separate. If wider smoothing only meant "less whitening", accuracy
+would climb back towards `none` from below and stop there. It goes past it.
+
+So the rule used to carry whitening from 2018 to 2016 — same *share of the
+band*, 33 of 1,024 → 5 of 128 — was the wrong rule. What mattered was how
+many bins the estimate averages, and at 128 samples keeping the share
+meant averaging too few.
+
+**It still does not close the 2016 gap.** Cross-domain accuracy never gets
+clearly above `none` (best: 65 bins, +0.6, 4 of 5 seeds), and at no width does
+it approach standard augmentation's 0.968. At 33 bins in-domain rises and
+cross-domain does not, so the gap widens from 0.031 to 0.054. On 2018 the
+gap was the transmitter's spectral envelope and whitening removed it. On
+2016 the gap is small and something else, and augmentation is what closes
+it. That is consistent with the method table rather than a reversal of it;
+what changes is that "whitening costs 8 points at 128 samples" is withdrawn.
+It costs 8 points at 5 bins.
 
 ### The four-class decision table on 2018 — the one that was asked for
 
