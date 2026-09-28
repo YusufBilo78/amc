@@ -208,7 +208,13 @@ Then, still on 2016:
    whitening hurts at 128 samples: the envelope is estimated from one
    128-point periodogram smoothed over 5 bins, a far noisier estimate than
    33 bins of 1024 even though the fraction of the band is the same.
-   Unmeasured; a smoothing-width sweep on 2016 is the test
+   The premise is measured (synthetic, no training): relative error of the
+   per-frame envelope is 0.277 at 128 samples / 5 bins against 0.106 at
+   1024 / 33, and even 65 bins (half the band) only reaches 0.118. The test
+   is built: `src/whitening_smoothing.py`, Colab tasks
+   `whitening_smoothing_2016` (bins 3..65, 5 seeds; none and 5-bin rows must
+   match seeds 0-4 of the method table) and `whitening_crop_2018` (2018
+   cropped to 128: a cost there says frame length, none says 2016 itself)
 8. MSTFFNet reimplemented for the whitening prediction in `LITERATURE.md`
 9. Port `dann.py` to the current backbone, or drop the comparison
 10. Real SDR capture when hardware and lab access allow

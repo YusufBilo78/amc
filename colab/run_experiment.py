@@ -21,6 +21,10 @@ Three tasks, matching the numbered list in README.md "Open work":
                       domain: 128-sample frames, SNR -20..18, synthetic
                       domain generated at the same length. The 2016 track,
                       kept apart from the 2018 results by file name
+  "whitening_smoothing_2016"  why whitening costs 8 points on 2016: the
+                      envelope smoothing width swept at 128 samples
+  "whitening_crop_2018"  the same question from the other side: 2018 frames
+                      cropped to 128 samples, none against whitening
   "faithful_2016"     item 5 -- run the paper-faithful ICRNNA against 63.24%
   "converged_2018"    the open question: the 2018 classification run again,
                       with a ceiling high enough that early stopping decides.
@@ -162,7 +166,17 @@ SINK_EPOCHS = _env("AMC_SINK_EPOCHS", 60, int)
 SINK_PATIENCE = _env("AMC_SINK_PATIENCE", 10, int)
 SINK_TAG = _env("AMC_SINK_TAG", "e60")
 
+# whitening_smoothing_2016 / whitening_crop_2018: why whitening hurts on 2016.
+# Own settings on purpose -- a Colab kernel keeps %env values between cells,
+# and the 14 seeds and 150-epoch ceiling set for the method table would turn
+# a 70-minute sweep into four hours. Seeds 0..4 are the method table's first
+# five, so the none and 5-bin rows can be checked against it cell for cell.
+SMOOTH_SEEDS = _env("AMC_SMOOTH_SEEDS", 5, int)
+SMOOTH_EPOCHS = _env("AMC_SMOOTH_EPOCHS", 100, int)
+SMOOTH_BINS = _env("AMC_SMOOTH_BINS", "3,5,9,17,33,65")
+
 _TASKS = ("compare_methods", "compare_methods_2016", "whitening_seeds",
+          "whitening_smoothing_2016", "whitening_crop_2018",
           "faithful_2016", "faithful_budget", "converged_2016",
           "converged_2018", "sink_24", "sink_arch")
 if TASK not in _TASKS:
@@ -334,6 +348,36 @@ def main():
         hr(f"Done in {(time.time() - t0) / 60:.1f} min")
         return
 
+    if TASK == "whitening_smoothing_2016":
+        hr("3. Why whitening hurts on 2016 -- the smoothing-width sweep")
+        print("Whitening at alpha 0.75 with the envelope smoothed over")
+        print(f"{SMOOTH_BINS} bins of the 128-point spectrum, plus a none row,")
+        print(f"{SMOOTH_SEEDS} seeds, ceiling {SMOOTH_EPOCHS}. If a noisy envelope")
+        print("estimate is the cost, it should shrink as the smoothing widens.")
+        print("The none and 5-bin rows must match seeds 0-4 of the method table.\n")
+        pkl = None
+        for hint in PKL_HINTS_2016:
+            if (DRIVE / hint).is_file():
+                pkl = DRIVE / hint
+                break
+        if pkl is None:
+            found = list(DRIVE.rglob("RML2016.10a_dict.pkl"))
+            if not found:
+                raise SystemExit("RML2016.10a_dict.pkl not found in Drive.")
+            pkl = found[0]
+        print(f"data: {pkl}\n")
+        cmd = [sys.executable, "whitening_smoothing.py", "--source", "rml2016",
+               "--data-path", str(pkl), "--bins", SMOOTH_BINS,
+               "--seeds", str(SMOOTH_SEEDS), "--epochs", str(SMOOTH_EPOCHS),
+               "--patience", str(PATIENCE), "--out-dir", str(OUT_DIR)]
+        print(f"results -> {OUT_DIR}  (Drive: survives the runtime)")
+        print("Written after every cell; a rerun resumes.\n")
+        print(" ".join(cmd) + "\n")
+        t0 = time.time()
+        sh(cmd, cwd=SRC)
+        hr(f"Done in {(time.time() - t0) / 60:.1f} min")
+        return
+
     if TASK == "converged_2018":
         hr("3. Did the 2018 run converge, or did the ceiling stop it?")
         print("Same protocol as the committed result -- 24 classes, "
@@ -483,6 +527,16 @@ def main():
                "--seeds", str(SEEDS), "--epochs", str(COMPARE_EPOCHS),
                "--patience", str(PATIENCE), "--tag", COMPARE_TAG,
                "--out-dir", str(OUT_DIR)]
+    elif TASK == "whitening_crop_2018":
+        hr("4. Why whitening hurts on 2016 -- the crop test on 2018")
+        print("RadioML 2018 frames cut to their first 128 samples, where the")
+        print("envelope estimate is as noisy as on 2016. none against whitening")
+        print("at 5 bins. A cost here says frame length; none says it is")
+        print("something about RML2016.10a itself.\n")
+        cmd = [sys.executable, "whitening_smoothing.py", "--source", "rml2018",
+               "--frame-len", "128", "--bins", "5",
+               "--seeds", str(SMOOTH_SEEDS), "--epochs", str(SMOOTH_EPOCHS),
+               "--patience", str(PATIENCE), "--out-dir", str(OUT_DIR)]
     else:
         raise SystemExit(f"unknown TASK {TASK!r}")
 
