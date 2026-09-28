@@ -470,21 +470,37 @@ geometry says they must.
 
 `compare_methods_ICRNNA_es_rml2016_e100.npz` — the same four methods, the
 same protocol, RML2016.10a as the training domain and the synthetic domain
-generated at 128 samples. Five shared classes, 14 seeds, ceiling 100.
+generated at 128 samples. Five shared classes, 14 seeds, ceiling 100; the
+eleven cells that ran out of budget were rerun at 150, and **all 56 cells
+have now converged**.
 
 | method | in-domain | cross-domain | gap | 16QAM cross |
 |---|---|---|---|---|
 | none | 0.948 ±0.009 | 0.920 ±0.011 | +0.028 | 0.770 ±0.050 |
 | standard augmentation | 0.969 ±0.005 | 0.968 ±0.010 | +0.002 | 0.918 ±0.033 |
 | whitening α=0.75 | 0.864 ±0.007 | 0.843 ±0.004 | +0.021 | 0.645 ±0.051 |
-| whitening + standard | 0.930 ±0.007 | 0.913 ±0.006 | +0.017 | 0.862 ±0.013 |
+| whitening + standard | 0.931 ±0.007 | 0.913 ±0.007 | +0.017 | 0.867 ±0.013 |
 
 **Every conclusion of the 2018 table is reversed here.** The gap is small
 (0.028 against 0.194). The literature augmentation set — rotation,
 conjugate flip, additive noise — closes it, and lifts in-domain accuracy as
 well. Whitening does not close it and costs 8.4 points in-domain, where on
-2018 it cost nothing. The last row is a floor: 10 of its 14 cells, and one
-augmentation cell, ran out of budget before early stopping fired.
+2018 it cost nothing. Adding whitening to the augmentation set makes it
+worse, not better: −3.9 points in-domain and −5.5 cross-domain, and lower
+in all 14 seeds on both.
+
+**The rerun at 150 changed nothing that matters.** Eleven cells had peaked
+too close to the 100-epoch ceiling for early stopping to fire (ten of
+whitening + standard, one of standard augmentation). Rerun with
+`AMC_COMPARE_EPOCHS=150 AMC_REDO_UNCONVERGED=1`, seven came back
+**bit-identical** — same peak epoch, same accuracy to every digit; the
+ceiling had only denied them the twenty epochs that prove the peak. The
+other four found later peaks (100→105, 82→109, 92→104, 97→106) worth at
+most half a point. The last row moved from 0.930 / 0.913 to 0.931 / 0.913.
+Peaks now run 16–45 for none, 26–35 for whitening, 30–87 for augmentation
+and 69–109 for whitening + standard. As on 2018, augmentation converges
+slowest and whitening is fast and tight; the combination is slowest of all,
+which is why a single 100-epoch ceiling was not enough for it.
 
 Two things this does not yet say. It does not say the 2018 attribution is
 wrong: that was shown by intervention on 2018 frames, and a 2016 table
