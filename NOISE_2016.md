@@ -11,9 +11,11 @@ properties?"* This page answers that for RML2016.10a from three sources:
   2017). The released pickle is from October 2016, so this is the code as
   published, not a guaranteed copy of what ran. Section 4 checks it against
   the pickle itself.
-- **A measurement.** The generator's chain was rebuilt in GNU Radio 3.10
+- **Two measurements.** The generator's chain was rebuilt in GNU Radio 3.10
   (`tools/rml2016_channel_snr.py`) and run to see what each setting
-  produces.
+  produces. Then the SNR was measured in the pickle itself
+  (`tools/measure_rml2016_snr.py`, `rml2016_measured_snr.json`,
+  figure 35). Where the two disagree, the pickle wins.
 
 ---
 
@@ -49,7 +51,7 @@ bits / audio → modulator → dynamic_channel_model → sample 128 → scale �
 |---|---|---|
 | sample rate | 200 kHz | a frame of 128 samples is 0.64 ms |
 | digital modulators | gr-mapper constellation → root-raised-cosine, **8 samples per symbol**, roll-off 0.35 | 25 kbaud; **a frame is 16 symbols**; the signal occupies 33.75 kHz of the 200 |
-| constellation scale | gr-mapper sets mean *magnitude* to 1 | unit power for PSK; 1.11 for 16-QAM and 1.13 for 64-QAM |
+| constellation scale | today's gr-mapper sets mean *magnitude* to 1 | unit power for PSK; 1.11 for 16-QAM and 1.13 for 64-QAM. **The pickle does not match this; see §4** |
 | sample-rate offset | random walk, std 0.01, clipped at 50 Hz | clock drift |
 | carrier-frequency offset | random walk, std 0.01, clipped at **500 Hz** | at the limit, 2 rad (115°) of rotation across one frame |
 | fading | sum of 8 sinusoids, **Rician K = 4**, Doppler 1 Hz | coherence time is about 0.4 s, so each frame sees one fixed random complex gain |
@@ -63,6 +65,10 @@ Every effect except the noise is present at every SNR, including +18 dB.
 ---
 
 ## 3. What "10 dB" is the ratio of
+
+*This section is the published code, rebuilt. §4 measures the pickle: the
+slope below is confirmed there, but the classes turn out not to share one
+SNR per label.*
 
 The label sets one number, `noise_amp = 10**(-label/10)`. In GNU Radio that
 parameter is the noise **amplitude**. Measured on the rebuilt channel:
@@ -112,43 +118,93 @@ sample except by coincidence of offset.
 
 ---
 
-## 4. Is the pickle what the code says? — to be measured
+## 4. What the pickle itself says
 
-Two things could make the table in §3 wrong for the file we train on:
+Measured on the file we train on, on 2026-09-29
+(`rml2016_measured_snr.json`, figure 35). For the six digital classes the
+signal occupies only |f| < 0.084 of the sample rate, so the spectrum above
+20/128 is noise; since the noise is white, that level gives the total. Frames
+of known SNR checked the estimator to within 0.5 dB from −10 to +30 dB.
 
-- The published code dates from May 2017, and the pickle was released in
-  October 2016.
-- The chain was rebuilt with GNU Radio 3.10, and the pickle was made with
-  3.7. The noise block's scaling could have changed in between.
+**What it cannot read on this file.** The estimate stops rising at about
+18–20 dB whatever the label: the file carries some out-of-band content
+about 20 dB below the signal that is not noise and does not scale with the
+label. It also stops falling at about −13 to −18 dB, where the noise is no
+longer exactly white across the band. Readings outside −13 … +18 dB are
+limits of the method on this file, not SNRs.
 
-`tools/measure_rml2016_snr.py` settles this from the frames alone, with no
-assumption about how they were made. For the six digital classes the signal
-occupies only |f| < 0.084 of the sample rate. Everything above 20/128 is
-noise, and since the noise is white that out-of-band level gives the total
-noise. Checked on frames of known SNR, the estimator is within 0.5 dB from
-−10 to +30 dB. If §3 is right, the pickle should read about 2 × label +
-2.4 dB, less the estimator's 0.4 dB bias.
+Inside that window, the measured per-sample SNR (1,000 frames per entry):
 
-**Result: pending** (Colab, no GPU needed).
+| label | BPSK | QPSK | 8PSK | PAM4 | QAM16 | QAM64 |
+|---|---|---|---|---|---|---|
+| −10 | −12.8 | −11.8 | −13.6 | −7.2 | −4.6 | 1.4 |
+| −8 | −9.7 | −9.7 | −10.2 | −3.7 | −0.6 | 5.1 |
+| −6 | −6.7 | −6.3 | −6.7 | 0.1 | 3.1 | 9.0 |
+| −4 | −3.0 | −2.7 | −3.0 | 3.9 | 6.7 | 12.2 |
+| −2 | 1.1 | 1.2 | 0.8 | 7.6 | 10.4 | 15.5 |
+| 0 | 4.8 | 5.1 | 4.7 | 11.0 | 14.0 | 17.2 |
+| +2 | 8.5 | 8.8 | 8.5 | 14.3 | 17.1 | 18.8 |
+| +4 | 12.1 | 12.2 | 11.9 | 17.3 | 18.5 | 19.1 |
+| +6 | 15.0 | 14.7 | 15.3 | 19.0 | 18.5 | 19.2 |
+
+Three findings.
+
+**1. Confirmed: the label moves the SNR about twice as fast as its name.**
+Over −6 … +4 dB, PSK gains 1.87–1.89 dB of measured SNR per dB of label.
+That is what a noise *amplitude* of 10^(−label/10) predicts (2.0), and far
+from what a noise *power* would give (1.0). For PSK the level is within
+about 2.5 dB of the rebuilt code: 4.8 dB at label 0 against 2.4 predicted.
+So "10 dB" in RML2016.10a is not a 10 dB ratio of anything. It is the
+setting `noise_amp = 0.1`.
+
+**2. New: the same label means a different SNR for different classes.**
+At the same label, and relative to PSK, the measured SNR is higher by
+
+| | measured (labels −8, −6, −4) | predicted if the constellation points were never scaled |
+|---|---|---|
+| PAM4 | +6.6 dB | +7.0 dB (points ±1, ±3: power 5) |
+| QAM16 | +9.5 dB | +10.0 dB (odd-integer grid: power 10) |
+| QAM64 | +15.2 dB | +16.2 dB (odd-integer grid: power 42) |
+
+and the three PSKs agree with one another to within 0.4 dB. The code as
+published would put them all within 0.6 dB of one another. So the pickle
+behaves as if the constellations went out **unscaled**, at the integer
+coordinates in gr-mapper's tables, while the noise was the same for all.
+The one scaling bug gr-mapper did have in 2016 (fixed on 11 October 2016,
+commit `15e71bf`) does not fit: it would have put QPSK 6 dB above BPSK, and
+the data shows 0. Which code actually ran is not something the file can
+say. What it does say: **at label −6 dB, a QAM64 frame has about 9 dB SNR
+and a QPSK frame about −6 dB.**
+
+**3. Unreadable at the top.** Everything at labels ≥ +8 (PSK) or ≥ 0
+(QAM64) reads 18–22 dB, the ceiling of the method. The true SNR there is at
+least that, and by the slope above probably much more. The code predicts
+38 dB for PSK at +18. This file cannot confirm it.
 
 ---
 
 ## 5. What this changes in the results already reported
 
-Nothing in any table changes: every number is indexed by label, and the label
-is what everyone using this dataset reports. What changes is how to read the
-axis:
+Every number in every table stands. They are indexed by label, which is what
+everyone who uses this dataset reports. What changes is how the SNR axis
+may be read:
 
-- "Recall is flat from +2 dB up" means flat from a per-sample SNR of 6.4 dB,
-  an Es/N0 of 15 dB. At +18 dB (Es/N0 47 dB) noise is negligible. The
-  QAM16/QAM64 confusion that stays there (86–88% and 91–93% recall) comes from
-  16 symbols, carrier offset, fading and multipath, not from noise. That
-  strengthens the frame-length reading of `SNR_2016.md`.
-- "The box breaks below 0 dB" means below 2.4 dB per sample, an Es/N0 of
-  11 dB.
-- At −20 dB the per-sample SNR is −37.6 dB: the signal is 1/5,800 of the
-  noise. That the four rows of the −20 dB matrix are identical is what this
-  predicts.
-- Comparing SNR axes across datasets or papers is not safe unless both
-  define SNR the same way. RadioML 2018 has its own generator and its own
-  definition. Nothing here transfers to it.
+- **Across classes, the axis is not shared.** At the same label, QAM16 has
+  about 10 dB more SNR than QPSK, and QAM64 about 15 dB more. Figure 33
+  shows QAM64 recall climbing from −16 dB, well before QPSK's at −6. That
+  is not the model finding QAM64 easier. At −12 dB QAM64 frames sit at
+  about −2.5 dB, and QPSK frames below −13 dB, too low for this method to
+  read.
+- **The sink at −20 dB goes to BPSK and QPSK** (98.8% of decisions,
+  `SNR_2016.md`). Those are the classes whose frames at −20 dB carry the
+  least signal, so "the model sends pure noise to the PSK classes" and "the
+  model sends noise to where it has seen the most noise-like frames" are
+  the same statement here.
+- **"Recall is flat from +2 dB up"** means flat from a measured 8.5 dB
+  (PSK) and from at least 17–19 dB (QAM). The QAM16/QAM64 confusion that
+  persists there is at SNRs of 17 dB and more. It comes from 16 symbols,
+  carrier offset, fading and multipath, not from noise. That strengthens the
+  frame-length reading of `SNR_2016.md`.
+- **Comparing SNR axes across datasets or papers is not safe.** RadioML
+  2018 has its own generator and its own definition. Nothing here transfers
+  to it.

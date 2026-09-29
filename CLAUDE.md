@@ -109,6 +109,7 @@ warning stayed silent.
 | `train_backbone_rml2016_f1000_c4_L32_colab_s14.npz` | **current** — the same run cropped to **32 samples (4 symbols)**, 14 seeds, converged (peaks 34–75 under 100). Above 10 dB: 10,431 errors in 42,000. QAM16 46.3% and QAM64 62.9% — the pair is a coin flip, slightly biased to QAM64; QPSK drops to 92.0%, losing 809 frames to BPSK, which is what four symbols predict (a QPSK frame whose four symbols all fall on one diagonal looks like BPSK: at most 2/16). BPSK still 99.4% |
 | `compare_methods_ICRNNA_es_rml2016_e100.npz` | **current, complete and converged, 56/56** — the method table with RML2016.10a as the training domain, 5 shared classes, 128 samples, **14 seeds**, ceiling 100, the eleven unconverged cells rerun at 150 on 2026-09-28 (seven bit-identical, four found later peaks worth ≤ 0.5 points). none: in 0.948, cross 0.920, gap +0.028, 16QAM 0.770. Standard augmentation: 0.969 / 0.968, gap +0.002, 16QAM 0.918. Whitening α=0.75: **0.864 / 0.843**, 16QAM 0.645. Whitening+standard 0.931 / 0.913, 16QAM 0.867 — below augmentation alone in all 14 seeds. **The 2018 result does not transfer**: on 2016 the gap is small, the literature augmentation closes it, and whitening costs 8 points in-domain. See README |
 | `whitening_smoothing_rml2016_e100.npz` | **current** — why whitening hurt on 2016. α = 0.75, envelope smoothed over 3/5/9/17/33/65 bins of 128, 5 seeds, all converged (peaks 19–48 under 100); none and 5-bin rows **bit-identical** to seeds 0–4 of the method table. In-domain vs none: −13.3 / −8.3 / −2.7 / −0.1 / **+1.3** / +0.8 points; at 33 bins whitening beats none in all 5 seeds, so the 8-point cost was the envelope estimate (too few bins averaged), not whitening. Cross-domain never clearly beats none (best +0.6 at 65 bins) and never nears augmentation's 0.968: whitening does not close the 2016 gap at any width. Figure 34 |
+| `rml2016_measured_snr.json` | **current** — SNR measured in the RML2016.10a pickle per (class, label), out-of-band noise floor, 1,000 frames each. Readable only between about −13 and +18 dB. Over −6…+4 PSK rises 1.87–1.89 dB per dB of label (a noise *amplitude* of 10^(−label/10)); PAM4/QAM16/QAM64 sit +6.6/+9.5/+15.2 dB above PSK at the same label. See `NOISE_2016.md`, figure 35 |
 | `train_backbone_rml2016_f1000_c4_colab.npz` | superseded by the row above, kept — the four-class decision table Moshe asked for. BPSK/QPSK/QAM16/QAM64 on RML2016.10a, 3 seeds, 0.7086 overall / 0.9439 at SNR ≥ 10 dB, 9,000 pooled decisions. Converged: peaks at 19, 23, 33 under a 60 ceiling. Note QAM16 is **worse** here than in the 11-class run (87.9 vs 91.8), seed ranges not overlapping |
 | `train_backbone_rml2018_f2048_c4_colab_e150.npz` | **current** — the four-class table on 2018, converged: peaks 46, 48, 66 under a 150 ceiling, 0.7467 overall, 40,654 of 40,656 above 10 dB, a matrix at every SNR. Seeds 0 and 1 bit-identical to the 60-epoch file below; seed 2 within a point at every level. Quote this one |
 | `train_backbone_rml2018_f2048_c4_colab.npz` | **superseded by the row above, kept** — same run at a 60 ceiling, flagged unconverged — the four-class table on 2018. BPSK/QPSK/16QAM/64QAM, 2048 frames/cell, 3 seeds: **40,654 of 40,656 correct above 10 dB**, 0.7465 overall. Peaks at 46, 48, 59 under a 60 ceiling, so the overall number is a floor; the high-SNR table is saturated and unaffected. Carries a confusion matrix at every SNR (rebuilt from the checkpoints, verified): at 0 dB the QAM pair is a coin flip and PSK is perfect; at −8 dB both QAMs drain into QPSK ~70% |
@@ -185,9 +186,14 @@ the session; the deck he saw was the 2018 one):
    code sets `noise_amp = 10**(-label/10)`, an *amplitude*, and the chain
    rebuilt in GNU Radio 3.10 (`tools/rml2016_channel_snr.py`) gives a true
    per-sample SNR of about 2 × label + 2.4 dB (label 10 → 22.5 dB, Es/N0
-   31.6). **Unconfirmed on the pickle itself**: `tools/measure_rml2016_snr.py`
-   measures it from the frames' out-of-band noise floor; run it on Colab.
-   Until then quote the label, never the derived SNR, as a measurement
+   31.6). **Measured on the pickle** (`rml2016_measured_snr.json`,
+   figure 35): the slope is confirmed, 1.87–1.89 dB of SNR per dB of label
+   for PSK. But the classes do not share an SNR per label. Against PSK, PAM4
+   sits +6.6 dB, QAM16 +9.5 and QAM64 +15.2, which is what unscaled
+   integer constellations give (+7.0/+10.0/+16.2). So the published code is
+   not exactly what made the file. The method reads only −13…+18 dB on this
+   file. Quote labels as labels; never compare classes at one label as if
+   they had the same SNR
 3. **One SNR at a time.** The matrix at a single level, then lower: 10, 6,
    then ~3 dB (2 or 4 on the 2 dB grid). Error rate against SNR.
    **Done: `SNR_2016.md`, figures 31–33, `tools/single_snr.py`.** 448 / 473
