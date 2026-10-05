@@ -168,6 +168,10 @@ measured on 2018 is retracted: the four-class table at 40,654 of 40,656 above
 10 dB, the method table, the α sweep and the sink thread stand as the 2018
 record, and the meeting deck built on them stays as it is. New work goes on
 2016 first; a 2018 counterpart is run only when a 2016 result needs it.
+**2026-10-06: no 2018 work at all for now** (Yusuf). The Colab tasks
+`rebuild_snr_2018` (24-class recall grid) and `whitening_crop_2018` are
+parked, not to be proposed; the 2018 columns of `recall_tables.xlsx` stay
+empty.
 
 **What Moshe asked for on 2026-09-22, all to be done on 2016** (transcript in
 the session; the deck he saw was the 2018 one):

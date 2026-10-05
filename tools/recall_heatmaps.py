@@ -108,7 +108,7 @@ def main():
     ws.column_dimensions["A"].width = 24
     note = ["", "Recall % at that SNR label, seeds pooled. 2016: 11-class ICRNNA run, 450 decisions per cell.",
             "2018: 24-class ICRNNA run, about 230 decisions per cell." if data["2018"] else
-            "2018: pending — per-SNR matrices are being rebuilt from the checkpoints.",
+            "2018: not filled — 2018 work is parked (2026-10-06); Colab task rebuild_snr_2018 would fill it.",
             "The SNR labels are not comparable between the datasets, nor between classes within 2016 (NOISE_2016.md)."]
     for t in note:
         ws.append([t])
