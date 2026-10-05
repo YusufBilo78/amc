@@ -197,6 +197,20 @@ def load_dataset(name: str, frames_per_cell: int, data_path: str | None,
     return X, y, z, class_names
 
 
+def build(arch, n_classes, length):
+    """The backbone, or -- for the literature comparison only -- one of the
+    published architectures in literature_models.py, trained under exactly
+    this file's protocol so the numbers sit side by side."""
+    if arch == "ICRNNA":
+        return model_zoo.backbone(n_classes)
+    import literature_models
+    cls = literature_models.LITERATURE[arch]
+    try:
+        return cls(n_classes, length=length)
+    except TypeError:                          # LSTM2 is length-agnostic
+        return cls(n_classes)
+
+
 def run_seed(X, y, z, class_names, seed, args):
     """One training run. Returns (per-SNR accuracy, confusion counts, model)."""
     torch.manual_seed(seed)
@@ -219,7 +233,7 @@ def run_seed(X, y, z, class_names, seed, args):
             "there is nothing to train against. Use at least 32."
         )
 
-    model = model_zoo.backbone(len(class_names))
+    model = build(args.arch, len(class_names), X.shape[-1])
     model = cnn.train_model(model, X[tr], y[tr], X[va], y[va],
                             epochs=args.epochs, batch_size=args.batch_size,
                             lr=args.lr, patience=args.patience, grad_clip=5.0)
@@ -289,6 +303,11 @@ def main() -> None:
                         "Slicing four rows out of a finished 24-class table is "
                         "a different thing; confusion_table.py --classes does "
                         "that and says so")
+    p.add_argument("--arch", default="ICRNNA",
+                   choices=("ICRNNA", "VTCNN2", "LSTM2", "MCLDNN", "PETCGDNN"),
+                   help="ICRNNA is the backbone. The others are published "
+                        "architectures (literature_models.py) for the "
+                        "comparison table; their files get the name in the stem")
     p.add_argument("--frame-len", type=int, default=None,
                    help="keep only the first N samples of every frame. The "
                         "frame-length experiment: how much of the decision "
@@ -315,8 +334,9 @@ def main() -> None:
     # land in a different file even when --tag is not given.
     subset = f"_c{len(args.classes.split(','))}" if args.classes else ""
     crop = f"_L{args.frame_len}" if args.frame_len else ""
+    arch = "" if args.arch == "ICRNNA" else f"_{args.arch}"
     stem = (f"train_backbone_{args.data}_f{args.frames_per_cell}"
-            f"{subset}{crop}{suffix}")
+            f"{subset}{crop}{arch}{suffix}")
 
     out_dir = pathlib.Path(args.out_dir) if args.out_dir else ROOT
     fig_dir = out_dir / "figures" if args.out_dir else FIGURES
@@ -384,7 +404,7 @@ def main() -> None:
                  class_names=np.array(class_names), dataset=args.data,
                  frames_per_cell=args.frames_per_cell, epochs=args.epochs,
                  patience=args.patience, high_snr_threshold=HIGH_SNR,
-                 frame_len=int(X.shape[-1]))
+                 frame_len=int(X.shape[-1]), arch=args.arch)
 
     for j, seed in enumerate(seeds):
         if not np.isnan(overall[j]):

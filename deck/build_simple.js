@@ -109,6 +109,35 @@ function done(s, dark = false) {
   done(s);
 }
 
+// ============================ 2b. the data ==================================
+{ const s = pres.addSlide();
+  head(s, "THE DATA", "What data do I use?", "RML2016.10a_dict.pkl");
+  t(s, "RML2016.10a — made by DeepSig in a radio simulator (GNU Radio), 2016. The dataset most AMC papers report on.",
+    M, 1.5, W - 2 * M, 0.4, { fontSize: 14, color: MUTED });
+  const nums = [["11", "modulation types"], ["20", "noise levels, −20 to +18 dB"], ["1,000", "frames of each type at each level"],
+    ["220,000", "frames in total"], ["128", "samples per frame = 16 symbols"]];
+  nums.forEach(([v, l], i) => {
+    const x = M + i * 2.45;
+    card(s, x, 2.05, 2.25, 1.45);
+    t(s, v, x + 0.15, 2.12, 1.95, 0.7, { fontSize: 30, bold: true, color: i === 0 ? ORANGE : INK, valign: "bottom" });
+    t(s, l, x + 0.15, 2.85, 1.95, 0.6, { fontSize: 11.5, color: MUTED });
+  });
+  const groups = [["8 digital", ["BPSK", "QPSK", "8PSK", "QAM16", "QAM64", "PAM4", "GFSK", "CPFSK"]], ["3 analog", ["WBFM", "AM-DSB", "AM-SSB"]]];
+  const used = new Set(["BPSK", "QPSK", "QAM16", "QAM64"]);
+  let y = 3.85;
+  groups.forEach(([g, list]) => {
+    t(s, g, M, y, 1.6, 0.45, { fontSize: 15, bold: true, valign: "middle" });
+    list.forEach((name, k) => {
+      const x = M + 1.7 + k * 1.3, on = used.has(name);
+      s.addShape(pres.ShapeType.roundRect, { x, y, w: 1.18, h: 0.45, fill: { color: on ? ORANGE : CARD }, line: { color: on ? ORANGE : CARD }, rectRadius: 0.12 });
+      t(s, name, x, y, 1.18, 0.45, { fontSize: 13, bold: on, color: on ? WHITE : INK, align: "center", valign: "middle" });
+    });
+    y += 0.65;
+  });
+  takeaway(s, "Orange: the four I use today.", "Two phase-only signals (BPSK, QPSK) and two that also change amplitude (QAM16, QAM64).", 5.45);
+  done(s);
+}
+
 // ============================ 2. what it does ===============================
 { const s = pres.addSlide();
   head(s, "WHAT IT IS", "What does the detector do?", "model_zoo.backbone(4)",

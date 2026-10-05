@@ -25,6 +25,9 @@ Three tasks, matching the numbered list in README.md "Open work":
                       envelope smoothing width swept at 128 samples
   "whitening_crop_2018"  the same question from the other side: 2018 frames
                       cropped to 128 samples, none against whitening
+  "literature_2016"   VT-CNN2, LSTM2, MCLDNN and PET-CGDNN (literature_models.py)
+                      trained under train_backbone's protocol on 11-class 2016,
+                      next to ICRNNA's committed run
   "rebuild_snr_2018"  per-SNR confusion matrices for the 24-class 2018 run,
                       rebuilt from its checkpoints (eval_by_snr.py), for the
                       class x SNR recall table; no training
@@ -178,7 +181,15 @@ SMOOTH_SEEDS = _env("AMC_SMOOTH_SEEDS", 5, int)
 SMOOTH_EPOCHS = _env("AMC_SMOOTH_EPOCHS", 100, int)
 SMOOTH_BINS = _env("AMC_SMOOTH_BINS", "3,5,9,17,33,65")
 
-_TASKS = ("rebuild_snr_2018", "compare_methods", "compare_methods_2016", "whitening_seeds",
+# literature_2016: four published architectures, trained under train_backbone's
+# protocol on the 11-class RML2016.10a, for the comparison against ICRNNA.
+# 3 seeds to match the committed ICRNNA run; a 150 ceiling because LSTM-type
+# models can converge more slowly than ICRNNA did (best epoch 39).
+LIT_ARCHS = _env("AMC_LIT_ARCHS", "VTCNN2,PETCGDNN,LSTM2,MCLDNN")
+LIT_SEEDS = _env("AMC_LIT_SEEDS", 3, int)
+LIT_EPOCHS = _env("AMC_LIT_EPOCHS", 150, int)
+
+_TASKS = ("literature_2016", "rebuild_snr_2018", "compare_methods", "compare_methods_2016", "whitening_seeds",
           "whitening_smoothing_2016", "whitening_crop_2018",
           "faithful_2016", "faithful_budget", "converged_2016",
           "converged_2018", "sink_24", "sink_arch")
@@ -378,6 +389,35 @@ def main():
         print(" ".join(cmd) + "\n")
         t0 = time.time()
         sh(cmd, cwd=SRC)
+        hr(f"Done in {(time.time() - t0) / 60:.1f} min")
+        return
+
+    if TASK == "literature_2016":
+        hr("3. Literature models on RML2016.10a, 11 classes, ICRNNA's protocol")
+        print(f"architectures: {LIT_ARCHS}; {LIT_SEEDS} seeds; ceiling {LIT_EPOCHS},")
+        print("patience 20; same frames, split and seeds as the ICRNNA run")
+        print("(train_backbone_rml2016_f1000_colab.npz). One file per model;")
+        print("rerun to resume -- finished seeds are skipped.\n")
+        pkl = None
+        for hint in PKL_HINTS_2016:
+            if (DRIVE / hint).is_file():
+                pkl = DRIVE / hint
+                break
+        if pkl is None:
+            found = list(DRIVE.rglob("RML2016.10a_dict.pkl"))
+            if not found:
+                raise SystemExit("RML2016.10a_dict.pkl not found in Drive.")
+            pkl = found[0]
+        t0 = time.time()
+        for arch in LIT_ARCHS.split(","):
+            hr(f"{arch}")
+            cmd = [sys.executable, "train_backbone.py", "--data", "rml2016",
+                   "--data-path", str(pkl), "--frames-per-cell", "1000",
+                   "--arch", arch, "--seeds", str(LIT_SEEDS),
+                   "--epochs", str(LIT_EPOCHS), "--patience", "20",
+                   "--tag", "colab", "--out-dir", str(OUT_DIR)]
+            print(" ".join(cmd) + "\n")
+            sh(cmd, cwd=SRC)
         hr(f"Done in {(time.time() - t0) / 60:.1f} min")
         return
 
