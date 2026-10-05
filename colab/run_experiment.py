@@ -25,6 +25,9 @@ Three tasks, matching the numbered list in README.md "Open work":
                       envelope smoothing width swept at 128 samples
   "whitening_crop_2018"  the same question from the other side: 2018 frames
                       cropped to 128 samples, none against whitening
+  "rebuild_snr_2018"  per-SNR confusion matrices for the 24-class 2018 run,
+                      rebuilt from its checkpoints (eval_by_snr.py), for the
+                      class x SNR recall table; no training
   "faithful_2016"     item 5 -- run the paper-faithful ICRNNA against 63.24%
   "converged_2018"    the open question: the 2018 classification run again,
                       with a ceiling high enough that early stopping decides.
@@ -175,7 +178,7 @@ SMOOTH_SEEDS = _env("AMC_SMOOTH_SEEDS", 5, int)
 SMOOTH_EPOCHS = _env("AMC_SMOOTH_EPOCHS", 100, int)
 SMOOTH_BINS = _env("AMC_SMOOTH_BINS", "3,5,9,17,33,65")
 
-_TASKS = ("compare_methods", "compare_methods_2016", "whitening_seeds",
+_TASKS = ("rebuild_snr_2018", "compare_methods", "compare_methods_2016", "whitening_seeds",
           "whitening_smoothing_2016", "whitening_crop_2018",
           "faithful_2016", "faithful_budget", "converged_2016",
           "converged_2018", "sink_24", "sink_arch")
@@ -372,6 +375,34 @@ def main():
                "--patience", str(PATIENCE), "--out-dir", str(OUT_DIR)]
         print(f"results -> {OUT_DIR}  (Drive: survives the runtime)")
         print("Written after every cell; a rerun resumes.\n")
+        print(" ".join(cmd) + "\n")
+        t0 = time.time()
+        sh(cmd, cwd=SRC)
+        hr(f"Done in {(time.time() - t0) / 60:.1f} min")
+        return
+
+    if TASK == "rebuild_snr_2018":
+        hr("3. Per-SNR matrices for the 24-class 2018 run, from its checkpoints")
+        print("train_backbone_rml2018_f512_colab.npz stored only the pooled matrix")
+        print("above 10 dB. eval_by_snr.py rebuilds a matrix at every SNR from the")
+        print("three checkpoints next to it, and writes nothing unless the rebuilt")
+        print("pooled matrix matches the stored one count for count. No training.\n")
+        npz = OUT_DIR / "train_backbone_rml2018_f512_colab.npz"
+        if not npz.exists():
+            raise SystemExit(f"{npz} not found")
+        h5 = None
+        for hint in H5_HINTS:
+            if (DRIVE / hint).is_file():
+                h5 = DRIVE / hint
+                break
+        if h5 is None:
+            raise SystemExit("GOLD_XYZ_OSC.0001_1024.hdf5 not found in Drive.")
+        import run_training
+
+        stage = pathlib.Path("/content/amc-data")
+        run_training.stage_from_hdf5(h5, stage, 512, free_gb)
+        os.environ["AMC_DATA_DIR"] = str(stage)
+        cmd = [sys.executable, "eval_by_snr.py", str(npz), "--data-path", str(stage)]
         print(" ".join(cmd) + "\n")
         t0 = time.time()
         sh(cmd, cwd=SRC)
