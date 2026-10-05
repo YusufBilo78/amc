@@ -78,6 +78,37 @@ function done(s, dark = false) {
   done(s, true);
 }
 
+// ============================ 2. what AMC is =================================
+{ const s = pres.addSlide();
+  head(s, "WHAT THIS IS ABOUT", "What is AMC, and what am I working on?");
+  // left: what AMC is, as one picture
+  card(s, M, 1.7, 6.0, 4.55);
+  t(s, [{ text: "AMC", options: { color: ORANGE, fontSize: 22, breakLine: true } }, { text: "Automatic Modulation Classification", options: { fontSize: 16 } }],
+    M + 0.3, 1.85, 5.4, 0.85, { bold: true });
+  t(s, "A receiver picks up a radio signal nobody described to it. AMC answers one question: how was it modulated?",
+    M + 0.3, 2.8, 5.4, 0.8, { fontSize: 13.5 });
+  pic(s, "simple/frame.png", M + 0.3, 3.75, 2.1, 1530, 544);
+  t(s, "a few samples of signal", M + 0.3, 4.55, 2.1, 0.3, { fontSize: 10.5, color: MUTED, align: "center" });
+  arrow(s, M + 2.5, 3.9);
+  s.addShape(pres.ShapeType.roundRect, { x: M + 3.15, y: 3.73, w: 1.15, h: 0.78, fill: { color: NAVY }, line: { color: NAVY }, rectRadius: 0.08 });
+  t(s, "detector", M + 3.15, 3.73, 1.15, 0.78, { fontSize: 13, bold: true, color: WHITE, align: "center", valign: "middle" });
+  arrow(s, M + 4.38, 3.9);
+  pill(s, "QPSK", M + 5.0, 3.96, 0.85);
+  t(s, "Used for watching the spectrum, finding interference, and radios that adapt to what they hear.",
+    M + 0.3, 5.1, 5.4, 0.9, { fontSize: 13, color: MUTED });
+  // right: what I am working on
+  t(s, "What I am working on", 7.0, 1.75, 5.7, 0.45, { fontSize: 17, bold: true });
+  const work = [["A detector", "trained on a standard, simulated dataset (RML2016.10a, DeepSig)."],
+    ["Open it up", "what it does, what the noise is, where it fails. This is today."],
+    ["The bigger question", "why such detectors lose accuracy on signals from a different transmitter, and what fixes it."]];
+  work.forEach(([h, b], i) => {
+    badge(s, 7.0, 2.4 + i * 1.25, i + 1, i === 1 ? ORANGE : NAVY, 0.45);
+    t(s, [{ text: h, options: { bold: true, breakLine: true } }, { text: b }], 7.65, 2.33 + i * 1.25, 5.05, 1.1, { fontSize: 13.5 });
+  });
+  takeaway(s, "Today: only steps 1 and 2,", "on four signals: BPSK, QPSK, QAM16 and QAM64.", 6.45);
+  done(s);
+}
+
 // ============================ 2. what it does ===============================
 { const s = pres.addSlide();
   head(s, "WHAT IT IS", "What does the detector do?", "model_zoo.backbone(4)",
