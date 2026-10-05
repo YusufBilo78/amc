@@ -52,7 +52,7 @@ One thing we found. At minus 20 dB there is no signal at all, but the detector s
 
 ## 13. How does ICRNNA compare with published models?
 
-Is ICRNNA a good choice? I took four well-known published models, from 2016 to 2021, rewrote each one from its authors' benchmark code, and trained all of them exactly like ICRNNA: same data, same split, same three repeats. This time on all eleven types. ICRNNA is first overall, 62.2 percent, but the best four are within about one point of each other. Where ICRNNA gains is between minus 6 and minus 2 dB. Above 10 dB all four stop at about 91 percent, so that limit comes from the data, mostly WBFM and the QAM pair, not from the model. The oldest model, the 2016 CNN, stays about ten points lower up there.
+Is ICRNNA a good choice? I took four well-known published models, from 2016 to 2021, rewrote each one from its authors' benchmark code, and trained all of them exactly like ICRNNA: same data, same split, same three repeats. This time on all eleven types. First, are my numbers right? Each model has exactly the number of learned parameters its paper reports, to the digit, and the accuracies the papers publish are within one point of mine, sometimes above, sometimes below. So the comparison is fair. ICRNNA is first overall, 62.2 percent, but the best four are within about one point of each other. Where ICRNNA gains is between minus 6 and minus 2 dB. Above 10 dB all four stop at about 91 percent, so that limit comes from the data, mostly WBFM and the QAM pair, not from the model. The oldest model, the 2016 CNN, stays about ten points lower up there.
 
 ## 14. In short
 

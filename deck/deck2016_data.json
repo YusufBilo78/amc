@@ -605,6 +605,7 @@
    "name": "ICRNNA",
    "year": 2025,
    "params": 786379,
+   "paper": 0.6324,
    "overall": 0.6223,
    "high": 0.9148
   },
@@ -612,6 +613,7 @@
    "name": "LSTM2",
    "year": 2018,
    "params": 201099,
+   "paper": 0.6056,
    "overall": 0.6144,
    "high": 0.9154
   },
@@ -619,6 +621,7 @@
    "name": "MCLDNN",
    "year": 2020,
    "params": 406199,
+   "paper": 0.6208,
    "overall": 0.6141,
    "high": 0.9106
   },
@@ -626,6 +629,7 @@
    "name": "PET-CGDNN",
    "year": 2021,
    "params": 71871,
+   "paper": 0.6044,
    "overall": 0.6098,
    "high": 0.9064
   },
@@ -633,6 +637,7 @@
    "name": "VT-CNN2",
    "year": 2016,
    "params": 1592383,
+   "paper": null,
    "overall": 0.5607,
    "high": 0.8196
   }

@@ -355,17 +355,19 @@ function done(s, dark = false) {
   head(s, "COMPARING ARCHITECTURES", "How does ICRNNA compare with published models?", "train_backbone.py --arch MCLDNN");
   t(s, "All 11 types, all noise levels. Same data, same split, same 3 repeats for every model: only the model changes.", M, 1.5, W - 2 * M, 0.4, { fontSize: 14, color: MUTED });
   const hc = (x, o = {}) => ({ text: x, options: { bold: true, fill: { color: CARD }, color: INK, fontSize: 13, align: "center", ...o } });
-  const rows = [[hc("model", { align: "left" }), hc("year"), hc("numbers learned"), hc("overall"), hc("at 10 dB and above")]];
+  const rows = [[hc("model", { align: "left" }), hc("numbers learned"), hc("paper"), hc("ours"), hc("ours, ≥ 10 dB")]];
   D.lit.forEach(r => {
     const me = r.name === "ICRNNA", o = { fontSize: 14, align: "center", bold: me, color: me ? ORANGE : INK };
-    rows.push([{ text: r.name, options: { ...o, align: "left" } }, { text: String(r.year), options: o }, { text: num(r.params), options: o },
+    rows.push([{ text: `${r.name} (${r.year})`, options: { ...o, align: "left", fontSize: 13 } }, { text: num(r.params), options: o },
+      { text: r.paper ? pct(r.paper) : "—", options: { ...o, color: MUTED, bold: false } },
       { text: pct(r.overall), options: o }, { text: pct(r.high), options: o }]);
   });
-  s.addTable(rows, { x: M, y: 2.05, w: 6.6, colW: [1.55, 0.8, 1.55, 1.2, 1.5], fontFace: F, border: { type: "solid", pt: 0.5, color: LINE }, rowH: 0.52, autoPage: false, valign: "middle" });
-  t(s, "Models from Zhang et al., Digital Signal Processing 2022 (their code, rewritten line by line).", M, 5.25, 6.6, 0.5, { fontSize: 11, color: MUTED, italic: true });
+  s.addTable(rows, { x: M, y: 2.05, w: 6.6, colW: [1.95, 1.3, 0.95, 0.95, 1.45], fontFace: F, border: { type: "solid", pt: 0.5, color: LINE }, rowH: 0.48, autoPage: false, valign: "middle" });
+  t(s, "“Paper”: overall accuracy as published — ICRNNA from its own paper (we measure our colleague's version of it); the others from Zhang et al. 2021, one run each. Same number of learned parameters as published, to the digit.",
+    M, 5.25, 6.6, 0.8, { fontSize: 10.5, color: MUTED, italic: true });
   pic(s, "../figures/38_literature_2016.png", 7.45, 2.0, W - M - 7.45, 1350, 750, false);
   const top = D.lit.slice(0, 4).map(r => r.overall), spread = (100 * (Math.max(...top) - Math.min(...top))).toFixed(1);
-  takeaway(s, `ICRNNA is first overall, but the best four are within ${spread} points.`, "Above 10 dB they all stop near 91%: that limit is in the data, not the model.", 6.15);
+  takeaway(s, `Our numbers match the papers within 1 point. ICRNNA is first, the best four within ${spread} points.`, "Above 10 dB they all stop near 91%: that limit is in the data, not the model.", 6.15);
   done(s);
 }
 

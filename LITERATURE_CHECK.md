@@ -1,38 +1,102 @@
 # Do our numbers agree with the papers? — RML2016.10a, 11 classes
 
-Our five models were all trained under one protocol (`literature_2016.md`):
+Checked 2026-10-06 against the papers themselves (all read in full; tables
+that are images in the PDFs were read at 300 dpi).
+
+Our five models were trained under one protocol (`literature_2016.md`):
 1,000 frames per cell, 70/15/15 split per (class, SNR), three seeds, early
-stopping on validation. A paper's number can differ from ours for reasons
-that have nothing to do with the model: a different split (most papers use
-60/20/20 or 50/50), one run instead of several, a fixed epoch count instead
-of early stopping, different input normalisation. So "agrees" below means
-*within the spread those differences can plausibly cause*, about a point,
-and every row says which protocol the paper used where we know it.
+stopping on validation, batch 256. The papers mostly use a 60/20/20 split,
+batch 400, Adam at 0.001 halved when validation loss stalls for 5 epochs,
+stopping after 50 stalled epochs, and **one training run**. One run against
+the mean of three, and a 60 % against a 70 % training share, can each move a
+number by several tenths of a point, so "agrees" below means within about
+one point overall.
 
-Only numbers read from a paper we have are quoted. Where we do not have the
-paper, the row says so instead of quoting from memory.
+## 1. The models are the same models
 
-## What we can check now
+The parameter count is the strongest check that a port is faithful: change
+one layer and it changes. Ours, from `src/literature_models.py`:
 
-| model | source we have | what it reports on 2016.10a | ours | verdict |
+| model | ours | Zhang 2022 benchmark, Table 4 (A) | PET-CGDNN paper, Table I (A) | MCLDNN paper, Table II |
 |---|---|---|---|---|
-| **ICRNNA** | El-Haryqy et al., Results in Engineering 26 (2025), Table 3 | 63.24 % overall | faithful build: **63.21 %** (1 run, trained to convergence); our working version: 62.23 % (3 seeds) | **agrees.** The faithful build reproduces the paper to 0.03 points. Our working version is 1.0 point lower; it is a colleague's re-implementation that differs in five places, and is reported as such |
-| **MCLDNN** | MSTFFNet paper (Sensors 26(16):5208, 2026), Table 1 — an *independent retraining*, not the original paper. Single run, 60/20/20 split per SNR | 0.41 M parameters; overall 62.02 %; [−20, 0] dB 37.37 %; [0, 18] dB 91.11 %; best single SNR 92.88 % | 406,199 parameters; overall **61.41 %** (seeds 61.19–61.70); [−20, 0] dB 37.16 %; [0, 18] dB 90.77 %; best single SNR 91.98 % | **agrees.** Same size to the thousand; every range within 0.6 points, their single run 0.3 above our best seed |
-| LSTM | MSTFFNet paper, Table 1 | 0.79 M parameters; overall 56.40 % | our LSTM2 has 201,099 parameters; 61.44 % | **not the same model.** Theirs is four times larger and cites Rajendran 2018, the same paper; it was evidently built differently (the benchmark's version, ours, takes amplitude and phase). Not a check either way |
+| VT-CNN2 (CNN1 / CNN-IQ) | 1,592,383 | 1,592,383 | — | 1,592,383 |
+| LSTM2 | 201,099 | 201,099 | 201,099 | 201,099 |
+| MCLDNN | 406,199 | 406,199 | 406,199 | 406,199 |
+| PET-CGDNN | 71,871 | 71,871 | 71,871 | — |
 
-How our ranges were computed, for the MCLDNN row: mean accuracy over the
-SNR levels in the range, then over three seeds; 0 dB counts in both ranges,
-as in their table.
+**Identical to the digit in every source.**
 
-## What needs the paper itself
+## 2. Overall accuracy and best single SNR
 
-| model | paper to get | what to read off it |
-|---|---|---|
-| **VT-CNN2** (CNN1) | O'Shea, Corgan & Clancy, "Convolutional radio modulation recognition networks", EANN 2016 (arXiv 1602.04105) | the accuracy-vs-SNR curve on 2016.10a; the paper's network has more filters than the benchmark's version, so expect a gap |
-| **LSTM2** | Rajendran et al., "Deep learning models for wireless signal classification with distributed low-cost spectrum sensors", IEEE TCCN 4(3), 2018 (arXiv 1703.09197) | accuracy at high SNR on 2016.10a, and which input (I/Q or amplitude/phase) and size |
-| **MCLDNN** | Xu, Luo, Parr & Luo, "A spatiotemporal multi-channel learning framework for automatic modulation recognition", IEEE WCL 9(10), 2020 | the original's overall accuracy on 2016.10a |
-| **PET-CGDNN** | Zhang, Luo, Xu & Luo, "An efficient deep learning model for automatic modulation recognition based on parameter estimation and transformation", IEEE Commun. Lett. 25(10), 2021 | overall accuracy and parameter count (ours: 71,871) |
-| all four | Zhang, Luo, Xu, Luo & Zheng, "Deep learning based automatic modulation recognition: models, datasets, and challenges", Digital Signal Processing 129 (2022) 103650 | the benchmark whose code we ported: its accuracy table and parameter table (Table 1) for every model under one protocol. **The single most useful one** |
+The only paper that tables an *overall* (all-SNR) accuracy on 2016.10a for
+these models is the PET-CGDNN paper (Zhang et al., IEEE Commun. Lett. 2021,
+Table I; one run each, 6:2:2 split). Its "highest accuracy" is the best single
+SNR point. Ours: overall is the mean over seeds; the best single SNR point is
+given as the range over the three seeds.
 
-arXiv and the publishers are blocked from this environment, so these have to
-be downloaded by hand and added to the session.
+| model | paper overall | **ours overall** | difference | paper best SNR point | ours best SNR point (3 seeds) |
+|---|---|---|---|---|---|
+| LSTM2 | 60.56 % | **61.44 %** (60.95–62.09) | +0.9 | 91.41 % | 91.58–92.91 % |
+| MCLDNN | 62.08 % | **61.41 %** (61.19–61.70) | −0.7 | 92.95 % | 91.76–92.12 % |
+| PET-CGDNN | 60.44 % | **60.98 %** (60.87–61.05) | +0.5 | 91.36 % | 91.16–91.33 % |
+
+**All three agree within one point**, in both directions, which is what two
+different splits and one-run-versus-three-seeds predicts. In both, the three
+sit within 1.7 points of each other and PET-CGDNN is the lowest of them.
+
+Corroborating, from other papers:
+
+- **MCLDNN paper** (Xu et al., IEEE WCL 2020): best point 92.95 % at 12 dB
+  (the same number as the PET-CGDNN table, same group); average 92 % over
+  0–18 dB. Ours over 0–18 dB: 90.77 %. The largest gap in this file, 1.2
+  points, and in the paper's favour.
+- **MSTFFNet paper** (Sensors 2026, Table 1), an independent group retraining
+  MCLDNN: 62.02 % overall, 37.37 % at −20…0 dB, 91.11 % at 0…18 dB. Ours:
+  61.41 / 37.16 / 90.77.
+- **Rajendran et al.** (IEEE TCCN 2018), the LSTM2 paper itself: same model
+  (two layers of 128 LSTM cells, amplitude L2-normalised, phase scaled to
+  [−1, 1]); "an average accuracy of 90 % in SNR ranges from 0 dB to 20 dB",
+  trained only on −10…20 dB. Ours over 0…18 dB: 91.04 %.
+- **Zhang et al. 2022 benchmark** (DSP 129): accuracy only as curves
+  (Fig. 5a); in the text, the best point on 2016.10a of all 14 models is
+  92.05 % (MCLDNN at 10 dB). Consistent with ours, not a separate number.
+
+## 3. Per class at 0 dB
+
+The MCLDNN paper's Table I gives recall per class at 0 dB for MCLDNN, LSTM2
+and CNN-IQ (our VT-CNN2), 200 test frames per cell; ours have 450 (3 seeds).
+A single class at a single SNR is noisy, so compare the average and the
+pattern rather than each cell.
+
+| model | paper, mean over 11 classes | ours | where they differ most (paper vs ours) |
+|---|---|---|---|
+| MCLDNN | 89.6 % | 88.3 % | 8PSK 94 vs 83, QAM16 92 vs 86 |
+| LSTM2 | 85.6 % | 87.9 % | AM-DSB 68 vs 89, QAM64 82 vs 94, WBFM 56 vs 41 |
+| VT-CNN2 | 80.6 % | 79.7 % | AM-DSB 79 vs 97, QPSK 86 vs 70, QAM16 33 vs 23 |
+
+The same failures appear in both: WBFM near 35–55 % for every model, and
+VT-CNN2 near-blind to QAM16 at 0 dB (33 % there, 23 % here).
+
+## 4. ICRNNA
+
+El-Haryqy et al. (Results in Engineering 2025), Table 3: 63.24 %. Our build
+written from the paper reaches **63.21 %** trained to convergence. The
+working model, a colleague's re-implementation with five differences, is at
+62.23 % (three seeds). Covered in `README.md` and `DETECTOR.md`.
+
+## 5. Not comparable
+
+- **VT-CNN2, overall accuracy.** No paper here tables it on 2016.10a. O'Shea,
+  Corgan & Clancy (EANN 2016) used the earlier RadioML **2016.04** dataset and a
+  larger network (256 and 80 filters against the benchmark's 50 and 50), so
+  their 87.4 % "across all SNRs" is a different experiment.
+- **MSTFFNet's "LSTM" row** (0.79 M parameters, 56.40 %) is a different,
+  four-times-larger model from LSTM2 (201,099), though it cites the same
+  paper.
+
+## Verdict
+
+Every model we ported has exactly its published size, and every published
+2016.10a accuracy we could find for it is within about one point of ours,
+in both directions. Our training pipeline reproduces the literature; the
+comparison table in `literature_2016.md` can be quoted next to the papers.

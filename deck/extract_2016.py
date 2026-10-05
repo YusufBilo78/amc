@@ -104,14 +104,17 @@ def faithful():
 
 def literature():
     rows = []
-    for name, year, f, params in (
-            ("ICRNNA", 2025, "train_backbone_rml2016_f1000_colab.npz", 786_379),
-            ("LSTM2", 2018, "train_backbone_rml2016_f1000_LSTM2_colab.npz", 201_099),
-            ("MCLDNN", 2020, "train_backbone_rml2016_f1000_MCLDNN_colab.npz", 406_199),
-            ("PET-CGDNN", 2021, "train_backbone_rml2016_f1000_PETCGDNN_colab.npz", 71_871),
-            ("VT-CNN2", 2016, "train_backbone_rml2016_f1000_VTCNN2_colab.npz", 1_592_383)):
+    # paper: the published overall accuracy on 2016.10a (LITERATURE_CHECK.md):
+    # ICRNNA from El-Haryqy et al. 2025, Table 3; the other three from the
+    # PET-CGDNN paper (Zhang et al. 2021), Table I. None found for VT-CNN2.
+    for name, year, f, params, paper in (
+            ("ICRNNA", 2025, "train_backbone_rml2016_f1000_colab.npz", 786_379, 0.6324),
+            ("LSTM2", 2018, "train_backbone_rml2016_f1000_LSTM2_colab.npz", 201_099, 0.6056),
+            ("MCLDNN", 2020, "train_backbone_rml2016_f1000_MCLDNN_colab.npz", 406_199, 0.6208),
+            ("PET-CGDNN", 2021, "train_backbone_rml2016_f1000_PETCGDNN_colab.npz", 71_871, 0.6044),
+            ("VT-CNN2", 2016, "train_backbone_rml2016_f1000_VTCNN2_colab.npz", 1_592_383, None)):
         z = np.load(ROOT / f, allow_pickle=True)
-        rows.append({"name": name, "year": year, "params": params,
+        rows.append({"name": name, "year": year, "params": params, "paper": paper,
                      "overall": round(float(z["overall"].mean()), 4),
                      "high": round(float(z["high"].mean()), 4)})
     return rows
