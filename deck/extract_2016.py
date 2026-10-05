@@ -102,8 +102,23 @@ def faithful():
             "icrnna_train": round(icr["final_train"], 4), "icrnna_test": round(icr["final_test"], 4)}
 
 
+def literature():
+    rows = []
+    for name, year, f, params in (
+            ("ICRNNA", 2025, "train_backbone_rml2016_f1000_colab.npz", 786_379),
+            ("LSTM2", 2018, "train_backbone_rml2016_f1000_LSTM2_colab.npz", 201_099),
+            ("MCLDNN", 2020, "train_backbone_rml2016_f1000_MCLDNN_colab.npz", 406_199),
+            ("PET-CGDNN", 2021, "train_backbone_rml2016_f1000_PETCGDNN_colab.npz", 71_871),
+            ("VT-CNN2", 2016, "train_backbone_rml2016_f1000_VTCNN2_colab.npz", 1_592_383)):
+        z = np.load(ROOT / f, allow_pickle=True)
+        rows.append({"name": name, "year": year, "params": params,
+                     "overall": round(float(z["overall"].mean()), 4),
+                     "high": round(float(z["high"].mean()), 4)})
+    return rows
+
+
 if __name__ == "__main__":
-    data = {"c4": c4(), "snr": measured_snr(), "methods": methods(),
+    data = {"c4": c4(), "snr": measured_snr(), "methods": methods(), "lit": literature(),
             "faithful": faithful(), "params": {"total4": 784960 + 129 * 4,
                                                "lstm": 659456 + 512}}
     out = pathlib.Path(__file__).parent / "deck2016_data.json"

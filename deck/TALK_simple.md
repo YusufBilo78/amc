@@ -1,6 +1,6 @@
 # Talk script — simple deck (deck/moshe_2016_simple.pptx)
 
-The same text is in each slide's notes. About 14 minutes. The detailed deck, deck/moshe_2016.pptx, stays as the backup for questions.
+The same text is in each slide's notes. About 15 minutes. The detailed deck, deck/moshe_2016.pptx, stays as the backup for questions.
 
 ## 1. Telling four radio signals apart
 
@@ -50,6 +50,10 @@ So what does cause them? Frame length. I cut every frame to 64 samples, which is
 
 One thing we found. At minus 20 dB there is no signal at all, but the detector still has to name one of the four. QPSK recall there is 52 percent, which looks like it recognises QPSK. It does not: of all the frames it calls QPSK, only 25 percent are QPSK, which is a guess. It sends almost everything, 98.8 percent, to BPSK or QPSK, and which of the two changes from one training run to the next. That is why every chart now shows precision next to recall, and how many decisions each point is based on.
 
-## 13. In short
+## 13. How does ICRNNA compare with published models?
+
+Is ICRNNA a good choice? I took four well-known published models, from 2016 to 2021, rewrote each one from its authors' benchmark code, and trained all of them exactly like ICRNNA: same data, same split, same three repeats. This time on all eleven types. ICRNNA is first overall, 62.2 percent, but the best four are within about one point of each other. Where ICRNNA gains is between minus 6 and minus 2 dB. Above 10 dB all four stop at about 91 percent, so that limit comes from the data, mostly WBFM and the QAM pair, not from the model. The oldest model, the 2016 CNN, stays about ten points lower up there.
+
+## 14. In short
 
 To sum up. BPSK and QPSK are essentially solved; the mistakes are QAM16 against QAM64. Those mistakes come from having only 16 symbols, not from noise: with 8 or 4 symbols they grow 2.7 and 4.3 times. And 10 dB in this dataset is a setting, not a measurement. Next, I want to switch off the carrier offset, the fading and the echoes one at a time and see which one the QAM mistakes belong to. Thank you.

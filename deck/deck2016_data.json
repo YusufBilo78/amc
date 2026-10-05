@@ -600,6 +600,43 @@
    "none_cross": 0.9166
   }
  },
+ "lit": [
+  {
+   "name": "ICRNNA",
+   "year": 2025,
+   "params": 786379,
+   "overall": 0.6223,
+   "high": 0.9148
+  },
+  {
+   "name": "LSTM2",
+   "year": 2018,
+   "params": 201099,
+   "overall": 0.6144,
+   "high": 0.9154
+  },
+  {
+   "name": "MCLDNN",
+   "year": 2020,
+   "params": 406199,
+   "overall": 0.6141,
+   "high": 0.9106
+  },
+  {
+   "name": "PET-CGDNN",
+   "year": 2021,
+   "params": 71871,
+   "overall": 0.6098,
+   "high": 0.9064
+  },
+  {
+   "name": "VT-CNN2",
+   "year": 2016,
+   "params": 1592383,
+   "overall": 0.5607,
+   "high": 0.8196
+  }
+ ],
  "faithful": {
   "paper": 63.24,
   "e58": 61.7545,
