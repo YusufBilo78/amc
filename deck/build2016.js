@@ -184,7 +184,7 @@ let n = 0;
   const rows = [[hc("stage", { fontSize: 12 }), hc("setting", { fontSize: 12 }), hc("what it means", { fontSize: 12 })],
     ["modulator", "root-raised cosine, 8 samples / symbol, roll-off 0.35", "200 kHz sampling, 25 kbaud; a frame is 0.64 ms, 16 symbols"],
     ["clock offset", "random walk, clipped at 50 Hz", "sample-rate drift, small in practice"],
-    ["carrier offset", "random walk, clipped at 500 Hz", "reaches ~4 Hz in a run: under 1° of rotation per frame"],
+    ["carrier offset", "random walk, clipped at 500 Hz", "reaches only a few Hz in a run: about 1° of rotation per frame"],
     ["fading", "Rician, K = 4, Doppler 1 Hz", "one complex gain per frame; 5.7 dB swing over a run"],
     ["multipath", "3 paths: delays 0, 0.9, 1.7 samples; gains 1, 0.8, 0.3", "0.2 symbol of delay spread"],
     [{ text: "noise", options: { bold: true, color: ORANGE } }, { text: "white Gaussian, noise_amp = 10^(−label/10)", options: { bold: true } }, { text: "the only thing the SNR label sets", options: { bold: true } }]];
@@ -194,7 +194,7 @@ let n = 0;
   card(s, X, 1.95, Wr, 4.6);
   circleIcon(s, X + 0.3, 2.15, 0.5, ORANGE, "!");
   text(s, "Noise is one of five impairments", X + 0.95, 2.15, Wr - 1.2, 0.55, { fontFace: HEAD, fontSize: 14, bold: true, valign: "middle" });
-  text(s, "Carrier offset, clock offset, fading and multipath are present at every SNR, including +18 dB. Errors at high SNR cannot be blamed on noise. And every part is seeded with the same fixed number: every run of the generator sees the identical channel and noise sequence.",
+  text(s, "Carrier offset, clock offset, fading and multipath are present at every SNR, including +18 dB. Errors at high SNR cannot be blamed on noise. The noise is fresh in every run: checked in the file, no two of 11,000 frames at −20 dB share a noise segment.",
     X + 0.3, 2.95, Wr - 0.6, 1.7, { fontSize: 12.5 });
   text(s, "Source: O'Shea & West, GRCon 2016; github.com/radioML/dataset, generate_RML2016.10a.py.", X + 0.3, 5.3, Wr - 0.6, 1.0, { fontSize: 10.5, italic: true, color: MID });
   foot(s, n);

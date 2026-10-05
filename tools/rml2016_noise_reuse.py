@@ -1,5 +1,11 @@
 """Do RML2016.10a frames share noise? A check on the pickle itself.
 
+Answer, 2026-10-05 (rml2016_noise_reuse.json): no. 0 of 11,000 frames at
+-20 dB and at -16 dB share a noise segment with another frame; at -18 dB one
+pair does (BPSK / WBFM, 118 samples). The reasoning below holds for GNU Radio
+3.10; the dataset was made with 3.7, whose noise indices come from an
+unseeded lrand48(), which is why the reuse is absent.
+
 GNU Radio's dynamic_channel_model (3.7.10 source, dynamic_channel_model_impl.cc)
 seeds every one of its parts -- clock offset, carrier offset, fading, and the
 noise source -- with the same `noise_seed`, and generate_RML2016.10a.py passes

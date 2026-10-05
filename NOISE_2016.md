@@ -53,7 +53,7 @@ bits / audio → modulator → dynamic_channel_model → sample 128 → scale �
 | digital modulators | gr-mapper constellation → root-raised-cosine, **8 samples per symbol**, roll-off 0.35 | 25 kbaud; **a frame is 16 symbols**; the signal occupies 33.75 kHz of the 200 |
 | constellation scale | today's gr-mapper sets mean *magnitude* to 1 | unit power for PSK; 1.11 for 16-QAM and 1.13 for 64-QAM. **The pickle does not match this; see §4** |
 | sample-rate offset | random walk, std 0.01 Hz per sample, clipped at 50 Hz | clock drift; like the carrier walk below, it never gets near its clip in one run |
-| carrier-frequency offset | random walk, std 0.01 Hz per sample, clipped at 500 Hz | in practice it reaches about **4 Hz** in a run (measured), so a 128-sample frame rotates by at most 0.02 rad (1°); the carrier *phase* drifts 7 rad over a run, so frames differ in absolute phase |
+| carrier-frequency offset | random walk, std 0.01 Hz per sample, clipped at 500 Hz | in practice it reaches only a few Hz in a run (about 4 Hz, measured on the 3.10 rebuild), so a 128-sample frame rotates by about 1°; the carrier *phase* drifts several radians over a run, so frames differ in absolute phase |
 | fading | sum of 8 sinusoids, **Rician K = 4**, Doppler 1 Hz | each frame sees one complex gain; over a run it swings 0.78–1.52 in magnitude (5.7 dB) |
 | multipath | 3 paths at delays 0, 0.9, 1.7 samples, gains 1, 0.8, 0.3 | delay spread 0.2 symbol: mild but real inter-symbol interference |
 | **noise** | `noise_amp = 10**(-snr/10.0)`, seed `0x1337` | see §3 |
@@ -112,19 +112,27 @@ factor of 8 samples per symbol.
 It is added after the fading and multipath, so its level is fixed while the
 signal's level varies from frame to frame with the fading gain.
 
-**The whole channel is the same in every run.** GNU Radio 3.7.10 hands one
-seed to every part of the dynamic channel model (clock walk, carrier walk,
-fading, noise; `dynamic_channel_model_impl.cc`), the generator passes the
-fixed `0x1337`, and it builds a fresh channel for every run. Rebuilt in
-3.10 (`tools/rml2016_channel_audit.py`): two runs with the noise off are
-bit-identical, and the noise alone is the identical sequence run after run.
-So every class at every SNR passes through one and the same channel
-trajectory and one and the same noise sequence, scaled per SNR. What
-differs between frames is the data and where in the run the frame was cut
-(a random start of 50–500 samples, then random steps). Two frames cut at
-offsets less than 128 apart share noise samples, shifted. Whether that
-shows up in the pickle is checked by `tools/rml2016_noise_reuse.py`
-(pending).
+**Is the channel the same in every run? Not in the dataset.** GNU Radio
+hands one seed to every part of the dynamic channel model, the generator
+passes the fixed `0x1337`, and it builds a fresh channel for every run. In
+GNU Radio 3.10 that makes every run bit-identical, noise included
+(`tools/rml2016_channel_audit.py`). But the dataset was made with 3.7, and in
+3.7.10 the noise, the carrier walk and the clock walk draw their values from
+a seeded pool of 8,192 samples **at indices picked by `lrand48()`**, a
+process-wide generator the block never re-seeds
+(`fastnoise_source_X_impl.cc.t`). So those three differ from run to run.
+Only the fading has its own seeded generator (`flat_fader_impl.cc`) and
+repeats identically in every run.
+
+Checked on the pickle (`tools/rml2016_noise_reuse.py`,
+`rml2016_noise_reuse.json`): among all 11,000 frames at −20 dB, and again at
+−16 dB, **no two frames share a noise segment**. At −18 dB, one pair does
+(a BPSK and a WBFM frame, 118 samples), 1 in 11,000. The same test finds a
+partner for 17% of frames when the generator's framing is run over one
+shared noise sequence. So the noise is not reused, and no train/test leakage
+comes from it. Two properties of the 3.7 source remain unchecked in the file:
+every noise sample is one of 8,192 fixed values (times the amplitude), and the
+fading trajectory is the same in every run.
 
 ---
 

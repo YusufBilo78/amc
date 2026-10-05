@@ -4,7 +4,13 @@ generate_RML2016.10a.py builds a fresh dynamic_channel_model for every run,
 always with noise_seed 0x1337, and GNU Radio 3.7.10 hands that one seed to
 every part of the model: the clock-offset walk, the carrier-offset walk, the
 fading, and the noise. This measures the consequences on the same block in
-GNU Radio 3.10:
+GNU Radio 3.10.
+
+Read it as 3.10's behaviour, not the dataset's. In 3.7 the noise and both
+walks pick from their seeded pools with the unseeded, process-wide
+lrand48(), so they differ run to run; only the fading repeats. The pickle
+agrees: tools/rml2016_noise_reuse.py finds no shared noise segments.
+Measured here:
 
   - two runs with the noise off: bit-identical output?
   - two runs of the noise alone: the same sequence?

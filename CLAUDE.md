@@ -194,13 +194,13 @@ the session; the deck he saw was the 2018 one):
    not exactly what made the file. The method reads only −13…+18 dB on this
    file. Quote labels as labels; never compare classes at one label as if
    they had the same SNR.
-   **The channel is deterministic** (`tools/rml2016_channel_audit.py`): GNU
-   Radio seeds every part of the dynamic channel model with the generator's
-   fixed `0x1337`, so every run, for every class and SNR, sees the same
-   channel and the same noise sequence. The carrier walk reaches ~4 Hz in a
-   run, under 1° of rotation per frame, not the 500 Hz clip. Whether frames
-   in the pickle share noise is `tools/rml2016_noise_reuse.py` (Colab,
-   pending)
+   **Noise is not reused** (`rml2016_noise_reuse.json`): GNU Radio 3.10
+   would make every run identical (`tools/rml2016_channel_audit.py`), but
+   the 2016 dataset was made with 3.7, whose noise and offset walks pick
+   from seeded pools with the unseeded `lrand48()`. In the pickle 0 of
+   11,000 frames at −20 dB share a noise segment. Only the fading repeats
+   run to run. The carrier walk reaches a few Hz in a run (~1° per frame),
+   never the 500 Hz clip
 3. **One SNR at a time.** The matrix at a single level, then lower: 10, 6,
    then ~3 dB (2 or 4 on the 2 dB grid). Error rate against SNR.
    **Done: `SNR_2016.md`, figures 31–33, `tools/single_snr.py`.** 448 / 473

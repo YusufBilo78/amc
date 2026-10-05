@@ -1,0 +1,35 @@
+{
+ "-20": {
+  "frames": 11000,
+  "frames_with_a_partner": 0,
+  "share": 0.0,
+  "pairs": 0,
+  "pairs_same_class": 0,
+  "pairs_different_class": 0,
+  "median_overlap": 0,
+  "partner_count_by_class": {}
+ },
+ "-18": {
+  "frames": 11000,
+  "frames_with_a_partner": 2,
+  "share": 0.0002,
+  "pairs": 1,
+  "pairs_same_class": 0,
+  "pairs_different_class": 1,
+  "median_overlap": 118,
+  "partner_count_by_class": {
+   "BPSK": 1,
+   "WBFM": 1
+  }
+ },
+ "-16": {
+  "frames": 11000,
+  "frames_with_a_partner": 0,
+  "share": 0.0,
+  "pairs": 0,
+  "pairs_same_class": 0,
+  "pairs_different_class": 0,
+  "median_overlap": 0,
+  "partner_count_by_class": {}
+ }
+}
