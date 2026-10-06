@@ -66,6 +66,8 @@ document.querySelectorAll('nav a').forEach(a=>a.onclick=()=>{const d=document.qu
 
 
 def md(text):
+    # python-markdown nests lists at 4 spaces; the study file uses 2
+    text = re.sub(r"^( +)(?=[-*] |\d+\. )", lambda m: m[1] * 2, text, flags=re.M)
     out = markdown.markdown(text, extensions=["tables"])
     out = out.replace("<table>", '<div class="table"><table>').replace("</table>", "</table></div>")
     # the three sub-heads of every slide, shown as small labels
@@ -83,7 +85,7 @@ def main():
         head, _, body = ch.partition("\n")
         body = re.sub(r"\n---\s*$", "", body.strip())
         m = re.match(r"Slayt (\d+) — (.+)", head)
-        key, label, name = (f"s{m[1]}", m[1], m[2]) if m else (f"x{i}", "★" if i == 0 else "✓", head)
+        key, label, name = (f"s{m[1]}", m[1], m[2]) if m else (f"x{i}", "★" if i == 0 else "?" if head.startswith("Sözlük") else "✓", head)
         chips.append(f'<a href="#{key}">{label}</a>')
         cards.append(f'<details id="{key}"{" open" if i == 0 else ""}><summary><span class="n">{label}</span>'
                      f'<span>{html.escape(name)}</span></summary><div class="body">{md(body)}</div></details>')

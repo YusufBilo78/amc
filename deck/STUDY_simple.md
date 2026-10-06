@@ -32,6 +32,104 @@ Buradaki her sayı repodaki bir sonuç dosyasından geliyor (`deck/deck2016_data
 
 ---
 
+## Sözlük — "Bu nedir?" soruları
+
+Moshe en basit terimi de sorabiliyor: "bu nedir, bununla neyi kastettin?". Aşağıda slaytlarda geçen her terim var, geçtiği sırayla. Her birinde önce söyleyeceğin bir iki cümlelik İngilizce cevap, sonra parantez içinde Türkçe not.
+
+**En önemlisi: recall.** Moshe bunu geçen sefer sordu, hazır ol.
+
+> **Recall** — "Of the frames that really were QAM16, how many did it call QAM16? It is one row of the matrix. At 10 dB, 1,808 of 2,100 QAM16 frames: 86.1 percent. In detection terms it is the probability of detection for that class: P(say QAM16 | QAM16 was sent)."
+>
+> **Precision** — "When it says QAM64, how often is it right? It is one column. At 10 dB it said QAM64 2,236 times and was right 1,961 times: 87.7 percent. It is P(QAM64 was sent | it said QAM64)."
+>
+> **Why both?** — "Recall asks: did it find them? Precision asks: can I believe it when it says so? A detector that calls everything QPSK has 100 percent QPSK recall and 25 percent precision. That is exactly what happens at minus 20 dB."
+
+- *"Is recall the same as accuracy?"*
+  - For one class, yes: recall is that class's accuracy.
+  - Overall accuracy is all correct over all frames. Our classes are equal in size, so overall accuracy is the average of the four recalls.
+- *"Is 1 − precision the false-alarm rate?"*
+  - No. The false-alarm rate is P(say QAM64 | it was not QAM64).
+  - 1 − precision is the share of "QAM64" answers that were wrong. It depends on how often the other classes are sent.
+  - (Moshe dedeksiyon teorisinden gelir; bu ayrımı bilmen iyi olur.)
+
+### Sinyal
+
+- **AMC (automatic modulation classification)** — "Looking at a received signal and saying which modulation sent it, without being told." *(Otomatik modülasyon sınıflandırma.)*
+- **Modulation** — "The rule that turns bits into a radio wave: which bits change the phase, the amplitude or the frequency." *(Bitlerin dalgaya nasıl yazıldığı.)*
+- **Digital / analog modulation** — "Digital sends symbols from a fixed set of points; analog, like FM or AM, follows a continuous signal such as audio." *(8 dijital, 3 analog sınıf.)*
+- **Phase / amplitude** — "Amplitude is how strong the wave is; phase is where in its cycle it is, an angle." *(Genlik ve faz.)*
+- **BPSK, QPSK** — "Phase-shift keying with 2 or 4 phases. All points have the same amplitude. One and two bits per symbol." *(Sadece faz değişiyor.)*
+- **QAM16, QAM64** — "Quadrature amplitude modulation: points on a square grid of 16 or 64, so phase and amplitude both change. Four and six bits per symbol." *(Hem faz hem genlik.)*
+- **Symbol** — "One point the transmitter sends, held for one symbol period. It is one 'letter' of the message." *(BPSK'da 2, QAM64'te 64 farklı harf var.)*
+- **Constellation / grid** — "The set of all points a modulation is allowed to use, drawn on the I/Q plane." *(Slayt 7'deki gri çemberler.)*
+- **Sample** — "One measurement of the signal at one moment: one I value and one Q value." *(Bir ölçüm anı.)*
+- **I and Q** — "The received signal written as two numbers per sample: the in-phase part and the quadrature part. Together they give amplitude and phase." *(Turuncu ve mavi çizgiler.)*
+- **Samples per symbol** — "Here 8. Each symbol lasts eight samples, so 128 samples are 16 symbols." *(128 / 8 = 16.)*
+- **Frame** — "One example given to the detector: 128 samples in a row, cut from a longer signal." *(Bir çerçeve = bir karar.)*
+- **Pulse shaping** — "A filter that makes the signal move smoothly from one symbol to the next, so it uses less bandwidth." *(Noktalar arasındaki yumuşak geçiş.)*
+- **Different transmitter / domain gap** — "Train on signals from one source, test on signals from another. The accuracy you lose is the domain gap." *(Projenin 3. adımı.)*
+
+### Gürültü ve kanal
+
+- **Noise** — "Random disturbance added to the signal. Here it is white Gaussian noise added by the simulator." *(AWGN.)*
+- **SNR** — "Signal-to-noise ratio: signal power divided by noise power." *(Sinyal gücü / gürültü gücü.)*
+- **dB** — "Ten times the log of a power ratio. 10 dB is ten times the power, 20 dB a hundred times, 3 dB about double." *(Logaritmik ölçek.)*
+- **SNR label** — "The number the dataset attaches to each frame, minus 20 to plus 18. It is a setting in their code, not a measured SNR." *(Slayt 8'in ana mesajı.)*
+- **Noise amplitude vs power** — "Power is amplitude squared. Their code sets the amplitude, so one dB of label changes the noise power by about two dB." *(Ölçtüğümüz: 1.9.)*
+- **Carrier frequency offset** — "The transmitter and receiver oscillators are not exactly at the same frequency, so the points slowly rotate." *(Taşıyıcı kayması.)*
+- **Clock offset (sample-rate offset)** — "The receiver samples slightly faster or slower than the transmitter, so symbol timing drifts." *(Saat kayması.)*
+- **Fading** — "The signal's strength and phase change over time because of movement and reflections." *(Sönümlenme.)*
+- **Echoes / multipath** — "Delayed copies of the signal arrive through other paths and add to it." *(Yankılar, çok yollu yayılım.)*
+- **Spectrum / band / out-of-band** — "The spectrum is the signal's power at each frequency. The band is where the signal is; out of band there is only noise, which is how I measured the noise." *(Slayt 8'deki ölçüm yöntemi.)*
+- **Simulator, GNU Radio** — "GNU Radio is open-source software for building radio signal chains. DeepSig used it to generate the whole dataset; nothing was recorded over the air." *(Veri gerçek değil, simülasyon.)*
+- **DeepSig, RML2016.10a** — "DeepSig is the company of Tim O'Shea, who made the RadioML datasets. 2016.10a is the version from 2016 that most papers use." *(RML = RadioML.)*
+
+### Model
+
+- **Detector / classifier** — "The program that takes a frame and returns one of the four names." *(Bizim ICRNNA.)*
+- **Neural network** — "A function with many adjustable numbers. You show it examples with the right answer and it adjusts the numbers to make fewer mistakes." *(Sinir ağı.)*
+- **Parameters ("numbers learned")** — "The adjustable numbers inside the model. Ours has 785,476." *(Ağırlıklar.)*
+- **Convolution** — "A small filter slid along the signal, like an FIR filter whose taps are learned instead of designed." *(Moshe elektrik mühendisi; FIR benzetmesi işe yarar.)*
+- **Pooling** — "Keeps the larger of each two neighbouring values, so the sequence gets half as long." *(128 → 64 → 32.)*
+- **LSTM / BiLSTM** — "A layer that reads a sequence one step at a time and keeps a memory of what it has seen. Bi means it also reads it backwards." *(Modelin %84'ü burada.)*
+- **Attention** — "It gives each of the 32 pieces a weight and takes the weighted average, so the model decides which parts to listen to." *(Ağırlıklı ortalama.)*
+- **Dense layer** — "Every input connected to every output: a matrix multiplication plus a bias." *(Son iki katman.)*
+- **Score / logit** — "One number per class at the end. The biggest one is the answer." *(Argmax.)*
+- **Deterministic** — "Once trained, nothing is random. The same frame always gets the same answer." *(Test sırasında dropout kapalı.)*
+- **ICRNNA** — "The model's name in the 2025 paper: Improved Convolutional Recurrent Neural Network with Attention." *(Açılımını ezberle.)*
+- **Faithful build** — "My own version, written strictly from the paper, to check the paper's number." *(63.21 vs 63.24.)*
+
+### Eğitim
+
+- **Training** — "Adjusting the parameters so the model makes fewer mistakes on the training frames." *(%70.)*
+- **Validation set** — "Frames used only to decide when to stop training. The model does not learn from them." *(%15.)*
+- **Test set** — "Frames the model never saw. Every number I report is counted on them." *(%15.)*
+- **Epoch** — "One pass through all the training frames." *(Bir tur.)*
+- **Early stopping** — "Stop when validation accuracy has not improved for 20 epochs, and keep the best version." *(Patience 20.)*
+- **Converged** — "It stopped improving by itself, before the epoch limit, so it was not cut short." *(Bütün koşular yakınsadı.)*
+- **Seed / repeat** — "One run with its own random split and its own random starting point. We did 14 so that one lucky run cannot make the result." *(14 tekrar.)*
+
+### Sonuçlar
+
+- **Confusion matrix** — "A table: rows are what was sent, columns what the detector said. The diagonal is correct." *(Slayt 9.)*
+- **Accuracy** — "Correct decisions divided by all decisions." *(94.2% = 1 − 2,421 / 42,000.)*
+- **Decision** — "One frame, one answer. 42,000 decisions means 42,000 test frames." *(Her noktanın arkasında kaç karar var.)*
+- **"At 10 dB and above"** — "Only frames with labels 10, 12, 14, 16 and 18." *(5 seviye.)*
+- **Chance / a guess** — "With four classes, picking at random is right 25 percent of the time." *(1/4.)*
+- **Sink** — "The class the detector falls back on when the frame carries no information." *(−20 dB'de BPSK ve QPSK.)*
+- **Floor / ceiling** — "Where the curve goes flat: the error that more signal can no longer remove." *(16 sembolde %5.7.)*
+
+### Literatür karşılaştırması
+
+- **Overall accuracy** — "Accuracy over all twenty labels together, minus 20 to plus 18." *(Makalelerin verdiği sayı.)*
+- **"Same parameter count, to the digit"** — "If I had built even one layer differently, the count would change. Matching it is the check that the model is really theirs." *(Portun doğru olduğunun kanıtı.)*
+- **VT-CNN2** — "The 2016 convolutional network of O'Shea and colleagues, as rebuilt in the benchmark." *(En eski, en büyük.)*
+- **LSTM2** — "Two LSTM layers that read amplitude and phase instead of I and Q. Rajendran 2018." *(Az parametre, iyi sonuç.)*
+- **MCLDNN** — "A multi-channel CNN plus LSTM: it looks at I, Q and both together. Xu 2020." *(Çok kanallı.)*
+- **PET-CGDNN** — "It first estimates and removes the phase offset, then classifies. Zhang 2021." *(En küçüğü, 71,871.)*
+
+---
+
 ## Slayt 1 — Başlık
 
 **Slaytta ne var, ne demek**
@@ -327,12 +425,15 @@ Buradaki her sayı repodaki bir sonuç dosyasından geliyor (`deck/deck2016_data
 
 **Okuma metni (EN)**
 
-> At 10 dB: rows are what was sent, columns what it said. Recall is a row, precision is a column.
+> At 10 dB: rows are what was sent, columns what it said. The diagonal is correct.
+>
+> Last time you asked what recall is. Recall is one row: of the frames that really were QAM16, how many did it call QAM16? Here 1,808 of 2,100, 86.1 percent. Precision is one column: when it says QAM64, how often is it right? 1,961 of 2,236, 87.7 percent. So recall asks "did it find them?", and precision asks "can I believe it?"
 >
 > BPSK and QPSK: 99.6 percent. 448 mistakes out of 8,400, and 395 of them are QAM16 and QAM64 mixed up. One problem left.
 
 **Olası sorular**
 
+- *"What is recall, again?"* — See the **Sözlük** at the top: recall, precision, and why both.
 - *"Why is QAM16 called QAM64 more often than the reverse?"* — I have not measured the reason. One likely explanation is that noise and the channel push QAM16 points off the grid, into positions that look like the denser QAM64 grid. Switching off the channel effects one at a time (the next step) should show it.
 - *"Are 150 test frames enough?"* — Per seed it is small, so we pool 14 seeds: 2,100 decisions per row.
 - *"Is this matrix stable across seeds?"* — Yes. The pattern is the same in every seed; the QAM pair dominates every time.

@@ -36,7 +36,7 @@ You asked what "10 dB" is. It's a setting in their code, not a measurement. It s
 
 ## 9. The answer at one noise level: 10 dB
 
-At 10 dB: rows are what was sent, columns what it said. Recall is a row, precision is a column. BPSK and QPSK: 99.6 percent. 448 mistakes out of 8,400, and 395 of them are QAM16 and QAM64 mixed up. One problem left.
+At 10 dB: rows are what was sent, columns what it said. The diagonal is correct. Last time you asked what recall is. Recall is one row: of the frames that really were QAM16, how many did it call QAM16? Here 1,808 of 2,100, 86.1 percent. Precision is one column: when it says QAM64, how often is it right? 1,961 of 2,236, 87.7 percent. So recall asks "did it find them?", and precision asks "can I believe it?" BPSK and QPSK: 99.6 percent. 448 mistakes out of 8,400, and 395 of them are QAM16 and QAM64 mixed up. One problem left.
 
 ## 10. Turn the noise up: when does it break?
 
