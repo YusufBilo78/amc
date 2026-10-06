@@ -42,7 +42,7 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </style></head><body><nav><a href="#x0">★</a><a href="#s1">1</a><a href="#s2">2</a><a href="#s3">3</a><a href="#s4">4</a><a href="#s5">5</a><a href="#s6">6</a><a href="#s7">7</a><a href="#s8">8</a><a href="#s9">9</a><a href="#s10">10</a><a href="#s11">11</a><a href="#s12">12</a><a href="#s13">13</a><a href="#s14">14</a><a href="#x15">✓</a></nav><main><h1>Sunum çalışma metni — moshe_2016_simple.pptx (14 slayt)</h1><div class="intro"><p>Her slayt için üç bölüm var:</p>
 <ul>
 <li><strong>Slaytta ne var, ne demek:</strong> Slayttaki her sayının, kutunun ve resmin Türkçe açıklaması. Sayının nereden geldiği de yazıyor.</li>
-<li><strong>Okuma metni (EN):</strong> Sunumda söyleyeceğin İngilizce metin. Slayt notlarındakinin genişletilmiş hali. Okunarak değil, anlatılarak söylenecek şekilde yazıldı.</li>
+<li><strong>Okuma metni (EN):</strong> Sunumda söyleyeceğin İngilizce metin, slayt notlarındakiyle aynı. Kısa cümleler, günlük kelimeler, slayt başına yaklaşık bir dakika; hepsi 12–14 dakika. Her slayt aynı sırayla gidiyor: slaytın cevapladığı soru → bir somut resim veya sayı → tek mesaj. Ayrıntılar slaytta ve aşağıdaki açıklamada; sorulursa oradan cevaplarsın.</li>
 <li><strong>Olası sorular:</strong> Moshe'nin sorabileceği sorular ve kısa cevapları.</li>
 </ul>
 <p>Buradaki her sayı repodaki bir sonuç dosyasından geliyor (<code>deck/deck2016_data.json</code>, <code>DETECTOR.md</code>, <code>NOISE_2016.md</code>, <code>SNR_2016.md</code>, <code>LITERATURE_CHECK.md</code>). Burada olmayan bir sayıyı sunumda söyleme.</p></div><div class="tools"><button id="open">Hepsini aç</button><button id="close">Hepsini kapat</button></div><details id="x0" open><summary><span class="n">★</span><span>Ezber kartı — en önemli sayılar</span></summary><div class="body"><div class="table"><table>
@@ -138,9 +138,9 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </ul>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>Good morning. Today I want to show you, step by step, what our detector does. I will stay with the four signals you asked about: BPSK, QPSK, QAM16 and QAM64.</p>
-<p>The picture on the right is one QAM16 frame. It has sixteen symbols, and you can watch them spread away from their grid points as the noise grows. Keep that picture in mind, because most of what I show today is about how many symbols a frame has and how much noise is on them.</p>
-<p>Everything today is on RML2016.10a, the dataset the group uses, so the numbers can be compared with yours.</p>
+<p>Today I want to open up our detector and show you what it does, step by step.</p>
+<p>I'll use the four signals you asked about: BPSK, QPSK, QAM16 and QAM64.</p>
+<p>The picture on the right is one QAM16 frame. Watch the sixteen points spread out as the noise grows. That picture is really today's whole talk: how many symbols we have, and how much noise is on them.</p>
 </blockquote>
 <div class="tag">Olası sorular</div>
 <ul>
@@ -158,13 +158,9 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </ul>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>First, in one minute, what this is about.</p>
-<p>AMC stands for automatic modulation classification. A receiver picks up a radio signal that nobody described to it. Before it can do anything with that signal, it has to answer one question: how was it modulated? Is it BPSK, QPSK, a QAM, FM? That question comes up when you watch the spectrum, when you look for the source of interference, and in radios that adapt to what they hear.</p>
-<p>My work has three parts.</p>
-<p>The first is a detector that answers that question. It is a neural network trained on RML2016.10a, the standard dataset most papers in this field use. It is simulated, not recorded.</p>
-<p>The second is opening that detector up: what exactly it does, what the noise in the data really is, and where it fails. That is today.</p>
-<p>The third is the bigger question of my project: why do detectors like this lose accuracy when the signal comes from a different transmitter, and what fixes it?</p>
-<p>Today I stay with the first two, on four signals.</p>
+<p>Quickly, what this is about. A receiver picks up a signal, and nobody told it what kind of signal it is. AMC, automatic modulation classification, answers one question: how was this signal modulated? You need that to watch the spectrum, to find interference, and for radios that adapt to what they hear.</p>
+<p>My work has three steps. One: a detector that does this, trained on a standard simulated dataset. Two: open it up. What does it do, what is the noise really, and where does it fail? Three, the real question of the project: why do these detectors get worse on a signal from a different transmitter?</p>
+<p>Today is steps one and two.</p>
 </blockquote>
 <div class="tag">Olası sorular</div>
 <ul>
@@ -194,10 +190,10 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </ul>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>The data. I use RML2016.10a. DeepSig made it in 2016 with GNU Radio, a radio simulator, and it is the dataset most AMC papers report on.</p>
-<p>It has eleven modulation types: eight digital and three analog. Each type is given at twenty noise levels, from minus twenty to plus eighteen dB in steps of two, with one thousand frames at every level. That is two hundred and twenty thousand frames in total.</p>
-<p>Every frame is 128 samples of the complex baseband signal, an in-phase part and a quadrature part. There are eight samples per symbol, so one frame holds sixteen symbols. That number, sixteen, will matter later.</p>
-<p>Today I use the four in orange. BPSK and QPSK carry information only in the phase: all their points sit on one circle. QAM16 and QAM64 also change the amplitude: their points sit on a square grid.</p>
+<p>The data is RML2016.10a. DeepSig made it in a simulator in 2016, and most papers in this field use it.</p>
+<p>Eleven signal types. Twenty noise levels, from minus twenty to plus eighteen dB. A thousand frames of each type at each level. That's two hundred and twenty thousand frames.</p>
+<p>One frame is 128 samples, and that is only sixteen symbols. Please remember that number.</p>
+<p>Today I use the four in orange. BPSK and QPSK only change the phase. QAM16 and QAM64 change the phase and the amplitude.</p>
 </blockquote>
 <div class="tag">Olası sorular</div>
 <ul>
@@ -227,13 +223,11 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </ul>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>What does the detector do? It is given 128 samples of a radio signal and has to say which of the four modulations sent them. Before anything else, every frame is scaled to the same average power, so the detector cannot cheat by looking at how loud the signal is.</p>
-<p>It works in three steps.</p>
-<p>Step one looks at short pieces of the frame. Two convolution layers each slide a set of learned filters along the samples, and two pooling steps halve the length twice. Each output piece is computed from twelve consecutive samples, about one and a half symbols, so the frame becomes thirty-two pieces. What this step can see is local: how the signal changes from one symbol to the next.</p>
-<p>Step two reads those thirty-two pieces in order, forwards and backwards. This is a bidirectional LSTM, two layers. After it, every piece carries information about the whole frame, not only its own neighbourhood.</p>
-<p>Step three decides. An attention layer gives each of the thirty-two pieces a weight, and takes the weighted average. Two dense layers turn that average into four scores, one per class. The largest score is the answer.</p>
-<p>In total it has 785 thousand numbers that it learns. Eighty-four percent of them are in the second step, so this is mostly a recurrent network with a small convolutional front end.</p>
-<p>Two properties matter for what follows. Once trained, nothing in it is random: the same frame always gets the same answer. And there is no "I don't know": every frame gets one of the four names.</p>
+<p>The detector gets 128 samples and has to say which of the four it is. It does that in three steps.</p>
+<p>First, it looks at short pieces, about one and a half symbols each. The frame becomes thirty-two pieces.</p>
+<p>Second, it reads those pieces in order, forwards and backwards, a bit like reading a sentence. After that, every piece knows about the whole frame. This part is an LSTM, and it holds most of the model, 84 percent.</p>
+<p>Third, it decides. It weighs the pieces, averages them, and gives four scores. The biggest score wins.</p>
+<p>Two things to keep in mind. Once trained, it is not random: same frame, same answer. And it can never say "I don't know". That will matter later.</p>
 </blockquote>
 <div class="tag">Olası sorular</div>
 <ul>
@@ -299,11 +293,9 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </ul>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>Where did the detector come from?</p>
-<p>The design is from a 2025 paper by El-Haryqy and co-authors, in Results in Engineering. The model is called ICRNNA, and the paper reports 63.24 percent on all eleven classes of this dataset.</p>
-<p>A colleague re-implemented that paper, and our code was copied from their version. Comparing it line by line with the paper, it differs in five small places: the first filter size, one extra pooling step, where the normalisation sits, no dropout in the attention, and one dense layer instead of two. So I do not call our model "the published architecture"; it is a close version of it.</p>
-<p>I wanted to know whether the paper's number is real. So I rebuilt the model from the paper alone. Trained for the paper's own 58 epochs, it reached 61.75 percent, one and a half points short. Trained until it stopped improving, which was epoch 107, it reached 63.21 percent, against the paper's 63.24. So the paper's number is reproducible, and the whole gap was training time. Since then every training script records when the model stopped improving, and warns if it was stopped too early.</p>
-<p>And to be clear about the tools: the code, the plots and these slides were written with Claude Code, an AI coding assistant from Anthropic. Every number comes from running that code on a GPU. The choices of what to test, and what to ask, were mine.</p>
+<p>Where did it come from? The design is from a 2025 paper; the model is called ICRNNA. A colleague coded it up, and our code comes from theirs. It's close to the paper, with five small differences.</p>
+<p>I wanted to check the paper's number, so I built the model again from the paper alone. Trained long enough, it gets 63.21 percent. The paper says 63.24. So the number is real.</p>
+<p>And to be open about my tools: the code, the plots and these slides were written with Claude Code, an AI assistant. The numbers come from actually running that code. What to test was my decision.</p>
 <p><em>[Burayı sen doldur: meslektaşın kim olduğu ve Eylül öncesi işin nasıl yapıldığı.]</em></p>
 </blockquote>
 <div class="tag">Olası sorular</div>
@@ -337,12 +329,11 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </ul>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>This is the whole experiment on one slide.</p>
-<p>The input is RML2016.10a: four kinds of signal, twenty noise levels, a thousand frames of each. One frame is 128 samples, sixteen symbols.</p>
-<p>The detector learns on seventy percent of the frames. It uses fifteen percent to decide when to stop learning: when the accuracy on that part has not improved for twenty epochs, training stops and the best version is kept. The last fifteen percent is the test set. The detector never sees it while learning, and nothing is chosen on it. Every number I show is counted on that test set.</p>
-<p>I did this fourteen times, each time with a different split and a different random start, so that one lucky split cannot make the result. All fourteen runs stopped by themselves, well before the limit, so none of them was cut short.</p>
-<p>The output: at ten dB and above, it is right 94.2 percent of the time, counted over 42,000 test decisions. BPSK and QPSK at ten dB are right 99.6 percent of the time. At minus twenty dB it is right 25 percent of the time, which, with four choices, is exactly a guess.</p>
-<p>The next slides take this apart: first the input, then the noise, then the answer.</p>
+<p>Here is the whole experiment on one slide.</p>
+<p>In: four signal types, twenty noise levels, a thousand frames each.</p>
+<p>The detector learns on 70 percent of the frames. It uses 15 percent to decide when to stop. And it is tested on the last 15 percent, which it has never seen. I did this fourteen times with different splits, so it isn't luck.</p>
+<p>Out: at 10 dB and above, it is right 94 percent of the time, over 42,000 decisions. BPSK and QPSK are almost perfect. At minus 20 dB it is right 25 percent of the time, and with four choices that is just a guess.</p>
+<p>Now let's open each part: the input, the noise, then the answer.</p>
 </blockquote>
 <div class="tag">Olası sorular</div>
 <ul>
@@ -362,11 +353,9 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </ul>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>Step one: what the detector actually sees.</p>
-<p>On the left is one QAM16 frame, drawn without noise. The orange line is the in-phase part, the blue line the quadrature part. Every eight samples there is one symbol, the dots. Each dot sits on minus three, minus one, one or three. Four levels on each axis gives sixteen points, and that is what makes it QAM16. Between the dots the signal moves smoothly, because of the pulse-shaping filter.</p>
-<p>On the right are the sixteen symbols of one frame for each kind, in orange, drawn on all the points that kind can use, the grey circles. For BPSK, sixteen symbols on two points: every point is seen many times. For QPSK, four points, still easy.</p>
-<p>Now look at QAM64. It has sixty-four points, but one frame only has sixteen symbols, so it can show at most sixteen of them. In practice it shows fewer, because some repeat. If those happen to fall on the points QAM16 also uses, a QAM64 frame looks like a QAM16 frame, even with no noise at all.</p>
-<p>Keep that in mind: it is the explanation for most of the mistakes I show next.</p>
+<p>First, the input. This is one QAM16 frame, drawn without noise. Orange is the I part, blue is the Q part. Every eight samples there is a symbol, the dots. Each dot sits on one of four levels. Four levels times four levels: sixteen points. That's QAM16.</p>
+<p>On the right are the sixteen symbols of one frame, drawn on all the points each type can use. BPSK has two points, so sixteen symbols cover it many times.</p>
+<p>But QAM64 has sixty-four points, and we only have sixteen symbols. We never see the whole grid. So a QAM64 frame can look like QAM16 even with no noise at all. Keep that in mind.</p>
 </blockquote>
 <div class="tag">Olası sorular</div>
 <ul>
@@ -396,12 +385,11 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </ul>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>Step two: the noise. You asked what "ten dB" is the ratio of. Here is the answer.</p>
-<p>The dataset was made by DeepSig in GNU Radio, a simulator. It was not recorded from a real radio. The paper does not define the label. In their code, the label sets exactly one number: the noise amplitude, ten to the minus label over ten. That is an amplitude, not a power, so one dB of label should change the noise power by two dB, not one.</p>
-<p>Besides the noise, every frame also gets a carrier frequency offset, a clock offset, fading and echoes. Those are there at every noise level, even the best one, so a frame at plus eighteen dB is still not a clean frame.</p>
-<p>I did not want to rely on their code, so I measured the noise in the file itself. The signal sits in the middle of the spectrum. Outside it there is only noise, so the level out there gives the noise power. I checked this method first on frames where I knew the noise, and it was within half a dB.</p>
-<p>Two findings. First, one dB of label is about 1.9 dB of real change, which confirms the code: the label moves twice as fast as its name. Second, at the same label, QAM64 frames have about fifteen dB more signal than BPSK and QPSK frames, and QAM16 about nine and a half. That is what you get if the constellations were never scaled to the same power.</p>
-<p>So "ten dB" in this dataset is a setting, not a measurement, and it means a different amount of noise for each kind of signal. I quote labels as labels, and I never compare two classes at one label as if they had the same SNR.</p>
+<p>Second, the noise. You asked what "10 dB" actually is. The short answer: it's a setting in their code, not a measurement.</p>
+<p>In the code, the label sets one thing, the noise amplitude. Not the power. So one dB of label really moves the noise by about two dB.</p>
+<p>And noise is not the only thing added. Every frame also gets a frequency offset, a clock offset, fading and echoes. Even the cleanest frames.</p>
+<p>I didn't want to just trust the code, so I measured the noise in the file. The signal sits in the middle of the band; outside it there is only noise. Two findings. One dB of label is 1.9 dB of real change. And at the same label, QAM64 has about 15 dB more signal than BPSK and QPSK.</p>
+<p>So "10 dB" means a different noise level for each signal.</p>
 </blockquote>
 <div class="tag">Olası sorular</div>
 <ul>
@@ -430,12 +418,11 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </ul>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>Here is the answer at one noise level, ten dB, as you asked.</p>
-<p>These are 8,400 test frames: fourteen repeats, four kinds, a hundred and fifty frames each. Each row is what was sent. Each column is what the detector said. The diagonal is right; everything else is a mistake.</p>
-<p>Two words I will use from now on. Recall is a row: of the frames that really were QPSK, how many did it call QPSK. Precision is a column: of the frames it called QPSK, how many really were.</p>
-<p>BPSK and QPSK are at 99.6 percent recall, with precision near 99 percent as well. For them the problem is solved.</p>
-<p>448 frames out of 8,400 are wrong. 395 of those, almost nine in ten, are QAM16 and QAM64 confused with each other. QAM16 frames called QAM64 are the larger part, 269 of them.</p>
-<p>So at ten dB there is really only one problem left: telling QAM16 from QAM64.</p>
+<p>Now the answer, at one noise level: 10 dB. Rows are what was sent, columns are what the detector said. The diagonal is correct.</p>
+<p>Two words I'll use. Recall is a row: of the real QPSK frames, how many did it get? Precision is a column: when it says QPSK, how often is it right?</p>
+<p>BPSK and QPSK: 99.6 percent. Solved.</p>
+<p>448 mistakes out of 8,400. And 395 of them are just QAM16 and QAM64 confused with each other.</p>
+<p>So at 10 dB there is really one problem left: QAM16 against QAM64.</p>
 </blockquote>
 <div class="tag">Olası sorular</div>
 <ul>
@@ -457,10 +444,10 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </ul>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>Then, as you asked, turn the noise up, one level at a time.</p>
-<p>These bars are the number of wrong answers out of 8,400 test frames at each label. From ten dB down to two dB it stays between about 450 and 490. That is eight dB more noise, and nothing changes: the same box, with the same QAM mistakes, every time. So the mistakes we have at ten dB are not caused by noise.</p>
-<p>At zero dB it starts to move, and below zero it breaks. At minus two it is a thousand, at minus four more than two thousand. And the first to slip is QPSK, not into BPSK but into the two QAMs. When noise moves QPSK points off their circle, the amplitude seems to change, and changing amplitude is what QAM looks like. Remember also from the last slide that at the same label the QAMs have ten to fifteen dB more signal than QPSK, so QPSK gets buried first.</p>
-<p>So there are two different kinds of mistake. Below zero dB, noise. Above two dB, something else. The next slide shows what.</p>
+<p>Then, as you asked, I turned the noise up, one level at a time. The bars are the mistakes out of 8,400.</p>
+<p>From 10 dB down to 2 dB: about 450 to 490. Eight dB more noise, and nothing changes. Same mistakes.</p>
+<p>Below 0 dB it breaks, and the first to go is QPSK: it starts to look like a QAM.</p>
+<p>So the mistakes at 10 dB are not caused by noise. Then what causes them?</p>
 </blockquote>
 <div class="tag">Olası sorular</div>
 <ul>
@@ -527,12 +514,11 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </ul>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>So what does cause the mistakes that noise does not explain? The frame length.</p>
-<p>I cut every frame to its first sixty-four samples, which is eight symbols, and to its first thirty-two, four symbols, and trained the same model again from scratch, fourteen times each. The model is exactly the same; only the input is shorter.</p>
-<p>This chart shows the percent wrong against the label, for sixteen, eight and four symbols. The three curves fall at about the same noise level: noise decides where the curve comes down. But they flatten at very different heights. From plus two dB up, 5.7 percent wrong with sixteen symbols, 15.5 with eight, 25.2 with four. And once flat, adding signal does not help any more.</p>
-<p>Who is lost? Almost only the QAM pair. With four symbols QAM16 is right less than half the time, a coin flip against QAM64. BPSK does not move at all. QPSK starts to lose frames to BPSK only at four symbols, and that is what four symbols predict: if all four happen to land on one diagonal, a QPSK frame looks exactly like BPSK.</p>
-<p>On the right you can see why: with fewer symbols you see fewer points of the grid, and QAM16 and QAM64 become harder to tell apart.</p>
-<p>So the ceiling at high SNR is set by the number of symbols. More signal does not fix it. More symbols does.</p>
+<p>My guess was the frame length. So I cut every frame in half, to eight symbols, and in half again, to four, and trained the same model again.</p>
+<p>Look at the right side of the chart, where the noise is low. Every curve goes flat. With sixteen symbols, 5.7 percent wrong. With eight, 15.5. With four, 25.</p>
+<p>Almost all of that is the QAM pair. With four symbols, QAM16 against QAM64 is a coin flip.</p>
+<p>The picture on the right shows why: fewer symbols, fewer grid points, and the two QAMs look the same.</p>
+<p>So noise decides where the curve drops. The number of symbols decides how low it can go. More signal won't fix it. More symbols will.</p>
 </blockquote>
 <div class="tag">Olası sorular</div>
 <ul>
@@ -559,11 +545,10 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </ul>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>One thing we found along the way.</p>
-<p>At minus twenty dB there is effectively no signal. But the detector has no "I don't know"; it must name one of the four. So what does it say?</p>
-<p>QPSK recall there is 52 percent. On its own, that looks as if the detector still recognises QPSK in the noise. It does not. Look at the precision: of all the frames it calls QPSK, only 24.8 percent are QPSK. With four equal classes, a guess gives 25 percent. So that is a guess.</p>
-<p>What happens is that with nothing to go on, it sends almost everything, 98.8 percent of the frames, to BPSK or QPSK. The two QAMs are almost never named. And which of the two it prefers changes from one training run to the next: in some runs it is mostly BPSK, in others mostly QPSK. That is the mark of a default, not of recognition.</p>
-<p>The lesson for me was that recall alone can look good while the detector is only guessing. That is why every chart now shows precision next to recall, and how many decisions sit behind each point.</p>
+<p>One thing we found along the way. At minus 20 dB there is basically no signal. But the detector can't say "I don't know", so it has to pick one.</p>
+<p>QPSK recall there is 52 percent. That looks like it still recognises QPSK. It doesn't. Precision is 25 percent: of everything it calls QPSK, only a quarter really is. That's a guess.</p>
+<p>What really happens: with nothing to go on, it says BPSK or QPSK almost every time, and which of the two changes from run to run.</p>
+<p>The lesson: recall alone can fool you. So every chart now shows precision next to recall, and how many decisions are behind each point.</p>
 </blockquote>
 <div class="tag">Olası sorular</div>
 <ul>
@@ -602,9 +587,9 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </ul>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>Is ICRNNA a good choice? To answer that, I took four well-known published models, from 2016 to 2021, and rewrote each one from its authors' public benchmark code. Then I trained all of them exactly like ICRNNA: the same frames, the same split, the same three repeats. Only the model changes. This time on all eleven types, because that is what the papers report.</p>
-<p>First, are my numbers right? Two checks. Each model has exactly the number of learned parameters its paper reports, to the digit; if one layer were different, that number would change. And the accuracies the papers publish are within one point of mine, sometimes above and sometimes below, which is what a different split and a single run against three would give. So the comparison is fair.</p>
-<p>Then the result. ICRNNA is first overall, at 62.2 percent, but the best four are within about one point of each other. Where ICRNNA gains is at low SNR, between minus six and minus two dB. Above ten dB all four stop at about 91 percent. When four different designs stop at the same height, that limit is in the data, not in the model: mostly WBFM, which every model confuses with AM-DSB, and the QAM pair we just saw. The oldest model, the 2016 CNN, stays about ten points lower up there, even though it has the most parameters.</p>
+<p>Is ICRNNA a good choice? I took four well-known published models and trained them exactly like ICRNNA: same data, same split, same repeats. This time all eleven types, because that's what the papers report.</p>
+<p>First, can you trust my numbers? Each model has exactly the same number of parameters as in its paper. And my accuracies are within one point of the published ones. So it's a fair comparison.</p>
+<p>The result: ICRNNA is first, at 62.2 percent, but the top four are within about one point. And above 10 dB they all stop at around 91 percent. When four different designs hit the same ceiling, the limit is in the data, not in the model. Only the oldest one, from 2016, is clearly behind.</p>
 </blockquote>
 <div class="tag">Olası sorular</div>
 <ul>
@@ -623,12 +608,12 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </ul>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>To sum up, three points.</p>
-<p>One: BPSK and QPSK are essentially solved. Almost every remaining mistake is QAM16 against QAM64.</p>
-<p>Two: those mistakes come from having only sixteen symbols, not from noise. Between ten and two dB the number of mistakes does not change, and when I give the detector eight or four symbols instead of sixteen, the mistakes grow by 2.7 and 4.3 times.</p>
-<p>Three: "ten dB" in this dataset is a setting, not a measurement. One dB of label is almost two dB of real change, and at the same label each kind of signal has a different amount of noise.</p>
-<p>Next, I want to find which part of the channel the QAM mistakes belong to. I have rebuilt the generator, so I can switch off the carrier offset, the fading and the echoes one at a time, and see which one the mistakes follow.</p>
-<p>Thank you. I am happy to take questions.</p>
+<p>So, three things.</p>
+<p>One: BPSK and QPSK are solved. The mistakes are QAM16 against QAM64.</p>
+<p>Two: those mistakes come from having only sixteen symbols, not from noise. With eight symbols there are almost three times as many, with four more than four times.</p>
+<p>Three: "10 dB" here is a setting, not a measurement, and it's different for each signal.</p>
+<p>Next, I'll switch off the frequency offset, the fading and the echoes one at a time, and see which one the QAM mistakes follow.</p>
+<p>Thank you.</p>
 </blockquote>
 <div class="tag">Olası sorular</div>
 <ul>
