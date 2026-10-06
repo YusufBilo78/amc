@@ -263,7 +263,7 @@ Moshe en basit terimi de sorabiliyor: "bu nedir, bununla neyi kastettin?". Aşa�
 
 **Slaytta ne var, ne demek**
 
-- **Zincir:** makale → meslektaşın kodu → bizim kod.
+- **Zincir:** makale → meslektaşın (Esmer) kodu → bizim kod.
   - **Makale:** El-Haryqy et al., *Results in Engineering* 26 (2025) 104783. Model adı ICRNNA (Improved Convolutional Recurrent Neural Network with Attention). 11 sınıfta %63.24 bildiriyor.
   - **Meslektaşın kodu:** Makalenin bir yeniden uygulaması. Bizim kodumuz bundan kopyalandı.
   - **Makaleden 5 fark:** Her satırda önce makale, sonra bizim kod.
@@ -281,21 +281,19 @@ Moshe en basit terimi de sorabiliyor: "bu nedir, bununla neyi kastettin?". Aşa�
   - Yakınsayana kadar eğitince (150 epoch sınırı, en iyi epoch 107) %63.21 çıktı. Makale %63.24 diyor.
   - Yani aradaki 1.5 puanlık farkın tamamı eğitim süresiydi, mimari değil.
 - **"Written with an AI assistant":** Kod, grafikler ve slaytlar Claude Code (Anthropic) ile yazıldı. Her sayı o kodu GPU'da çalıştırarak elde edildi. Neyin test edileceği senin kararın.
-- **⚠️ Doldurman gereken yer:** Slayt notlarında `[Say here who the colleague is and how the work before September was done.]` duruyor. `DETECTOR.md`'deki "Before 2026-09-09" bölümü de boş. Meslektaşın adını ve Eylül öncesi işin nasıl yapıldığını sen söylemelisin. Ben bilmiyorum, uydurmadım.
+- **Meslektaş = Esmer** (slaytta adı yazmıyor, sadece konuşmada söylüyorsun). Esmer de bu konu üzerinde çalışıyordu; konuyu birlikte konuştunuz. Kodumuz Esmer'in model versiyonundan geliyor, eğittiğin verilerin bir kısmı da Esmer'in.
 
 **Okuma metni (EN)**
 
-> The design is from a 2025 paper; the model is called ICRNNA. Our code comes from a colleague's version, with five small differences.
+> The design is from a 2025 paper; the model is called ICRNNA. Esmer, a colleague here, was working on the same problem, and we talked it through together. Our code comes from Esmer's version of the model, and some of the trained data I use are Esmer's. It's close to the paper, with five small differences.
 >
 > I rebuilt it from the paper alone: 63.21 percent, against the paper's 63.24. So the number is real.
 >
 > The code and slides were written with Claude Code, an AI assistant. The numbers come from running that code, and what to test was my choice.
->
-> *[Burayı sen doldur: meslektaşın kim olduğu ve Eylül öncesi işin nasıl yapıldığı.]*
 
 **Olası sorular**
 
-- *"Why not use the faithful build then?"* — It could be the working model. All results today were made with the colleague's version, which is fully converged and tested. Its 11-class accuracy is 62.2% (3 seeds), one point below the paper. Switching is a one-line change in `model_zoo.backbone`.
+- *"Why not use the faithful build then?"* — It could be the working model. All results today were made with Esmer's version, which is fully converged and tested. Its 11-class accuracy is 62.2% (3 seeds), one point below the paper. Switching is a one-line change in `model_zoo.backbone`.
 - *"What exactly did the AI do?"*
   - It wrote the code, the analysis scripts, the figures and the slide layouts, from my requests.
   - I decided what to test and checked the results.
@@ -569,7 +567,7 @@ Moshe en basit terimi de sorabiliyor: "bu nedir, bununla neyi kastettin?". Aşa�
   - "ours": bizim genel doğruluğumuz, 3 seed ortalaması.
   - "ours ≥ 10 dB": 10 dB ve üstü doğruluğumuz.
 - **"Paper" sütunu nereden:**
-  - ICRNNA: kendi makalesi (%63.24). Biz meslektaşın versiyonunu ölçüyoruz: %62.2.
+  - ICRNNA: kendi makalesi (%63.24). Biz Esmer'in versiyonunu ölçüyoruz: %62.2.
   - LSTM2, MCLDNN, PET-CGDNN: PET-CGDNN makalesi, Table I (Zhang et al. 2021). Orada tek eğitim koşusu ve 60/20/20 bölme var.
   - VT-CNN2 için 2016.10a'da genel doğruluk veren bir makale bulamadık; o yüzden "—".
 - **Doğrulama (`LITERATURE_CHECK.md`):**

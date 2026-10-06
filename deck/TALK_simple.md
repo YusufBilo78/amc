@@ -20,7 +20,7 @@ The detector works in three steps. It looks at short pieces of the frame. It rea
 
 ## 5. Who designed it, and who wrote the code?
 
-The design is from a 2025 paper; the model is called ICRNNA. Our code comes from a colleague's version, with five small differences. I rebuilt it from the paper alone: 63.21 percent, against the paper's 63.24. So the number is real. The code and slides were written with Claude Code, an AI assistant. The numbers come from running that code, and what to test was my choice. [Say here who the colleague is and how the work before September was done.]
+The design is from a 2025 paper; the model is called ICRNNA. Esmer, a colleague here, was working on the same problem, and we talked it through together. Our code comes from Esmer's version of the model, and some of the trained data I use are Esmer's. It's close to the paper, with five small differences. I rebuilt it from the paper alone: 63.21 percent, against the paper's 63.24. So the number is real. The code and slides were written with Claude Code, an AI assistant. The numbers come from running that code, and what to test was my choice.
 
 ## 6. What we gave it, and what came out
 

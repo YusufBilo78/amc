@@ -351,7 +351,7 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </ul></div></details><details id="s5"><summary><span class="n">5</span><span>Kim tasarladı, kodu kim yazdı?</span></summary><div class="body"><div class="tag">Slaytta ne var, ne demek</div>
 <ul>
 <li>
-<p><strong>Zincir:</strong> makale → meslektaşın kodu → bizim kod.</p>
+<p><strong>Zincir:</strong> makale → meslektaşın (Esmer) kodu → bizim kod.</p>
 <ul>
 <li><strong>Makale:</strong> El-Haryqy et al., <em>Results in Engineering</em> 26 (2025) 104783. Model adı ICRNNA (Improved Convolutional Recurrent Neural Network with Attention). 11 sınıfta %63.24 bildiriyor.</li>
 <li><strong>Meslektaşın kodu:</strong> Makalenin bir yeniden uygulaması. Bizim kodumuz bundan kopyalandı.</li>
@@ -403,18 +403,17 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </ul>
 </li>
 <li><strong>"Written with an AI assistant":</strong> Kod, grafikler ve slaytlar Claude Code (Anthropic) ile yazıldı. Her sayı o kodu GPU'da çalıştırarak elde edildi. Neyin test edileceği senin kararın.</li>
-<li><strong>⚠️ Doldurman gereken yer:</strong> Slayt notlarında <code>[Say here who the colleague is and how the work before September was done.]</code> duruyor. <code>DETECTOR.md</code>'deki "Before 2026-09-09" bölümü de boş. Meslektaşın adını ve Eylül öncesi işin nasıl yapıldığını sen söylemelisin. Ben bilmiyorum, uydurmadım.</li>
+<li><strong>Meslektaş = Esmer</strong> (slaytta adı yazmıyor, sadece konuşmada söylüyorsun). Esmer de bu konu üzerinde çalışıyordu; konuyu birlikte konuştunuz. Kodumuz Esmer'in model versiyonundan geliyor, eğittiğin verilerin bir kısmı da Esmer'in.</li>
 </ul>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>The design is from a 2025 paper; the model is called ICRNNA. Our code comes from a colleague's version, with five small differences.</p>
+<p>The design is from a 2025 paper; the model is called ICRNNA. Esmer, a colleague here, was working on the same problem, and we talked it through together. Our code comes from Esmer's version of the model, and some of the trained data I use are Esmer's. It's close to the paper, with five small differences.</p>
 <p>I rebuilt it from the paper alone: 63.21 percent, against the paper's 63.24. So the number is real.</p>
 <p>The code and slides were written with Claude Code, an AI assistant. The numbers come from running that code, and what to test was my choice.</p>
-<p><em>[Burayı sen doldur: meslektaşın kim olduğu ve Eylül öncesi işin nasıl yapıldığı.]</em></p>
 </blockquote>
 <div class="tag">Olası sorular</div>
 <ul>
-<li><em>"Why not use the faithful build then?"</em> — It could be the working model. All results today were made with the colleague's version, which is fully converged and tested. Its 11-class accuracy is 62.2% (3 seeds), one point below the paper. Switching is a one-line change in <code>model_zoo.backbone</code>.</li>
+<li><em>"Why not use the faithful build then?"</em> — It could be the working model. All results today were made with Esmer's version, which is fully converged and tested. Its 11-class accuracy is 62.2% (3 seeds), one point below the paper. Switching is a one-line change in <code>model_zoo.backbone</code>.</li>
 <li><em>"What exactly did the AI do?"</em><ul>
 <li>It wrote the code, the analysis scripts, the figures and the slide layouts, from my requests.</li>
 <li>I decided what to test and checked the results.</li>
@@ -722,7 +721,7 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </ul>
 </li>
 <li><strong>"Paper" sütunu nereden:</strong><ul>
-<li>ICRNNA: kendi makalesi (%63.24). Biz meslektaşın versiyonunu ölçüyoruz: %62.2.</li>
+<li>ICRNNA: kendi makalesi (%63.24). Biz Esmer'in versiyonunu ölçüyoruz: %62.2.</li>
 <li>LSTM2, MCLDNN, PET-CGDNN: PET-CGDNN makalesi, Table I (Zhang et al. 2021). Orada tek eğitim koşusu ve 60/20/20 bölme var.</li>
 <li>VT-CNN2 için 2016.10a'da genel doğruluk veren bir makale bulamadık; o yüzden "—".</li>
 </ul>
