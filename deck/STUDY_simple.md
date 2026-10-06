@@ -169,7 +169,9 @@ Moshe en basit terimi de sorabiliyor: "bu nedir, bununla neyi kastettin?". Aşa�
 
 > AMC means automatic modulation classification. A receiver gets a signal and has to say how it was modulated. You need that to watch the spectrum, to find interference, and for radios that adapt.
 >
-> My work has three steps: build a detector, open it up, then ask why it gets worse on a different transmitter. Today is the first two.
+> What I'm trying to do: these detectors do well on the data they were trained on, but they lose accuracy when the signal comes from a different transmitter. I want to find out why, and what fixes it.
+>
+> To get there, I first need a detector I understand completely. So: one, build it. Two, open it up. Three, test it on a different transmitter. Today is the first two.
 
 **Olası sorular**
 

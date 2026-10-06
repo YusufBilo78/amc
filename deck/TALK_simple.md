@@ -8,7 +8,7 @@ Today I'll open up our detector, step by step, on the four signals you asked abo
 
 ## 2. What is AMC, and what am I working on?
 
-AMC means automatic modulation classification. A receiver gets a signal and has to say how it was modulated. You need that to watch the spectrum, to find interference, and for radios that adapt. My work has three steps: build a detector, open it up, then ask why it gets worse on a different transmitter. Today is the first two.
+AMC means automatic modulation classification. A receiver gets a signal and has to say how it was modulated. You need that to watch the spectrum, to find interference, and for radios that adapt. What I'm trying to do: these detectors do well on the data they were trained on, but they lose accuracy when the signal comes from a different transmitter. I want to find out why, and what fixes it. To get there, I first need a detector I understand completely. So: one, build it. Two, open it up. Three, test it on a different transmitter. Today is the first two.
 
 ## 3. What data do I use?
 
