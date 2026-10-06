@@ -6,6 +6,8 @@ Her slayt için üç bölüm var:
 - **Okuma metni (EN):** Sunumda söyleyeceğin İngilizce metin, slayt notlarındakiyle aynı. Kısa cümleler, günlük kelimeler, slayt başına 20–40 saniye; hepsi 6–7 dakika. Her slayt aynı sırayla gidiyor: slaytın cevapladığı soru → bir somut resim veya sayı → tek mesaj. Ayrıntılar slaytta ve aşağıdaki açıklamada; sorulursa oradan cevaplarsın.
 - **Olası sorular:** Moshe'nin sorabileceği sorular ve kısa cevapları.
 
+Slaytlar sadeleştirildi: büyük yazı, slayt başına tek mesaj. "Slaytta ne var" bölümleri slaytta artık yazmayan ayrıntıları da anlatıyor; onlar soru gelirse diye burada.
+
 Buradaki her sayı repodaki bir sonuç dosyasından geliyor (`deck/deck2016_data.json`, `DETECTOR.md`, `NOISE_2016.md`, `SNR_2016.md`, `LITERATURE_CHECK.md`). Burada olmayan bir sayıyı sunumda söyleme.
 
 ---
