@@ -55,7 +55,7 @@ def main(paths):
     OUT.mkdir(exist_ok=True)
     d, seeds = load(paths[0])
     classes = d.get("classes")
-    tag = "e150" if d["config"]["epochs"] != 58 else "e58"
+    tag = f"e{d['config']['epochs']}"
     n = len(seeds)
     if not seeds:
         raise SystemExit(f"{paths[0]}: no seed has confusion matrices yet")
@@ -93,7 +93,7 @@ def main(paths):
         ax.set_xlabel("epoch")
         ax.set_ylabel("accuracy (%)")
         ax.set_title(f"Ours, seed {hist['seed']}", fontsize=11)
-        ax.legend(frameon=False, loc="lower right")
+        ax.legend(frameon=False, loc="upper left")
         for sp in ("top", "right"):
             ax.spines[sp].set_visible(False)
         fig.tight_layout()
