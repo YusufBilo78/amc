@@ -47,6 +47,14 @@ Three tasks, matching the numbered list in README.md "Open work":
                       whether it converged is unknown and its accuracy may be a
                       floor. Writes to its own file; the existing one is left
                       alone either way.
+  "faithful_paper"    the paper-faithful ICRNNA for the paper presentation:
+                      (1) the 58-epoch run's three seeds get their test
+                      confusion matrices, rebuilt from their checkpoints, no
+                      training; (2) the converged run (ceiling 150) goes from
+                      one seed to three -- seed 42 is reused and backfilled,
+                      43 and 44 are trained -- with the per-epoch training
+                      curve recorded, so the paper's Figs. 7, 8, 11 and 12
+                      can be put next to ours
   "faithful_budget"   the question item 5 left open: two of its three seeds
                       peaked at the final epoch and early stopping never
                       fired, so the paper's 58-epoch ceiling was binding.
@@ -120,7 +128,7 @@ def _flag(raw):
 
 TASK = _env("AMC_TASK", "compare_methods")
                            # "compare_methods" | "whitening_seeds"
-                           # "faithful_2016" | "faithful_budget"
+                           # "faithful_2016" | "faithful_budget" | "faithful_paper"
                            # "converged_2016" | "converged_2018"
 
 # converged_2016 only. 300 is a ceiling, not a run length. One seed: this asks
@@ -140,6 +148,10 @@ FRAMES_PER_CELL_2018_CHECK = 512   # must match the committed run to compare
 # patience 15 decides where it actually stops, which is the whole point.
 BUDGET_EPOCHS = 150
 BUDGET_SEEDS = 1
+
+# faithful_paper: the same 150 ceiling, now with three seeds, so the converged
+# number has an error bar like the 58-epoch one. Seed 42 already finished.
+PAPER_SEEDS = _env("AMC_PAPER_SEEDS", 3, int)
 
 SEEDS = _env("AMC_SEEDS", 5, int)   # compare_methods: 4 methods x 5 seeds
 EPOCHS = _env("AMC_EPOCHS", 60, int)
@@ -191,7 +203,7 @@ LIT_EPOCHS = _env("AMC_LIT_EPOCHS", 150, int)
 
 _TASKS = ("literature_2016", "rebuild_snr_2018", "compare_methods", "compare_methods_2016", "whitening_seeds",
           "whitening_smoothing_2016", "whitening_crop_2018",
-          "faithful_2016", "faithful_budget", "converged_2016",
+          "faithful_2016", "faithful_budget", "faithful_paper", "converged_2016",
           "converged_2018", "sink_24", "sink_arch")
 if TASK not in _TASKS:
     raise SystemExit(f"AMC_TASK={TASK!r}: expected one of {', '.join(_TASKS)}")
@@ -221,6 +233,16 @@ def hr(title):
 
 def sh(cmd, cwd=None):
     proc = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, text=True, bufsize=1)
+    for line in proc.stdout:
+        print(line, end="")
+    proc.wait()
+    if proc.returncode != 0:
+        raise SystemExit(f"command failed ({proc.returncode}): {' '.join(cmd)}")
+
+
+def sh_env(cmd, cwd, env):
+    proc = subprocess.Popen(cmd, cwd=cwd, env=env, stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT, text=True, bufsize=1)
     for line in proc.stdout:
         print(line, end="")
@@ -317,6 +339,29 @@ def main():
         proc.wait()
         if proc.returncode != 0:
             raise SystemExit(f"failed ({proc.returncode})")
+        return
+
+    if TASK == "faithful_paper":
+        hr("3. The paper's model, for the paper presentation")
+        print("Step 1: the paper's 58-epoch protocol, three seeds already done.")
+        print("Only their test confusion matrices are added, from the saved")
+        print("checkpoints. No training; a few minutes.\n")
+        script = str(REPO_DIR / "colab" / "icrnna_faithful_2016.py")
+        env = dict(os.environ)
+        env.pop("AMC_FAITHFUL_EPOCHS", None)
+        env.pop("AMC_FAITHFUL_SEEDS", None)
+        sh_env([sys.executable, script], REPO_DIR / "colab", env)
+
+        print(f"\nStep 2: ceiling 150, {PAPER_SEEDS} seeds. Seed 42 finished")
+        print("earlier and only gets its matrices; the others train. About")
+        print("0.74 min an epoch and ~120 epochs, so budget ~1.5 h a seed.")
+        print("A rerun of this cell skips every seed that already finished.\n")
+        env = dict(os.environ, AMC_FAITHFUL_EPOCHS="150",
+                   AMC_FAITHFUL_SEEDS=str(PAPER_SEEDS))
+        sh_env([sys.executable, script], REPO_DIR / "colab", env)
+        hr("Done")
+        print("Results: Drive/RadioML/ICRNNA_faithful/icrnna_faithful_results.json")
+        print("     and Drive/RadioML/ICRNNA_faithful/icrnna_faithful_e150_results.json")
         return
 
     if TASK == "faithful_2016":

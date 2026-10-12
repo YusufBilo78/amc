@@ -299,6 +299,27 @@ def per_snr_accuracy(model, loader):
             for v in sorted(np.unique(s))}
 
 
+@torch.no_grad()
+def confusions_by_snr(model, loader):
+    """(snrs, matrices): one n x n matrix per SNR label, rows = sent,
+    columns = said, counted on the test set. Same layout as train_backbone's
+    confusions_by_snr, so the deck tools read both."""
+    model.eval()
+    p, y, s = [], [], []
+    for xb, yb, sb in loader:
+        p.append(model(xb.to(DEVICE)).argmax(1).cpu().numpy())
+        y.append(yb.numpy())
+        s.append(sb.numpy())
+    p, y, s = np.concatenate(p), np.concatenate(y), np.concatenate(s)
+    snrs = sorted(int(v) for v in np.unique(s))
+    k = CFG["num_classes"]
+    mats = np.zeros((len(snrs), k, k), dtype=np.int64)
+    for j, v in enumerate(snrs):
+        at = s == v
+        np.add.at(mats[j], (y[at], p[at]), 1)
+    return snrs, mats.tolist()
+
+
 def run_seed(seed):
     print(f"\n{'=' * 66}\n SEED {seed}\n{'=' * 66}")
     torch.manual_seed(seed)
@@ -319,16 +340,30 @@ def run_seed(seed):
         patience=CFG["sched_patience"], min_lr=CFG["min_lr"])
 
     best_acc, best_state, best_ep, stale = 0.0, None, 0, 0
+    history = []
     t0 = time.time()
     for ep in range(1, CFG["epochs"] + 1):
         model.train()
+        tr_loss = tr_ok = tr_n = 0
         for x, y, _ in tr:
             x, y = x.to(DEVICE), y.to(DEVICE)
             opt.zero_grad(set_to_none=True)
-            F.cross_entropy(model(x), y).backward()
+            out = model(x)
+            batch_loss = F.cross_entropy(out, y)
+            batch_loss.backward()
             opt.step()
+            # Training-set numbers as Keras reports them in the paper's Fig. 7:
+            # accumulated over the epoch with dropout on. Bookkeeping only;
+            # nothing here touches the random streams the training uses.
+            tr_loss += batch_loss.item() * y.numel()
+            tr_ok += (out.argmax(1) == y).sum().item()
+            tr_n += y.numel()
 
         acc, loss = evaluate(model, va)
+        history.append({"epoch": ep, "train_loss": round(tr_loss / tr_n, 5),
+                        "train_acc": round(100.0 * tr_ok / tr_n, 3),
+                        "val_loss": round(loss, 5), "val_acc": round(acc, 3),
+                        "lr": opt.param_groups[0]["lr"]})
         sched.step(loss)
         if acc > best_acc:
             best_acc, best_ep, stale = acc, ep, 0
@@ -346,6 +381,7 @@ def run_seed(seed):
     model.load_state_dict(best_state)
     test_acc, _ = evaluate(model, te)
     snr_acc = per_snr_accuracy(model, te)
+    snrs, mats = confusions_by_snr(model, te)
     print(f"  TEST {test_acc:.2f}%   (paper reports 63.24%)")
 
     torch.save({"model_state_dict": best_state, "best_val_acc": best_acc,
@@ -357,7 +393,30 @@ def run_seed(seed):
     gc.collect()
     return {"seed": seed, "val_acc": round(best_acc, 4),
             "test_acc": round(test_acc, 4), "best_epoch": best_ep,
-            "per_snr_acc": snr_acc, "n_params": n_params}
+            "stopped_epoch": len(history),
+            "per_snr_acc": snr_acc, "n_params": n_params,
+            "history": history, "snrs": snrs, "confusions_by_snr": mats}
+
+
+def backfill(r):
+    """Add test confusion matrices to a seed that finished before they were
+    recorded, from its own checkpoint: no training, same split (the split is
+    fixed by the seed). The recomputed accuracy has to match the recorded one,
+    or the checkpoint is not the run the JSON describes."""
+    ckpt = os.path.join(CFG["save_dir"], f"icrnna_faithful{TAG}_seed{r['seed']}.pt")
+    state = torch.load(ckpt, map_location=DEVICE)["model_state_dict"]
+    model = ICRNNAFaithful(CFG["num_classes"], CFG["n_pools"]).to(DEVICE)
+    model.load_state_dict(state)
+    _, _, te = build_loaders(r["seed"])
+    test_acc, _ = evaluate(model, te)
+    if abs(test_acc - r["test_acc"]) > 0.01:
+        raise SystemExit(f"seed {r['seed']}: checkpoint gives {test_acc:.4f}%, "
+                         f"results file says {r['test_acc']}%. Not the same run.")
+    r["snrs"], r["confusions_by_snr"] = confusions_by_snr(model, te)
+    print(f"  seed {r['seed']}: matrices rebuilt from its checkpoint "
+          f"({test_acc:.2f}%, matches the recorded run)")
+    del model
+    torch.cuda.empty_cache()
 
 
 # ==========================================================================
@@ -379,18 +438,31 @@ if os.path.isfile(RESULTS_PATH):
         print(f"resuming: {len(results)} seed(s) already done "
               f"({', '.join(str(r['seed']) for r in results)})")
 
+
+
+def write_results():
+    accs = [r["test_acc"] for r in results]
+    summary = {"config": CFG, "classes": MODS, "per_seed": results,
+               "paper_target": 63.24,
+               "summary": {"mean_test_acc": round(float(np.mean(accs)), 4),
+                           "std_test_acc": round(float(np.std(accs)), 4),
+                           "n_seeds": len(accs)}}
+    with open(RESULTS_PATH, "w") as f:
+        json.dump(summary, f, indent=2)
+    return summary
+
+
+for r in results:
+    if "confusions_by_snr" not in r:
+        backfill(r)
+
 done = {r["seed"] for r in results}
 for sd in CFG["seeds"]:
     if sd in done:
         continue
     results.append(run_seed(sd))
-    accs = [r["test_acc"] for r in results]
-    out = {"config": CFG, "per_seed": results, "paper_target": 63.24,
-           "summary": {"mean_test_acc": round(float(np.mean(accs)), 4),
-                       "std_test_acc": round(float(np.std(accs)), 4),
-                       "n_seeds": len(accs)}}
-    with open(RESULTS_PATH, "w") as f:
-        json.dump(out, f, indent=2)
+    out = write_results()
+out = write_results()
 
 m, s = out["summary"]["mean_test_acc"], out["summary"]["std_test_acc"]
 print(f"\n{'=' * 66}")
