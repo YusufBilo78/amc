@@ -12,7 +12,11 @@ import re
 import markdown
 
 HERE = pathlib.Path(__file__).parent
-SRC, OUT = HERE / "STUDY_simple.md", HERE / "STUDY_simple.html"
+import sys
+
+# python deck/study_html.py [STUDY_x.md]  -> STUDY_x.html (default: STUDY_simple.md)
+SRC = HERE / (sys.argv[1] if len(sys.argv) > 1 else "STUDY_simple.md")
+OUT = SRC.with_suffix(".html")
 
 CSS = """
 :root{--bg:#F6F8FB;--card:#FFFFFF;--ink:#1E293B;--muted:#5B6B7F;--line:#E2E8F0;
