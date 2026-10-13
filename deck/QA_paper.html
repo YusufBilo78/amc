@@ -593,12 +593,15 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </blockquote>
 <p><strong>"What did their code give?"</strong></p>
 <blockquote>
-<p>Two runs so far, on one fixed split: 62.71 and 62.45 percent, an average of 62.58, against their published 63.24. A third run is going.</p>
+<p>Three runs on one fixed split: 62.71, 62.45 and 62.52 percent. That's 62.56 on average, plus or minus 0.11, against their published 63.24.</p>
 </blockquote>
-<p>TR: Onların kodu, hiç değiştirmeden. 1. koşu: 141.6 dk, epoch 61'de durdu, en iyi 55. 2. koşu: 149.9 dk, epoch 64'te durdu, en iyi 58.</p>
+<p>TR: Onların kodu, hiç değiştirmeden.
+- 1. koşu: 141.6 dk, epoch 61'de durdu, en iyi 55.
+- 2. koşu: 149.9 dk, epoch 64'te durdu, en iyi 58.
+- 3. koşu: 133.0 dk, epoch 57'de durdu, en iyi 51.</p>
 <p><strong>"So their number doesn't reproduce?"</strong></p>
 <blockquote>
-<p>Our two runs land about two-thirds of a point below it, and close to each other. Their 63.24 is a single run on a different random split, and the test set alone moves a run by about 0.3 points. So either their split was a slightly easier draw or their run a slightly lucky one; the model is the same. Training behaved like theirs: our runs stopped by themselves at epochs 61 and 64, close to their 58, with validation accuracy 63.6 and 63.4, like their 63.59.</p>
+<p>All three runs land below it: about two-thirds of a point, and within a quarter of a point of each other. Their 63.24 is a single run on a different random split, and the test set alone moves a run by about 0.3 points. So either their split was a slightly easier draw or their run a slightly lucky one; the model is the same. Training behaved like theirs: our runs stopped by themselves at epochs 57, 61 and 64, around their 58, with validation accuracy 63.4 to 63.6, like their 63.59.</p>
 </blockquote>
 <p><strong>"Why would it be lower?"</strong></p>
 <blockquote>
@@ -606,11 +609,11 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </blockquote>
 <p><strong>"And at 0 dB?"</strong></p>
 <blockquote>
-<p>90.7 percent at label 0 over our two runs, against their 92.2. About 3,300 decisions, so part of the gap is noise.</p>
+<p>90.5 percent at label 0 over our three runs, against their 92.2. About 5,000 decisions in all. Their 92.2 is one run of about 1,650 decisions.</p>
 </blockquote>
-<p><strong>"When will you have all three runs?"</strong></p>
+<p><strong>"How long did the runs take?"</strong></p>
 <blockquote>
-<p>Each run takes about two and a half hours on Colab. The third is running now.</p>
+<p>All three are done: about two and a half hours each on Colab.</p>
 </blockquote>
 <p><strong>"Why no weights?"</strong></p>
 <blockquote>
@@ -717,7 +720,7 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </table></div>
 <p>ICRNNA her tohumda birinci. Ama LSTM2'nin en iyi koşusu (62.09) ICRNNA'nın en kötüsünü (62.00) geçiyor; fark küçük.</p>
 <ul>
-<li><strong>Onların kodu:</strong> 3. koşu bitince "Çıkarılan slaytların konuları" kartındaki sayılar güncellenecek.</li>
+<li><strong>Onların kodu:</strong> Üç koşu da bitti; "Çıkarılan slaytların konuları" kartındaki sayılar güncel (62.56 ± 0.11).</li>
 </ul></div></details></main><script>
 const all=()=>document.querySelectorAll('details');
 document.getElementById('open').onclick=()=>all().forEach(d=>d.open=true);

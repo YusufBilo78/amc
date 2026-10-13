@@ -90,28 +90,28 @@ Smoke-tested here on a synthetic pickle (TensorFlow 2.21, CPU):
 - the split-fingerprint check;
 - the figures.
 
-## Runs on the real data (2026-10-13)
+## Runs on the real data (2026-10-13, complete)
 
-`official_icrnna_2016_results.json`, Colab GPU, one split for all runs: fingerprint `b86f4de2f128` (`PYTHONHASHSEED=0`).
+`official_icrnna_2016_results.json`, Colab GPU, one split for all three runs: fingerprint `b86f4de2f128` (`PYTHONHASHSEED=0`).
 
-| | run 1 (seed 0) | run 2 (seed 1) | paper |
-|---|---|---|---|
-| test accuracy | **62.71 %** (20,694 of 33,000) | **62.45 %** (20,609 of 33,000) | 63.24 % |
-| stopped by early stopping at | epoch 61 | epoch 64 | "58 epochs" |
-| restored (best validation loss) | epoch 55 | epoch 58 | — |
-| validation accuracy there | 63.60 % | 63.43 % | 63.59 % at epoch 58 (Fig. 7) |
-| learning-rate cuts after epoch | 50 and 60 | 49 and 63 | 43 (text) |
-| accuracy at label 0 dB | 90.5 % | 90.8 % | 92.21 % (Fig. 11) |
-| wall time | 141.6 min | 149.9 min | — |
+| | run 1 (seed 0) | run 2 (seed 1) | run 3 (seed 2) | paper |
+|---|---|---|---|---|
+| test accuracy | **62.71 %** (20,694 of 33,000) | **62.45 %** (20,609) | **62.52 %** (20,633) | 63.24 % |
+| stopped by early stopping at | epoch 61 | epoch 64 | epoch 57 | "58 epochs" |
+| restored (best validation loss) | epoch 55 | epoch 58 | epoch 51 | — |
+| validation accuracy there | 63.60 % | 63.43 % | 63.52 % | 63.59 % at epoch 58 (Fig. 7) |
+| learning-rate cuts after epoch | 50 and 60 | 49 and 63 | 47 and 56 | 43 (text) |
+| accuracy at label 0 dB | 90.5 % | 90.8 % | 90.2 % | 92.21 % (Fig. 11) |
+| wall time | 141.6 min | 149.9 min | 133.0 min | — |
 
-Two runs so far: **62.58 % ± 0.13**, 0.66 points below the paper.
+**Three runs: 62.56 % ± 0.11** (population s.d.), all three below the paper's 63.24 by 0.5–0.8 points.
 
-- **Training behaves as the paper describes.** Early stopping on the loss fires within a few epochs of their 58, at the same validation accuracy.
-- **Both test numbers sit below 63.24.** Their number is one run on a different random split (their code cannot reproduce its own split, see above). The test set alone gives a standard error of about 0.27 points. So the paper's run looks like a slightly favourable draw, not a different model.
-- **Run 3 (seed 2) is running.**
+- **Training behaves as the paper describes.** Early stopping on the loss fires at epochs 57–64, around their 58, at the same validation accuracy.
+- **The test number is lower in every run.** The paper's 63.24 is one run on a different random split; their code cannot reproduce its own split (see above). The test set alone gives a standard error of about 0.27 points. So the paper's run looks like a slightly favourable draw, not a different model.
+- **At label 0 dB**, the three runs pooled give 90.5 % over about 5,000 decisions. The paper's Fig. 11 gives 92.21 % from one run of about 1,650.
 
 The results file is copied from Drive by re-serializing its content (the Drive connector returns text, not the file). Each copy is checked before it is committed:
 
 - the confusion matrices reproduce every recorded test accuracy exactly;
 - the earlier runs are unchanged;
-- the size is byte-identical to the Drive file (73,699 bytes for two runs).
+- the size is byte-identical to the Drive file (109,250 bytes for three runs).
