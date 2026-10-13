@@ -25,7 +25,16 @@ module.exports = {
   steps: "How does it work? Four steps. One: it looks at short pieces of the signal, with small filters that slide along it. Two: it reads those pieces in order, forwards and backwards, carrying a memory from piece to piece. Three: it weighs the pieces and takes a weighted average. Four: it gives eleven scores, one per modulation, and the largest wins. Most of the network, 83 percent, is in step two. That is the heart of it.",
   trained: "How was it trained and tested? The frames are split three ways. 154,000 frames, with the right answer, to learn from. 33,000 to decide when to stop learning. And 33,000 kept aside, never used for learning: every result is counted on those. It stopped by itself after 58 passes over the data, and they did it once.",
   code_run_pending: "The paper came out without code. In August this year the authors put their code on GitHub, but not the trained network itself. So we are now running their code ourselves on Colab, three times, to see if we also get 63.24 percent. I'll have the numbers next time.",
-  code_run: "The paper came out without code. In August this year the authors put their code on GitHub, but not the trained network itself. We ran their code ourselves. On the right is what it gives, next to their published 63.24.",
+  code_run: (OR, P) => {
+    const d = OR.mean - P.headline.acc_10a, gap = `${Math.abs(d).toFixed(1)} points ${d >= 0 ? "higher" : "lower"}`;
+    const intro = "The paper came out without code. In August this year the authors put their code on GitHub, but not the trained network itself. ";
+    if (OR.n === 1)
+      return intro + `We ran their code ourselves, once so far. It gives ${OR.mean.toFixed(2)} percent, against their published ${P.headline.acc_10a}: ${gap}. ` +
+        `Training behaved like theirs: it stopped by itself at epoch ${OR.stopped[0]}, with validation accuracy at ${OR.val_at_best[0].toFixed(1)}, as in their paper. ` +
+        "Half a point is the size of the run-to-run variation we see, so the next two runs will tell us whether this is just that.";
+    return intro + `We ran their code ourselves, ${OR.n} times on the same split. It gives ${OR.mean.toFixed(2)} percent, plus or minus ${OR.std.toFixed(2)}, ` +
+      `against their published ${P.headline.acc_10a}: ${gap} on average. Single runs ranged from ${Math.min(...OR.accs).toFixed(2)} to ${Math.max(...OR.accs).toFixed(2)}.`;
+  },
   real: "Is their number real? Before their code existed, I rebuilt the network from the paper's description alone. It gets 63.21 percent, against their 63.24. So yes, the result can be reproduced. It needed longer training than their 58 passes; ours was best at pass 107.",
   backup: "Backup slides with the details, if you want to go deeper.",
 };

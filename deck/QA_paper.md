@@ -330,13 +330,24 @@ TR: Şekil 11 satırı: 8PSK → QPSK 4.3, QAM16 1.9, AM-SSB 1.2. Metindeki "64-
 **"Why run it three times?"**
 > To see how much the number moves between runs. The paper gives one number, and that's the one thing it can't tell us.
 
-**"When will you have results?"**
-> Each run takes over two hours on Colab. They're running now; I'll bring all three next time.
+**"What did their code give?"**
+> 62.71 percent, from one run so far, against their published 63.24: about half a point lower. Two more runs are going.
 
-TR: Colab sonucu gelirse slayt otomatik dolacak, o zaman sayıyı söylersin. Gelmezse bu cevap.
+TR: Bizim koşumuz, onların kodu, değiştirilmeden. 141 dakika sürdü; kendi kendine epoch 61'de durdu, en iyi epoch 55.
 
-**"What if you don't get 63.24?"**
-> Then the spread tells us whether 63.24 was a lucky run. We already reproduce it from the paper's text, so I expect to land within about half a point.
+**"So their number doesn't reproduce?"**
+> Not a conclusion from one run. Half a point is the size of the run-to-run variation: the test set alone gives about ±0.3 points, and seeds move our models by half a point to a point. Training behaved like theirs: it stopped by itself, with validation accuracy 63.6, the same as their figure.
+
+TR: Onların Şekil 7'si ve metni: 58. epoch'ta doğrulama doğruluğu %63.59. Bizim koşuda en iyi epoch'ta (55) %63.60.
+
+**"Why would it be lower?"**
+> A different random split and a different random start. Their code draws a new split every time it's run, so we can't use their exact split. We changed nothing in the model or the training.
+
+**"And at 0 dB?"**
+> 90.5 percent at label 0, against their 92.2. That's about 1,650 decisions from one run, so part of the gap is noise.
+
+**"When will you have all three runs?"**
+> Each run takes about two and a half hours on Colab. I'll bring the three-run average and spread next time.
 
 **"Why no weights?"**
 > The scripts save them locally; they just weren't uploaded. So anyone has to retrain.

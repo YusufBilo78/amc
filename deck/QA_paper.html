@@ -373,14 +373,27 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 <blockquote>
 <p>To see how much the number moves between runs. The paper gives one number, and that's the one thing it can't tell us.</p>
 </blockquote>
-<p><strong>"When will you have results?"</strong></p>
+<p><strong>"What did their code give?"</strong></p>
 <blockquote>
-<p>Each run takes over two hours on Colab. They're running now; I'll bring all three next time.</p>
+<p>62.71 percent, from one run so far, against their published 63.24: about half a point lower. Two more runs are going.</p>
 </blockquote>
-<p>TR: Colab sonucu gelirse slayt otomatik dolacak, o zaman sayıyı söylersin. Gelmezse bu cevap.</p>
-<p><strong>"What if you don't get 63.24?"</strong></p>
+<p>TR: Bizim koşumuz, onların kodu, değiştirilmeden. 141 dakika sürdü; kendi kendine epoch 61'de durdu, en iyi epoch 55.</p>
+<p><strong>"So their number doesn't reproduce?"</strong></p>
 <blockquote>
-<p>Then the spread tells us whether 63.24 was a lucky run. We already reproduce it from the paper's text, so I expect to land within about half a point.</p>
+<p>Not a conclusion from one run. Half a point is the size of the run-to-run variation: the test set alone gives about ±0.3 points, and seeds move our models by half a point to a point. Training behaved like theirs: it stopped by itself, with validation accuracy 63.6, the same as their figure.</p>
+</blockquote>
+<p>TR: Onların Şekil 7'si ve metni: 58. epoch'ta doğrulama doğruluğu %63.59. Bizim koşuda en iyi epoch'ta (55) %63.60.</p>
+<p><strong>"Why would it be lower?"</strong></p>
+<blockquote>
+<p>A different random split and a different random start. Their code draws a new split every time it's run, so we can't use their exact split. We changed nothing in the model or the training.</p>
+</blockquote>
+<p><strong>"And at 0 dB?"</strong></p>
+<blockquote>
+<p>90.5 percent at label 0, against their 92.2. That's about 1,650 decisions from one run, so part of the gap is noise.</p>
+</blockquote>
+<p><strong>"When will you have all three runs?"</strong></p>
+<blockquote>
+<p>Each run takes about two and a half hours on Colab. I'll bring the three-run average and spread next time.</p>
 </blockquote>
 <p><strong>"Why no weights?"</strong></p>
 <blockquote>

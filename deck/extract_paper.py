@@ -90,7 +90,9 @@ def official_runs():
     return {"n": len(runs), "mean": d["summary"]["mean_test_acc"], "std": d["summary"]["std_test_acc"],
             "acc0": round(100 * hit0 / all0, 2),
             "accs": [r["test_acc"] for r in runs], "stopped": [r["stopped_epoch"] for r in runs],
-            "best": [r["best_epoch"] for r in runs], "split_id": d.get("split_id")}
+            "best": [r["best_epoch"] for r in runs], "split_id": d.get("split_id"),
+            # validation accuracy at the restored (best-loss) epoch; the paper's Fig. 7 ends at 63.59
+            "val_at_best": [r["history"][r["best_epoch"] - 1]["val_acc"] for r in runs]}
 
 
 if __name__ == "__main__":

@@ -191,7 +191,25 @@
   "lr_patience": 5,
   "clipnorm": 1.0
  },
- "official_runs": null,
+ "official_runs": {
+  "n": 1,
+  "mean": 62.7091,
+  "std": 0.0,
+  "acc0": 90.51,
+  "accs": [
+   62.7091
+  ],
+  "stopped": [
+   61
+  ],
+  "best": [
+   55
+  ],
+  "split_id": "b86f4de2f128",
+  "val_at_best": [
+   63.603
+  ]
+ },
  "ours": {
   "e58_mean": 61.75,
   "e58_std": 0.07,

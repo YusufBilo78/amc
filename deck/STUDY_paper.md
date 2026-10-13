@@ -6,7 +6,7 @@ Makale: El-Haryqy, Kharbouche, Ouamna, Madini, Zouine. *Improved automatic modul
 - **Ana akış (slayt 1–13, yaklaşık 6 dakika):** Her slaytta tek düz mesaj; slaytlarda makine öğrenmesi jargonu yok. Model "dört adım" olarak anlatılıyor: parçalara bak, sırayla oku, ağırlıklandır, karar ver.
 - **Yedek (slayt 14–25):** Her adımın ayrıntısı, eğitim tarifi, onların kodu, "58 epoch", tablolarıyla uyuşmayan iddialar. Sadece Moshe sorarsa açılır.
 
-**Slayt 10**, Colab'daki `official_2016` sonuçları gelince onların kodunun doğruluğuyla dolar; gelmezse "çalışıyor" der.
+**Slayt 10**, Colab'daki `official_2016` sonuçlarıyla dolu: onların kodu, bizim koşumuz, %62.71 (1 koşu; 2 koşu daha sürüyor). Yeni koşular gelince slayt ve not kendiliğinden güncellenir.
 
 Her slayt için üç bölüm var:
 - **Slaytta ne var, ne demek:** Türkçe açıklama.
@@ -255,22 +255,23 @@ Makalenin Tablo 6'sı (10a):
 **Slaytta ne var, ne demek**
 - **Nisan 2025:** Makale, kodsuz yayımlandı.
 - **Ağustos 2026:** Yazarlar kodu GitHub'a koydu. Eğitilmiş ağ (ağırlıklar) yok; sadece eğitim kodu var.
-- **Sağdaki kutu:**
-  - **Sonuç gelmediyse:** "3 runs … on Colab now. Do we get 63.24% too?"
-  - **Sonuç geldiyse:** Onların kodunun bizim 3 koşumuzdaki ortalaması ve sapması, makalenin 63.24%'ü ile yan yana. Alt satırda kaç puan fark olduğu.
+- **Sağdaki kutu:** Onların kodunu, hiçbir şeyini değiştirmeden, Colab'da biz çalıştırdık.
+  - **Şimdilik 1 koşu:** %62.71. Makale %63.24 diyor; 0.53 puan altında.
+  - **Eğitim onlarınkine benziyor:** Kendi kendine epoch 61'de durdu (en iyi epoch 55). En iyi epoch'ta doğrulama doğruluğu %63.60; makalenin Şekil 7'si 58. epoch'ta %63.59.
+  - **0 dB'de:** %90.5 (makale %92.2). Tek koşu, yaklaşık 1,650 karar.
+  - **Yarım puan ne demek:** Tek koşudan bir şey söylemez. Test setinin kendi gürültüsü ±0.3 puan; bizim modellerde tohumdan tohuma fark 0.5–1.1 puan.
+  - **Diğer 2 koşu:** Colab'da sürüyor (koşu başına ~2.5 saat). Gelince kutu ortalama ± sapma gösterir.
 - **Koddan öğrendiklerimiz** (makale aynı, 58 bir seçim değil, tek koşu) yedek slayt 21'de; kod satırları bu sayfanın sonundaki "Yedek" bölümünde.
 
-**Okuma metni (EN), sonuçlar gelmediyse**
+**Okuma metni (EN)**
 
-> The paper came out without code. In August this year the authors put their code on GitHub, but not the trained network itself. So we are now running their code ourselves on Colab, three times, to see if we also get 63.24 percent. I'll have the numbers next time.
-
-**Okuma metni (EN), sonuçlar geldiyse**
-
-> The paper came out without code. In August this year the authors put their code on GitHub, but not the trained network itself. We ran their code ourselves, three times. On the right is what it gives, next to their published 63.24.
+> The paper came out without code. In August this year the authors put their code on GitHub, but not the trained network itself. We ran their code ourselves, once so far. It gives 62.71 percent, against their published 63.24: 0.5 points lower. Training behaved like theirs: it stopped by itself at epoch 61, with validation accuracy at 63.6, as in their paper. Half a point is the size of the run-to-run variation we see, so the next two runs will tell us whether this is just that.
 
 **Olası sorular**
 - *"Where is it?"* — GitHub, account noureddine395; the README names the five authors, and it is archived on Zenodo.
 - *"Why didn't you use their code from the start?"* — It didn't exist when the paper came out; it appeared sixteen months later.
+- *"So their number doesn't reproduce?"* — Not from one run. Half a point is the size of the run-to-run variation, and training behaved like theirs: validation accuracy 63.6, as in their figure. Two more runs will settle it.
+- *"Why would it be lower?"* — A different random split and a different random start; their code draws a new split each time it's run. We changed nothing.
 
 ---
 

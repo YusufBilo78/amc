@@ -64,7 +64,8 @@ function credit(s, text, x, y, w) {
 function done(s, id, dark = false) {
   n++;
   if (!TALK[id]) throw new Error(`no notes for slide ${id}`);
-  s.addNotes(TALK[id]);
+  // a note may depend on results that arrive later (our runs of their code)
+  s.addNotes(typeof TALK[id] === "function" ? TALK[id](OR, P) : TALK[id]);
   t(s, String(n), W - M - 0.5, 7.0, 0.5, 0.3, { fontSize: 12, color: dark ? "8FA0B5" : MUTED, align: "right" });
 }
 const PARTS = [["Look", ""], ["Read in order", ""], ["Weigh", ""], ["Decide", ""]];
@@ -448,9 +449,11 @@ SLIDES['code_run'] = () => { const s = pres.addSlide();
   if (OR) {
     t(s, `${OR.mean.toFixed(2)}%`, M + 6.0, 1.75, 5.8, 1.1, { fontSize: 60, bold: true, color: ORANGE, valign: "bottom" });
     const runs = OR.n === 1 ? "once (more runs going)" : `${OR.n} times (± ${OR.std.toFixed(2)})`;
-    t(s, `their code, run by us ${runs};  paper: ${P.headline.acc_10a}%`, M + 6.0, 2.95, 5.9, 0.9, { fontSize: 19, color: WHITE });
+    t(s, `their code, run by us ${runs}\npaper: ${P.headline.acc_10a}%`, M + 6.0, 2.95, 5.9, 0.9, { fontSize: 19, color: WHITE });
     const d = OR.mean - P.headline.acc_10a;
-    takeaway(s, `Their own code: ${d >= 0 ? "+" : "−"}${Math.abs(d).toFixed(2)} points from their published number.`, 5.0);
+    const side = d >= 0 ? "above" : "below";
+    takeaway(s, OR.n === 1 ? `Their own code, run once: ${Math.abs(d).toFixed(2)} points ${side} their paper.`
+                           : `Their own code: ${Math.abs(d).toFixed(2)} points ${side} their paper, on average.`, 5.0);
   } else {
     t(s, "3 runs", M + 6.0, 1.85, 5.8, 1.1, { fontSize: 60, bold: true, color: ORANGE, valign: "bottom" });
     t(s, "of their own code, on Colab now. Do we get 63.24% too?", M + 6.0, 3.1, 5.9, 1.1, { fontSize: 21, color: WHITE });
