@@ -146,13 +146,13 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 <blockquote>
 <p>Today I present the paper our detector comes from: ICRNNA, by El-Haryqy and colleagues, Results in Engineering, 2025. First I'll go through what the paper does, step by step: the data, the model block by block, how it is trained, and what it reports. Then what we checked ourselves.</p>
 </blockquote></div></details><details id="s2"><summary><span class="n">2</span><span>Neden bu makale, ne iddia ediyor?</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
-- <strong>Üstteki zincir:</strong> Bu makale → Esmer'in versiyonu → bizim dedektörümüz. Bizim modelimiz bu makaleden geliyor; Moshe'nin "bu model nereden çıktı" sorusunun cevabı.
+- <strong>Üstteki zincir:</strong> Bu makale → bizim dedektörümüz. Bizim modelimiz bu makaleden geliyor; Moshe'nin "bu model nereden çıktı" sorusunun cevabı.
 - <strong>63.24%:</strong> RML2016.10a'da, 11 sınıfın ve 20 SNR seviyesinin tamamında doğruluk (Tablo 3).
 - <strong>0.79 M:</strong> Öğrenilen sayı (parametre) adedi (Tablo 7). Onların kodu da bunu doğruluyor: 792,396 öğrenilen sayı.
 - <strong>"low SNR":</strong> Makalenin düşük SNR'da özellikle iyi olduğu iddiası. 17. slaytta kendi tablolarıyla karşılaştırılıyor.</p>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>Why this paper? Because our detector is built on it. Esmer re-implemented it, and our code comes from that version. The paper makes three claims. The best accuracy on RML2016.10a, 63.24 percent. A small model: 0.79 million numbers to learn. And it says it is especially good at low SNR.</p>
+<p>Why this paper? Because our detector is built on it. The paper makes three claims. The best accuracy on RML2016.10a, 63.24 percent. A small model: 0.79 million numbers to learn. And it says it is especially good at low SNR.</p>
 </blockquote>
 <p><strong>Olası sorular</strong>
 - <em>"Is it a well-known journal?"</em> — Results in Engineering is a broad, open-access Elsevier engineering journal, not a signal-processing one. That is one reason we checked the numbers ourselves.</p></div></details><details id="s3"><summary><span class="n">3</span><span>Veri: model neyi görüyor?</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
@@ -469,7 +469,7 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 - <strong>"their Table 3":</strong> Makalenin bu modeller için verdiği sayı.
     - MCLDNN: makalede 61.42, bizde 61.41.
     - PET-CGDNN: makalede 60.58, bizde 60.98.
-- <strong>ICRNNA satırı:</strong> Esmer'in versiyonu (62.2%). Makaleden kurduğumuz model 63.21%.</p>
+- <strong>ICRNNA satırı:</strong> Bizim çalışan versiyonumuz (62.2%), bütün diğer sonuçlarımız bununla. Makaleden birebir kurduğumuz model 63.21%.</p>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
 <p>So we trained five models ourselves under one protocol: same data, same split, three seeds. Our MCLDNN and PET-CGDNN numbers match their table within half a point. ICRNNA is first, but the top four are within about one point, and above 10 dB they all stop near 91 percent.</p>

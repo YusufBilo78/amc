@@ -88,11 +88,11 @@ const pct = (a, b) => Math.round(100 * a / b);
 // why this paper, what it claims ==================================================
 { const s = pres.addSlide();
   title(s, "Why this paper, and what it claims", "THE PAPER");
-  ["This paper (2025)", "Esmer's version", "Our detector"].forEach((h, i) => {
+  ["This paper (2025)", "Our detector"].forEach((h, i) => {
     const x = M + i * 4.15;
-    card(s, x, 1.6, 3.55, 0.9, i === 2 ? NAVY : CARD);
-    t(s, h, x, 1.6, 3.55, 0.9, { fontSize: 22, bold: true, align: "center", valign: "middle", color: i === 2 ? WHITE : INK });
-    if (i < 2) arrow(s, x + 3.6, 1.85, 0.5);
+    card(s, x, 1.6, 3.55, 0.9, i === 1 ? NAVY : CARD);
+    t(s, h, x, 1.6, 3.55, 0.9, { fontSize: 22, bold: true, align: "center", valign: "middle", color: i === 1 ? WHITE : INK });
+    if (i < 1) arrow(s, x + 3.6, 1.85, 0.5);
   });
   const H = P.headline;
   [[`${H.acc_10a}%`, "best accuracy on RML2016.10a", ORANGE], [`${H.params_m} M`, "numbers to learn: a small model", INK], ["low SNR", "claimed to be its strength", INK]].forEach(([v, l, c], i) => {
@@ -402,7 +402,7 @@ if (OR) {
   const rows = [[hc("model", { align: "left" }), hc("their Table 3"), hc("ours"), hc("ours, ≥ 10 dB")]];
   O.lit.forEach(r => {
     const me = r.name === "ICRNNA", o = { fontSize: 22, align: "center", bold: me, color: me ? ORANGE : INK };
-    rows.push([{ text: me ? "ICRNNA (Esmer's version)" : r.name, options: { ...o, align: "left" } },
+    rows.push([{ text: me ? "ICRNNA (our version)" : r.name, options: { ...o, align: "left" } },
       { text: theirs[r.name] ? theirs[r.name].toFixed(2) + "%" : "—", options: { ...o, color: MUTED, bold: false } },
       { text: (100 * r.overall).toFixed(1) + "%", options: o }, { text: (100 * r.high).toFixed(1) + "%", options: o }]);
   });

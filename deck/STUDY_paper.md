@@ -82,14 +82,14 @@ Temel terimler (recall, precision, epoch, SNR, dB...) `STUDY_simple.html`'deki s
 ## Slayt 2 — Neden bu makale, ne iddia ediyor?
 
 **Slaytta ne var, ne demek**
-- **Üstteki zincir:** Bu makale → Esmer'in versiyonu → bizim dedektörümüz. Bizim modelimiz bu makaleden geliyor; Moshe'nin "bu model nereden çıktı" sorusunun cevabı.
+- **Üstteki zincir:** Bu makale → bizim dedektörümüz. Bizim modelimiz bu makaleden geliyor; Moshe'nin "bu model nereden çıktı" sorusunun cevabı.
 - **63.24%:** RML2016.10a'da, 11 sınıfın ve 20 SNR seviyesinin tamamında doğruluk (Tablo 3).
 - **0.79 M:** Öğrenilen sayı (parametre) adedi (Tablo 7). Onların kodu da bunu doğruluyor: 792,396 öğrenilen sayı.
 - **"low SNR":** Makalenin düşük SNR'da özellikle iyi olduğu iddiası. 17. slaytta kendi tablolarıyla karşılaştırılıyor.
 
 **Okuma metni (EN)**
 
-> Why this paper? Because our detector is built on it. Esmer re-implemented it, and our code comes from that version. The paper makes three claims. The best accuracy on RML2016.10a, 63.24 percent. A small model: 0.79 million numbers to learn. And it says it is especially good at low SNR.
+> Why this paper? Because our detector is built on it. The paper makes three claims. The best accuracy on RML2016.10a, 63.24 percent. A small model: 0.79 million numbers to learn. And it says it is especially good at low SNR.
 
 **Olası sorular**
 - *"Is it a well-known journal?"* — Results in Engineering is a broad, open-access Elsevier engineering journal, not a signal-processing one. That is one reason we checked the numbers ourselves.
@@ -451,7 +451,7 @@ Makalenin Tablo 6'sı (10a):
 - **"their Table 3":** Makalenin bu modeller için verdiği sayı.
   - MCLDNN: makalede 61.42, bizde 61.41.
   - PET-CGDNN: makalede 60.58, bizde 60.98.
-- **ICRNNA satırı:** Esmer'in versiyonu (62.2%). Makaleden kurduğumuz model 63.21%.
+- **ICRNNA satırı:** Bizim çalışan versiyonumuz (62.2%), bütün diğer sonuçlarımız bununla. Makaleden birebir kurduğumuz model 63.21%.
 
 **Okuma metni (EN)**
 
