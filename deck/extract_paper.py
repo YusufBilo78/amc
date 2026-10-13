@@ -39,7 +39,10 @@ PAPER = {
     # Fig. 8 / Section 4.2.2: accuracy at -20 dB
     "acc_m20": 9.0,
     # Fig. 11, ICRNNA panel, 0 dB: WBFM -> AM-DSB, QAM16 -> QAM64, QAM64 -> QAM16 (percent of row)
-    "fig11": {"wbfm_as_amdsb": 57.9, "wbfm": 41.4, "q16_as_q64": 5.7, "q64_as_q16": 6.1, "acc": 92.21},
+    # 8PSK row: 91.9 right, 4.3 QPSK, 1.9 QAM16, 1.2 AM-SSB, 0.6 QAM64; 161 is the only row size
+    # that reproduces all five printed values (148 / 7 / 3 / 2 / 1 frames)
+    "fig11": {"wbfm_as_amdsb": 57.9, "wbfm": 41.4, "q16_as_q64": 5.7, "q64_as_q16": 6.1, "acc": 92.21,
+              "psk8": 91.9, "psk8_row": {"n": 161, "8PSK": 148, "QPSK": 7, "QAM16": 3, "AM-SSB": 2, "QAM64": 1}},
 }
 
 # The authors' own code (OFFICIAL_CODE.md), commit ac000a0: layer shapes and

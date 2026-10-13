@@ -91,7 +91,8 @@ SLIDES['title'] = () => { const s = pres.addSlide(); s.background = { color: NAV
 
 SLIDES['data'] = () => { const s = pres.addSlide();
   title(s, "The data: what the model sees", "THE PAPER  ·  DATA");
-  [["11", "modulation types"], ["20", "SNR labels, −20 to 18 dB"], ["220,000", "frames"]].forEach(([v, l], i) => {
+  [["11", "modulation types:\n8 digital, 3 analog"], ["20", "SNR labels, −20 to 18 dB,\nin steps of 2 dB"],
+   ["220,000", "frames: 1,000 per type\nat each SNR"]].forEach(([v, l], i) => {
     big(s, M + i * 3.0, 1.45, 2.9, v, l, INK, 50);
   });
   pic(s, "simple/frame.png", 9.3, 1.55, 3.45, 1530, 544);
@@ -255,9 +256,18 @@ SLIDES['confusion'] = () => { const s = pres.addSlide();
   title(s, "Where it still fails, at 0 dB", "THE PAPER  ·  FIG. 11");
   pic(s, "paper/fig11_icrnna_0db.jpg", M, 1.45, 4.9, 525, 448);
   credit(s, FROM, M, 5.7, 7);
-  big(s, 7.3, 1.6, 5.4, `${F11.wbfm_as_amdsb}%`, "of WBFM called AM-DSB", ORANGE, 60);
-  big(s, 7.3, 3.6, 5.4, `~${Math.round(F11.q16_as_q64)}%`, "QAM16 ↔ QAM64, each way", INK, 60);
-  takeaway(s, "The same two problems we see in our runs.", 6.2);
+  const X = 6.1, RW = W - M - X;
+  t(s, "Test frames labelled 0 dB, about 150 per type (≈1,650). Row: the true type. Column: the classifier's answer. Each row adds up to 100%.",
+    X, 1.45, RW, 0.9, { fontSize: 16, color: MUTED });
+  // row sizes: 161 is the only 8PSK row size that reproduces every printed percentage; the others are approximate
+  [[`${F11.wbfm_as_amdsb}%`, "of WBFM called AM-DSB: about 85 of ~145 frames", ORANGE],
+   [`~${Math.round(F11.q16_as_q64)}%`, "QAM16 ↔ QAM64, each way: about 9 to 10 frames", INK],
+   [`${P.fig11.psk8}%`, "of 8PSK right: 148 of 161 frames. The rest: 7 → QPSK, 3 → QAM16, 2 → AM-SSB, 1 → QAM64", INK]].forEach(([v, l, c], i) => {
+    const y = 2.5 + i * 1.08;
+    t(s, v, X, y, 2.45, 0.85, { fontSize: 36, bold: true, color: c, valign: "middle" });
+    t(s, l, X + 2.55, y, RW - 2.55, 0.85, { fontSize: 17, color: INK, valign: "middle" });
+  });
+  takeaway(s, "The other seven types are 96 to 100% right at this level.", 6.2);
   done(s, "confusion");
 };
 
@@ -385,7 +395,7 @@ SLIDES['summary'] = () => { const s = pres.addSlide(); s.background = { color: N
     badge(s, M, 1.85 + i * 1.25, i + 1, ORANGE, 0.7);
     t(s, p, M + 1.0, 1.75 + i * 1.25, W - 2 * M - 1.0, 0.9, { fontSize: 27, color: WHITE, valign: "middle" });
   });
-  t(s, [{ text: "For us: ", options: { bold: true, color: ORANGE } }, { text: "a solid detector to build on.", options: { color: SOFT } }],
+  t(s, [{ text: "For us: ", options: { bold: true, color: ORANGE } }, { text: "a solid classifier to build on.", options: { color: SOFT } }],
     M, 5.75, W - 2 * M, 0.7, { fontSize: 26 });
   done(s, "summary", true);
 };
@@ -397,7 +407,7 @@ SLIDES['oneline'] = () => { const s = pres.addSlide();
   t(s, "A neural network looks at 128 samples of a radio signal and says which of 11 modulations sent it.",
     M + 0.4, 1.6, W - 2 * M - 0.8, 1.9, { fontSize: 28, bold: true, color: WHITE, valign: "middle" });
   big(s, M, 3.85, 5.6, `${P.headline.acc_10a}%`, "right on RML2016.10a: the best of the 12 models they compare", ORANGE, 56);
-  big(s, M + 6.15, 3.85, 5.6, "our detector", "is built on this design", INK, 56);
+  big(s, M + 6.15, 3.85, 5.6, "our classifier", "is built on this design", INK, 56);
   done(s, "oneline");
 };
 
@@ -406,7 +416,7 @@ SLIDES['steps'] = () => { const s = pres.addSlide();
   const st = [["Look at short pieces", "CNN", "short filters slide along the signal"],
     ["Read them in order", "LSTM, both directions", "carries a memory from piece to piece"],
     ["Weigh the pieces", "attention", "a weighted average of all the pieces"],
-    ["Decide", "dense layers", "11 scores; the largest one wins"]];
+    ["Decide", "dense layers", "11 confidence scores, one per type; the largest wins"]];
   st.forEach(([h, tech, d], i) => {
     const x = M + i * 3.08, w = 2.85;
     card(s, x, 1.55, w, 3.55, i === 1 ? NAVY : CARD);
@@ -424,12 +434,12 @@ SLIDES['steps'] = () => { const s = pres.addSlide();
 
 SLIDES['trained'] = () => { const s = pres.addSlide();
   title(s, "How they trained and tested it", "THE PAPER");
-  [["154,000", "frames with the right answer: it learns from these", "70%", NAVY],
-   ["33,000", "frames to decide when to stop learning", "15%", GREY],
-   ["33,000", "frames kept aside: every result is counted on these", "15%", ORANGE]].forEach(([v, l, p, c], i) => {
+  [["154,000", "frames with the right answer: it learns from these", "70% of the dataset: training", NAVY],
+   ["33,000", "frames to decide when to stop learning", "15%: validation", GREY],
+   ["33,000", "frames kept aside: every result is counted on these", "15%: testing the classifier", ORANGE]].forEach(([v, l, p, c], i) => {
     const x = M + i * 4.15;
     card(s, x, 1.6, 3.85, 2.9);
-    t(s, p, x + 0.3, 1.75, 3.3, 0.45, { fontSize: 18, bold: true, color: c });
+    t(s, p, x + 0.3, 1.75, 3.4, 0.45, { fontSize: 18, bold: true, color: c });
     big(s, x + 0.3, 2.1, 3.3, v, l, INK, 50);
   });
   t(s, `It stopped by itself after ${P.training.epochs} passes over the data, when it stopped improving. Done once.`, M, 4.8, W - 2 * M, 0.6, { fontSize: 21 });
@@ -481,8 +491,9 @@ SLIDES['backup'] = () => { const s = pres.addSlide(); s.background = { color: NA
   done(s, "backup", true);
 };
 
-const ORDER = ["title", "oneline", "data", "steps", "trained", "table3", "snr", "confusion", "ablation",
-  "code_run", "real", "protocol", "summary",
+// ablation, code_run and real were taken out of the deck on 2026-10-13 (feedback); their builders stay
+const ORDER = ["title", "oneline", "data", "steps", "trained", "table3", "snr", "confusion",
+  "protocol", "summary",
   "backup", "model", "cnn", "lstm", "attention", "decision", "training", "code_shows", "epochs", "rebuild", "tables", "unknown"];
 ORDER.forEach(id => { if (!SLIDES[id]) throw new Error(`no slide ${id}`); SLIDES[id](); });
 

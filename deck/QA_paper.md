@@ -1,6 +1,6 @@
 # Olası sorular ve cevaplar — ICRNNA makale sunumu
 
-Sunum: `moshe_paper_icrnna.pptx`, 25 slayt: ana akış 1–13, yedek 14–25. Her slayt için o slaytta yazan şeylerden gelebilecek sorular var.
+Sunum: `moshe_paper_icrnna.pptx`, 22 slayt: ana akış 1–10, yedek 11–22. Her slayt için o slaytta yazan şeylerden gelebilecek sorular var.
 
 Her soru için:
 
@@ -55,7 +55,7 @@ TR: IIR filtre benzetmesi Moshe'ye uygun: durumu (state) olan, kapıları öğre
 **9. "Why is your number 62.2 on one slide and 63.21 on another?"**
 > 63.21 is the rebuild from the paper, trained their way: that's the reproduction. 62.2 is our working version, trained with one common recipe for all five models so they can be compared fairly. It's a slightly different build and recipe.
 
-TR: Slayt 11 ile slayt 12 arasındaki fark. 62.2 proje sürümü (786,379 parametre, batch 256, bizim ayırma, 3 koşu ortalaması). 63.21 makaleye sadık kurulum (1 koşu, epoch 107).
+TR: Özet (slayt 10) ile slayt 9 arasındaki fark. 62.2 proje sürümü (786,379 parametre, batch 256, bizim ayırma, 3 koşu ortalaması). 63.21 makaleye sadık kurulum (1 koşu, epoch 107).
 
 **10. "Is half a point significant?"**
 > Not from one run. The test set alone gives about ±0.3 points of noise, and retraining the same model with a different seed moves it by up to half a point in our runs, by over a point for LSTM2.
@@ -86,7 +86,7 @@ TR: `DETECTOR.md` bölüm 6 ile tutarlı. Kendi yaptıklarını kendi cümleleri
 ## Slayt 1 — Başlık
 
 **"Why this paper?"**
-> Because our detector is built on it. Every result I've shown you uses this architecture, so I should be able to explain it.
+> Because our classifier is built on it. Every result I've shown you uses this architecture, so I should be able to explain it.
 
 **"What do 'Look, Read in order, Weigh, Decide' mean?"**
 > The four steps of the model, in plain words. I'll go through them on slide 4.
@@ -112,7 +112,7 @@ TR: Derginin kalitesi hakkında yorum yapma; bilmiyorsun. Sadece ne olduğunu s�
 **"Is it the best model in the field?"**
 > Best in their table. They cite newer models in their introduction, IQFormer for example, that don't appear in their comparison. So "best of these twelve" is the accurate claim.
 
-**"What does 'our detector is built on this design' mean? Is it the same?"**
+**"What does 'our classifier is built on this design' mean? Is it the same?"**
 > Same design, not their code. Our working version is a re-implementation that differs in five small places. I also rebuilt it faithfully from the paper, and that matches their number.
 
 TR: Esmer'in adı slaytta yok. Doğrudan sorulursa "a colleague's re-implementation, which I then adapted" diyebilirsin. Beş fark: ilk konvolüsyon 5'lik, iki pool, tek BN, attention eki yok, tek dense katman.
@@ -155,6 +155,14 @@ TR: `NOISE_2016.md` bölüm 2: 200 kHz, 8 örnek/sembol, 25 kbaud, Rician K=4, 3
 **"Why only 2 × 128 — no spectrum, no features?"**
 > That's the point of the deep-learning approach: raw samples in, and the network learns its own features. The paper uses nothing else.
 
+**"Which are digital and which analog?"**
+> Eight digital: BPSK, QPSK, 8PSK, QAM16, QAM64, PAM4, GFSK and CPFSK. Three analog: WBFM, AM-DSB and AM-SSB, made from audio.
+
+TR: Notundaki "4 analog 7 digital" yanlış. Makale (s. 3, Tablo 1) 8 dijital + 3 analog diyor; slaytta öyle yazdım.
+
+**"Why are GFSK and CPFSK digital?"**
+> They shift frequency, but the shifts are driven by bits. Analog here means a continuous audio source.
+
 ---
 
 ## Slayt 4 — Dört adım
@@ -185,6 +193,9 @@ TR: Hesap: ilk katman 2 × 4 × (128 × 256 + 128) = 263,168; ikinci 2 × 4 × (
 **"Why these sizes — 64, 128, 3 taps?"**
 > The paper says they tuned some settings by search and some by hand. It doesn't justify the layer sizes.
 
+**"What do you mean by confidence?"**
+> The last layer gives eleven numbers that add up to one, one per type. The largest is the answer, and its size is how sure the classifier is. Nobody has checked that 0.9 really means right 90 percent of the time, so it's a score, not a calibrated probability.
+
 ---
 
 ## Slayt 5 — Eğitim ve test
@@ -214,6 +225,9 @@ TR: Hesap: ilk katman 2 × 4 × (128 × 256 + 128) = 263,168; ikinci 2 × 4 × (
 > They don't say. Their code on a Colab GPU is taking about two hours per run for us.
 
 TR: Bu sabahki gözlem: ilk koşu 2 saati geçti, hâlâ ilerliyordu.
+
+**"70 percent of what?"**
+> Of the whole dataset: 154,000 of the 220,000 frames. The split is random, so each type at each SNR gets roughly 700 of its 1,000 frames for training.
 
 ---
 
@@ -276,105 +290,48 @@ TR: Bizim 11 sınıflı koşuda bu "çöp" sınıf AM-SSB: −20 dB'de kararlar�
 ## Slayt 8 — 0 dB'de karışıklık (Şekil 11)
 
 **"How do I read this matrix?"**
-> Rows are the true class, columns what the model said. The diagonal is correct; each row adds up to 100 percent.
+> Rows are the true type, columns what the classifier said. The diagonal is correct; each row adds up to 100 percent.
 
-**"How many frames per row?"**
-> About 150. So one percent is one or two frames, and small differences between cells aren't meaningful.
+**"How many signals went in?"**
+> The test frames labelled 0 dB: about 150 of each type, roughly 1,650 in all. The split is random, so rows are not exactly 150. For 8PSK it was 161.
+
+TR: Makale sayı basmıyor, yüzde basıyor. 161, 8PSK satırındaki beş yüzdenin hepsini veren tek satır büyüklüğü. WBFM satırı 140, 145 ya da 152 olabilir; o yüzden slaytta "about".
+
+**"Explain the 8PSK errors. What went in, what came out?"**
+> 161 8PSK frames went in; 148 came out as 8PSK. Seven were called QPSK, three QAM16, two AM-SSB and one QAM64.
+>
+> QPSK is its nearest neighbour: same constant amplitude, and QPSK's four phases are every other one of 8PSK's eight. At this noise level the 45-degree steps blur and a frame can look like it has only the 90-degree ones.
+>
+> The QAM calls come from noise and fading making the amplitude vary, so one ring looks like several. AM-SSB is the type the classifier falls back on when it can't see a signal, probably frames caught in a fading dip.
+
+**"Why is 8PSK the weakest digital type here?"**
+> Its points are closest together. At equal power the distance between neighbouring points is 0.77 for 8PSK and 1.41 for QPSK, so 8PSK needs about 5 dB more SNR to be separated as well. At this label we measured about 4.7 dB for 8PSK.
+
+TR: 2·sin(22.5°) = 0.765, 2·sin(45°) = 1.414; oran 1.85 → 5.3 dB. 4.7 dB: `rml2016_measured_snr.json`, 8PSK, etiket 0.
+
+**"Why isn't QPSK called 8PSK just as often?"**
+> Only 0.6 percent are. Sixteen QPSK symbols all on four of eight possible phases is strong evidence for QPSK; an 8PSK frame almost never does that by chance. The confusion goes mostly one way.
 
 **"Why is WBFM called AM-DSB and not the other way round?"**
-> AM-DSB is right 98 percent of the time. When a WBFM frame falls in a silence, it looks like a bare carrier, and the model has learned to call that AM-DSB. So the confusion goes one way.
+> AM-DSB is right 98 percent of the time. When a WBFM frame falls in a silence of the audio, it looks like a bare carrier, and the classifier has learned to call that AM-DSB. So the confusion goes one way.
+
+TR: Bilinen açıklama; kendimiz ölçmedik.
+
+**"What about QAM16 and QAM64?"**
+> About 6 percent each way, nine or ten frames per row. Sixteen symbols per frame are too few to tell a 16-point grid from a 64-point one reliably.
 
 **"Is 0 dB really 0 dB here?"**
-> The label is 0. The measured SNR is about 5 dB for the PSK signals and higher for QAM. So "signal and noise equal" isn't what this matrix shows.
+> The label is 0. The measured SNR is about 5 dB for the PSK types and higher for QAM. So "signal and noise equal" isn't what this matrix shows.
 
-**"'The same two problems we see in our runs' — show me."**
-> In our 11-class run, WBFM is right only 37 to 46 percent of the time at every level from −2 dB up, and the rest goes to AM-DSB. QAM16 and QAM64 are the main errors in our four-class box too.
+**"What does '96 to 100 percent' cover?"**
+> The other seven types at this level: AM-DSB 98.0, AM-SSB 96.1, BPSK 99.3, CPFSK 100, GFSK 98.6, PAM4 99.2, QPSK 99.4.
 
 **"Do other models do better on WBFM?"**
 > In their figure, yes: MCLDNN gets 63 percent and ResNet 58, against ICRNNA's 41. No model solves it.
 
-**"What about 8PSK?"**
-> 92 percent at 0 dB. Of the rest, 4.3 percent goes to QPSK, the nearest neighbour in phase.
-
-TR: Şekil 11 satırı: 8PSK → QPSK 4.3, QAM16 1.9, AM-SSB 1.2. Metindeki "64-QAM 93.%" şekilde 93.3.
-
 ---
 
-## Slayt 9 — Hangi adım önemli (Tablo 6)
-
-**"How did they build 'step 2 only'?"**
-> The paper doesn't describe the variants exactly, and they're not in their code. I can only read the numbers.
-
-**"Is 0.4 points from attention meaningful?"**
-> Not from one run each. It's within what we see between two seeds of the same model.
-
-**"Why is 'step 2 only' better than 'all but step 3'?"**
-> 63.1 against 62.8: adding the CNN without the attention lost a third of a point. That's probably noise too, which is the point: differences this size can't be read from single runs.
-
-**"Then why use the complex model?"**
-> Fair question. On their own numbers, a bidirectional LSTM alone gets almost all of it. The CNN mainly makes it cheaper by halving the sequence.
-
-**"They say attention helps most at low SNR — is that shown?"**
-> No. They only give one overall number per variant, not per SNR.
-
----
-
-## Slayt 10 — Onların kodu
-
-**"Why didn't they release the code with the paper?"**
-> I don't know. The paper said "available on request". The code went up on GitHub in August 2026, without trained weights.
-
-**"How do you know it's really theirs?"**
-> It's on a GitHub account named after the first author. The README and the citation file name all five authors and call it the official code, and it's archived on Zenodo. The model it builds has exactly the layers of the paper's figure.
-
-**"Why run it three times?"**
-> To see how much the number moves between runs. The paper gives one number, and that's the one thing it can't tell us.
-
-**"What did their code give?"**
-> 62.71 percent, from one run so far, against their published 63.24: about half a point lower. Two more runs are going.
-
-TR: Bizim koşumuz, onların kodu, değiştirilmeden. 141 dakika sürdü; kendi kendine epoch 61'de durdu, en iyi epoch 55.
-
-**"So their number doesn't reproduce?"**
-> Not a conclusion from one run. Half a point is the size of the run-to-run variation: the test set alone gives about ±0.3 points, and seeds move our models by half a point to a point. Training behaved like theirs: it stopped by itself, with validation accuracy 63.6, the same as their figure.
-
-TR: Onların Şekil 7'si ve metni: 58. epoch'ta doğrulama doğruluğu %63.59. Bizim koşuda en iyi epoch'ta (55) %63.60.
-
-**"Why would it be lower?"**
-> A different random split and a different random start. Their code draws a new split every time it's run, so we can't use their exact split. We changed nothing in the model or the training.
-
-**"And at 0 dB?"**
-> 90.5 percent at label 0, against their 92.2. That's about 1,650 decisions from one run, so part of the gap is noise.
-
-**"When will you have all three runs?"**
-> Each run takes about two and a half hours on Colab. I'll bring the three-run average and spread next time.
-
-**"Why no weights?"**
-> The scripts save them locally; they just weren't uploaded. So anyone has to retrain.
-
----
-
-## Slayt 11 — Sayı gerçek mi?
-
-**"How did you rebuild it?"**
-> From the paper's text and Figure 2 alone, in PyTorch, before their code existed. Same layers and sizes; the parameter count came out within 0.1 percent of theirs.
-
-TR: 794,827'ye karşı 794,188. Fark attention'ın kurulma biçiminden.
-
-**"How many runs gave 63.21?"**
-> One, trained until it stopped improving; it peaked at epoch 107. At a fixed 58 epochs, three runs gave 61.75, plus or minus 0.07.
-
-TR: Dürüst ol: 63.21 tek koşu.
-
-**"Why did yours need 107 passes and theirs 58?"**
-> Different stopping rules and small differences in the recipe. Theirs stops on the validation loss; ours watched validation accuracy, which was still rising. Their code also clips gradients and normalizes the input differently.
-
-**"So is 63.24 reproducible?"**
-> From the paper alone, yes: 63.21. Their own code's runs will add the spread.
-
----
-
-## Slayt 12 — Gerçekte ne kadar iyi?
+## Slayt 9 — Gerçekte ne kadar iyi?
 
 **"Why is ICRNNA 62.2 here and 63.2 on the slide before?"**
 > This row is our working version, trained with one recipe shared by all five models: our split, larger batches. It's fair among these five, but it's not the reproduction; the previous slide is.
@@ -403,7 +360,7 @@ TR: Tohum tohum genel doğruluk (aşağıdaki not): ICRNNA her tohumda birinci; 
 
 ---
 
-## Slayt 13 — Özet
+## Slayt 10 — Özet
 
 **"What's next?"**
 > The spread from their code, then back to the main question of my work: how much accuracy is lost when the signals come from a different source than the training data. That's something this paper never tests.
@@ -419,7 +376,7 @@ TR: Tohum tohum genel doğruluk (aşağıdaki not): ICRNNA her tohumda birinci; 
 
 ---
 
-## Slayt 15 — Model bir bakışta
+## Slayt 12 — Model bir bakışta
 
 **"What's 2 × 128 → 64 × 128?"**
 > 2 channels by 128 samples go in. After the convolutions it's 128 numbers at each of 128 time steps, then pooling halves the time to 64.
@@ -429,7 +386,7 @@ TR: Tohum tohum genel doğruluk (aşağıdaki not): ICRNNA her tohumda birinci; 
 
 ---
 
-## Slayt 16 — Blok 1, CNN
+## Slayt 13 — Blok 1, CNN
 
 **"What does 'larger of each pair' do?"**
 > Max pooling: it keeps the larger of two neighbours, so the length halves. It keeps the strongest response and drops the exact position.
@@ -445,7 +402,7 @@ TR: Tohum tohum genel doğruluk (aşağıdaki not): ICRNNA her tohumda birinci; 
 
 ---
 
-## Slayt 17 — Blok 2, BiLSTM
+## Slayt 14 — Blok 2, BiLSTM
 
 **"What are the gates?"**
 > Three learned switches between 0 and 1. Forget: how much old state to keep. Input: how much of the new step to add. Output: how much of the state to pass on.
@@ -461,7 +418,7 @@ TR: Tohum tohum genel doğruluk (aşağıdaki not): ICRNNA her tohumda birinci; 
 
 ---
 
-## Slayt 18 — Blok 3, attention
+## Slayt 15 — Blok 3, attention
 
 **"What are q and k in the formula?"**
 > In their code both come from the same LSTM output: q is the normalized and dropped-out version, k is the raw one. Each step is scored on its own content; steps aren't compared with each other.
@@ -480,7 +437,7 @@ TR: Tohum tohum genel doğruluk (aşağıdaki not): ICRNNA her tohumda birinci; 
 
 ---
 
-## Slayt 19 — Blok 4, karar
+## Slayt 16 — Blok 4, karar
 
 **"What's the pie?"**
 > Where the 794 thousand numbers are: 83 percent LSTM, 8 attention, 5 dense layers, 3 convolution.
@@ -493,7 +450,7 @@ TR: Tohum tohum genel doğruluk (aşağıdaki not): ICRNNA her tohumda birinci; 
 
 ---
 
-## Slayt 20 — Nasıl eğitiliyor
+## Slayt 17 — Nasıl eğitiliyor
 
 **"Why cut the learning rate?"**
 > When progress stalls, smaller steps let the weights settle into a better point. They cut it by five after 5 flat epochs.
@@ -512,7 +469,7 @@ TR: Tohum tohum genel doğruluk (aşağıdaki not): ICRNNA her tohumda birinci; 
 
 ---
 
-## Slayt 21 — Kodları ne söylüyor
+## Slayt 18 — Kodları ne söylüyor
 
 **"How do you know 58 wasn't chosen?"**
 > The code trains up to 100 epochs with early stopping, and there is no 58 anywhere in it. The paper's own text says the validation loss flattened after epoch 40, which fits a stop at 58.
@@ -522,7 +479,7 @@ TR: Tohum tohum genel doğruluk (aşağıdaki not): ICRNNA her tohumda birinci; 
 
 ---
 
-## Slayt 22 — "58 epoch" ne demek
+## Slayt 19 — "58 epoch" ne demek
 
 **"If accuracy is still rising, why would the loss be flat?"**
 > The loss also punishes confident wrong answers. The model can get more frames right while becoming over-confident on the ones it gets wrong, so accuracy rises while the loss stays flat.
@@ -532,7 +489,7 @@ TR: Tohum tohum genel doğruluk (aşağıdaki not): ICRNNA her tohumda birinci; 
 
 ---
 
-## Slayt 23 — Yeniden kurduk; kodları doğruluyor
+## Slayt 20 — Yeniden kurduk; kodları doğruluyor
 
 **"What did you miss, and does it matter?"**
 > The exact attention form, the input normalization and gradient clipping. They're small: trained to the end, our build lands at 63.21, against their 63.24.
@@ -542,7 +499,7 @@ TR: Tohum tohum genel doğruluk (aşağıdaki not): ICRNNA her tohumda birinci; 
 
 ---
 
-## Slayt 24 — Tablolarının desteklemediği üç iddia
+## Slayt 21 — Tablolarının desteklemediği üç iddia
 
 **"Show me the low-SNR claim."**
 > Their Table 5: at −10 dB, CNN-BiLSTM-DNN has 27.7 against 25.3. At −8, three models are higher. At −6, three are higher. ICRNNA leads from −4 to +2 dB, by three to four points.
@@ -558,7 +515,7 @@ TR: Tohum tohum genel doğruluk (aşağıdaki not): ICRNNA her tohumda birinci; 
 
 ---
 
-## Slayt 25 — Makalenin söylemedikleri
+## Slayt 22 — Makalenin söylemedikleri
 
 **"How did you measure +9 dB?"**
 > In the dataset file itself. The digital signals occupy only part of the band, so the spectrum outside it is pure noise. That gives the noise level, and the rest is signal. We used 1,000 frames per class and label, and the method was checked to within half a dB on frames of known SNR.
@@ -571,6 +528,78 @@ TR: Tohum tohum genel doğruluk (aşağıdaki not): ICRNNA her tohumda birinci; 
 
 **"How much do your seeds vary?"**
 > Overall accuracy moves by up to half a point for ICRNNA and just over a point for LSTM2, between three seeds of the same model.
+
+---
+
+## [↺] Çıkarılan slaytların konuları (sorulursa)
+
+Bu üç slayt 13 Ekim'deki geri bildirimle sunumdan çıkarıldı. Moshe yine de sorarsa cevaplar burada.
+
+**— Hangi adım önemli (makalenin Tablo 6'sı, ablation)**
+
+**"How did they build 'step 2 only'?"**
+> The paper doesn't describe the variants exactly, and they're not in their code. I can only read the numbers.
+
+**"Is 0.4 points from attention meaningful?"**
+> Not from one run each. It's within what we see between two seeds of the same model.
+
+**"Why is 'step 2 only' better than 'all but step 3'?"**
+> 63.1 against 62.8: adding the CNN without the attention lost a third of a point. That's probably noise too, which is the point: differences this size can't be read from single runs.
+
+**"Then why use the complex model?"**
+> Fair question. On their own numbers, a bidirectional LSTM alone gets almost all of it. The CNN mainly makes it cheaper by halving the sequence.
+
+**"They say attention helps most at low SNR — is that shown?"**
+> No. They only give one overall number per variant, not per SNR.
+
+**— Onların kodu ve bizim koşularımız**
+
+**"Why didn't they release the code with the paper?"**
+> I don't know. The paper said "available on request". The code went up on GitHub in August 2026, without trained weights.
+
+**"How do you know it's really theirs?"**
+> It's on a GitHub account named after the first author. The README and the citation file name all five authors and call it the official code, and it's archived on Zenodo. The model it builds has exactly the layers of the paper's figure.
+
+**"Why run it three times?"**
+> To see how much the number moves between runs. The paper gives one number, and that's the one thing it can't tell us.
+
+**"What did their code give?"**
+> Two runs so far, on one fixed split: 62.71 and 62.45 percent, an average of 62.58, against their published 63.24. A third run is going.
+
+TR: Onların kodu, hiç değiştirmeden. 1. koşu: 141.6 dk, epoch 61'de durdu, en iyi 55. 2. koşu: 149.9 dk, epoch 64'te durdu, en iyi 58.
+
+**"So their number doesn't reproduce?"**
+> Our two runs land about two-thirds of a point below it, and close to each other. Their 63.24 is a single run on a different random split, and the test set alone moves a run by about 0.3 points. So either their split was a slightly easier draw or their run a slightly lucky one; the model is the same. Training behaved like theirs: our runs stopped by themselves at epochs 61 and 64, close to their 58, with validation accuracy 63.6 and 63.4, like their 63.59.
+
+**"Why would it be lower?"**
+> A different random split and a different random start. Their code draws a new split every time it's run, so we can't use their exact one. We changed nothing in the model or the training.
+
+**"And at 0 dB?"**
+> 90.7 percent at label 0 over our two runs, against their 92.2. About 3,300 decisions, so part of the gap is noise.
+
+**"When will you have all three runs?"**
+> Each run takes about two and a half hours on Colab. The third is running now.
+
+**"Why no weights?"**
+> The scripts save them locally; they just weren't uploaded. So anyone has to retrain.
+
+**— Sayı gerçek mi? (makaleden yeniden kurduğumuz model)**
+
+**"How did you rebuild it?"**
+> From the paper's text and Figure 2 alone, in PyTorch, before their code existed. Same layers and sizes; the parameter count came out within 0.1 percent of theirs.
+
+TR: 794,827'ye karşı 794,188. Fark attention'ın kurulma biçiminden.
+
+**"How many runs gave 63.21?"**
+> One, trained until it stopped improving; it peaked at epoch 107. At a fixed 58 epochs, three runs gave 61.75, plus or minus 0.07.
+
+TR: Dürüst ol: 63.21 tek koşu.
+
+**"Why did yours need 107 passes and theirs 58?"**
+> Different stopping rules and small differences in the recipe. Theirs stops on the validation loss; ours watched validation accuracy, which was still rising. Their code also clips gradients and normalizes the input differently.
+
+**"So is 63.24 reproducible?"**
+> From the paper alone, yes: 63.21. Their own code's runs will add the spread.
 
 ---
 
@@ -592,7 +621,7 @@ TR: Tohum tohum genel doğruluk (aşağıdaki not): ICRNNA her tohumda birinci; 
 > It's public, labelled, and has been the standard benchmark since 2016. The weakness is that it's simulated.
 
 **"What's the connection to your domain-gap work?"**
-> This is the detector. My question is what happens when the test signals come from a different generator than the training ones. This paper only tests on held-out frames of the same dataset.
+> This is the classifier. My question is what happens when the test signals come from a different generator than the training ones. This paper only tests on held-out frames of the same dataset.
 
 **"What's the difference between 10a and 10b?"**
 > 10b has ten classes, no AM-SSB, and six times as many frames per class. Everyone scores higher on 10b.
@@ -615,7 +644,7 @@ TR: Moshe "bunu anlamıyorum" derse, ikinci bir kavram ekleme; tek cümle tanım
 
 ## Kontrol notu (söylemeden önce)
 
-- **Slayt 12, tohum tohum genel doğruluk** (sonuç dosyalarından):
+- **Slayt 9, tohum tohum genel doğruluk** (sonuç dosyalarından):
 
 | tohum | ICRNNA | LSTM2 | MCLDNN | PET-CGDNN |
 |---|---|---|---|---|
@@ -625,4 +654,4 @@ TR: Moshe "bunu anlamıyorum" derse, ikinci bir kavram ekleme; tek cümle tanım
 
 ICRNNA her tohumda birinci. Ama LSTM2'nin en iyi koşusu (62.09) ICRNNA'nın en kötüsünü (62.00) geçiyor; fark küçük.
 
-- **Slayt 10 cevabı:** Colab sonucu gelirse değişecek; o zaman sayıyı söyle.
+- **Onların kodu:** 3. koşu bitince "Çıkarılan slaytların konuları" kartındaki sayılar güncellenecek.

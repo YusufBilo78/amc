@@ -3,10 +3,14 @@
 Makale: El-Haryqy, Kharbouche, Ouamna, Madini, Zouine. *Improved automatic modulation recognition using deep learning with additive attention.* Results in Engineering 26 (2025) 104783. Ibn Tofail Üniversitesi, Kenitra, Fas. Nisan 2025'te yayımlandı, açık erişim (CC BY-NC 4.0).
 
 **Bu sunumun amacı:** Moshe makaleyi anlamak istiyor ve sade anlatım istiyor. O yüzden sunum ikiye ayrıldı:
-- **Ana akış (slayt 1–13, yaklaşık 6 dakika):** Her slaytta tek düz mesaj; slaytlarda makine öğrenmesi jargonu yok. Model "dört adım" olarak anlatılıyor: parçalara bak, sırayla oku, ağırlıklandır, karar ver.
-- **Yedek (slayt 14–25):** Her adımın ayrıntısı, eğitim tarifi, onların kodu, "58 epoch", tablolarıyla uyuşmayan iddialar. Sadece Moshe sorarsa açılır.
+- **Ana akış (slayt 1–10, yaklaşık 5 dakika):** Her slaytta tek düz mesaj; slaytlarda makine öğrenmesi jargonu yok. Model "dört adım" olarak anlatılıyor: parçalara bak, sırayla oku, ağırlıklandır, karar ver.
+- **Yedek (slayt 11–22):** Her adımın ayrıntısı, eğitim tarifi, onların kodu, "58 epoch", tablolarıyla uyuşmayan iddialar. Sadece Moshe sorarsa açılır.
 
-**Slayt 10**, Colab'daki `official_2016` sonuçlarıyla dolu: onların kodu, bizim koşumuz, %62.71 (1 koşu; 2 koşu daha sürüyor). Yeni koşular gelince slayt ve not kendiliğinden güncellenir.
+**13 Ekim geri bildirimi:**
+- **Kelime:** "detector" yerine "classifier".
+- **Slayt 3, 4, 5 ve 8 netleşti.**
+- **Üç slayt çıkarıldı:** hangi adım önemli (ablation), onların kodunun sonucu, "sayı gerçek mi?".
+- **Sorulursa:** Bu konuların cevapları `QA_paper.html`'de, "Çıkarılan slaytların konuları" kartında.
 
 Her slayt için üç bölüm var:
 - **Slaytta ne var, ne demek:** Türkçe açıklama.
@@ -71,7 +75,7 @@ Temel terimler (recall, precision, epoch, SNR, dB...) `STUDY_simple.html`'deki s
 
 **Okuma metni (EN)**
 
-> Today I present the paper our detector comes from: ICRNNA, from a group in Morocco, published in 2025. I'll keep it simple: what it does, how it works, what it reports, and whether it holds up.
+> Today I present the paper our classifier comes from: ICRNNA, from a group in Morocco, published in 2025. I'll keep it simple: what it does, how it works, what it reports, and whether it holds up.
 
 ---
 
@@ -80,11 +84,11 @@ Temel terimler (recall, precision, epoch, SNR, dB...) `STUDY_simple.html`'deki s
 **Slaytta ne var, ne demek**
 - **Tek cümle:** Bir sinir ağı, bir radyo sinyalinin 128 örneğine bakıp 11 modülasyondan hangisiyle gönderildiğini söylüyor.
 - **63.24%:** RML2016.10a'da doğru oranı; makalenin karşılaştırdığı 12 model içinde en iyisi (Tablo 3).
-- **"our detector":** Bizim dedektörümüz bu tasarım üzerine kurulu. Moshe'nin "bu model nereden çıktı" sorusunun cevabı.
+- **"our classifier":** Bizim sınıflandırıcımız bu tasarım üzerine kurulu. Moshe'nin "bu model nereden çıktı" sorusunun cevabı.
 
 **Okuma metni (EN)**
 
-> The paper in one sentence: a neural network looks at 128 samples of a radio signal and says which of 11 modulations sent it. They report 63.24 percent right on this dataset, the best of the twelve models they compare. Our own detector is built on this design.
+> The paper in one sentence: a neural network looks at 128 samples of a radio signal and says which of 11 modulations sent it. They report 63.24 percent right on this dataset, the best of the twelve models they compare. Our own classifier is built on this design.
 
 **Olası sorular**
 - *"Is it a well-known journal?"* — Results in Engineering is a broad, open-access Elsevier engineering journal, not a signal-processing one. That is one reason we checked the number ourselves.
@@ -94,17 +98,22 @@ Temel terimler (recall, precision, epoch, SNR, dB...) `STUDY_simple.html`'deki s
 ## Slayt 3 — Veri: model neyi görüyor?
 
 **Slaytta ne var, ne demek**
-- **Veri seti:** RML2016.10a, bizim kullandığımızla aynı. 11 modülasyon, 20 SNR etiketi (−20…18 dB), 220,000 çerçeve.
+- **Veri seti:** RML2016.10a, bizim kullandığımızla aynı.
+  - **11 modülasyon:** 8 dijital (BPSK, QPSK, 8PSK, QAM16, QAM64, PAM4, GFSK, CPFSK) ve 3 analog (WBFM, AM-DSB, AM-SSB).
+  - **Notundaki "4 analog 7 digital" yanlış:** Makale (s. 3, Tablo 1) ve veri setinin kendi makalesi 8 dijital, 3 analog diyor. GFSK ve CPFSK frekans kaydırmalı ama bitlerle sürülüyor; yani dijital.
+  - **20 SNR etiketi:** −20'den 18 dB'ye, 2 dB adımlarla.
+  - **220,000 çerçeve:** Her tipten, her SNR'da 1,000 çerçeve (11 × 20 × 1,000).
 - **Sağdaki resim:** Bir çerçevenin I (turuncu) ve Q (mavi) bileşenleri. Biz çizdik, açıklama amaçlı.
 - **2 × 128:** Modelin tek girdisi. 2 satır (I ve Q) × 128 örnek. Model başka hiçbir şey görmüyor: frekans bilgisi, SNR etiketi, ek bir özellik yok.
 - **RML2016.10b:** Makale ayrıca daha büyük olan 10b'yi de test ediyor (65.39%). Biz 10a ile kalıyoruz.
 
 **Okuma metni (EN)**
 
-> The data is the same dataset we use, RML2016.10a: eleven modulation types, twenty noise levels, 220,000 frames. Each frame is 128 samples of I and 128 of Q. That is the only input; the network sees nothing else.
+> The data is the same dataset we use, RML2016.10a: eleven modulation types, eight digital and three analog. Twenty noise levels, from minus 20 to plus 18 dB in steps of 2, and 1,000 frames of each type at each level: 220,000 frames. Each frame is 128 samples of I and 128 of Q. That is the only input; the network sees nothing else.
 
 **Olası sorular**
 - *"Does the model see the SNR?"* — No. Only the 2 × 128 array. The SNR label is used only afterwards, to sort the test results.
+- *"Why are GFSK and CPFSK digital?"* — They shift frequency, but the shifts are driven by bits. Analog here means a continuous audio source: WBFM, AM-DSB, AM-SSB.
 
 ---
 
@@ -122,39 +131,40 @@ Modelin tamamı dört adım. Slaytta düz adları büyük, teknik adları küç�
    - Sonunda her parça bütün çerçeveyi "biliyor".
    - Modelin sayılarının %83'ü burada.
 3. **Weigh the pieces (attention):** Her parçaya bir ağırlık veriyor (toplamları 1) ve ağırlıklı ortalamasını alıyor: çerçevenin tek bir özeti.
-4. **Decide (dense katmanlar):** 11 skor, her modülasyon için bir tane; en büyüğü cevap.
+4. **Decide (dense katmanlar):** 11 güven skoru (confidence), her modülasyon için bir tane; toplamları 1. En büyüğü cevap.
 
 - **Alttaki satır:**
   - Giriş 128 örnek (I ve Q), çıkış 11 skor.
   - 794,188 öğrenilen sayı. Bu, onların kodunun saydığı sayı, BatchNorm istatistikleri dahil; makale 0.79 M diyor.
-- **Ayrıntılar** yedek slaytlarda (15–19): her adımın boyutları, formülleri, parametreleri.
+- **Ayrıntılar** yedek slaytlarda (12–16): her adımın boyutları, formülleri, parametreleri.
 
 **Okuma metni (EN)**
 
-> How does it work? Four steps. One: it looks at short pieces of the signal, with small filters that slide along it. Two: it reads those pieces in order, forwards and backwards, carrying a memory from piece to piece. Three: it weighs the pieces and takes a weighted average. Four: it gives eleven scores, one per modulation, and the largest wins. Most of the network, 83 percent, is in step two. That is the heart of it.
+> How does it work? Four steps. One: it looks at short pieces of the signal, with small filters that slide along it. Two: it reads those pieces in order, forwards and backwards, carrying a memory from piece to piece. Three: it weighs the pieces and takes a weighted average. Four: it gives eleven confidence scores, one per modulation, and the largest wins. Most of the network, 83 percent, is in step two. That is the heart of it.
 
 **Olası sorular**
 - *"What do the filters in step 1 learn?"* — We haven't looked. Typically they respond to changes between neighbouring samples: phase jumps and amplitude steps.
 - *"What is the memory in step 2?"* — 128 numbers per direction, updated piece by piece. What they encode is learned; we haven't interpreted them.
+- *"What does confidence mean here?"* — The softmax output: eleven numbers that add up to one, and the largest is the answer. They are not checked as probabilities: nobody has shown that 0.9 means right 90 percent of the time.
 - *"Is step 3 the attention of ChatGPT?"* — No. It is a single weighted average over the 64 pieces, the 2014 form of attention.
-- *"Why is step 2 the heart of it?"* — Telling QAM16 from QAM64 needs many symbols together; step 1 sees less than one symbol, step 2 connects all of them. Their own experiment (slide 9) agrees.
+- *"Why is step 2 the heart of it?"* — Telling QAM16 from QAM64 needs many symbols together; step 1 sees less than one symbol, step 2 connects all of them. Their own experiment, Table 6, agrees.
 
 ---
 
 ## Slayt 5 — Nasıl eğitildi, nasıl test edildi
 
 **Slaytta ne var, ne demek**
-- **Bölme:** 220,000 çerçeve üçe bölünüyor.
+- **Bölme:** Veri setinin tamamı, 220,000 çerçeve, üçe bölünüyor. Yüzdeler veri setinin yüzdesi.
   - **154,000 (%70):** Doğru cevaplarıyla birlikte modele gösteriliyor; model bunlardan öğreniyor.
   - **33,000 (%15):** Ne zaman durulacağına karar vermek için (doğrulama).
-  - **33,000 (%15):** Kenara ayrılıyor, öğrenmede hiç kullanılmıyor. Bütün sonuçlar bunlar üzerinden sayılıyor (test).
+  - **33,000 (%15):** Kenara ayrılıyor, öğrenmede hiç kullanılmıyor. Sınıflandırıcının sonucu bunlarla test ediliyor; bütün sonuçlar bunlar üzerinden sayılıyor.
 - **"58 passes":** Bütün öğrenme çerçevelerinin üzerinden 58 kez geçilmiş (epoch). Bu seçilmiş bir sayı değil: model iyileşmeyi bırakınca eğitim kendiliğinden durmuş.
 - **"Done once":** Tek bölme, tek eğitim, tek sayı.
-- **Teknik ayrıntılar** yedek slayt 20'de: Adam, öğrenme oranı, batch ve durma kuralı.
+- **Teknik ayrıntılar** yedek slayt 17'de: Adam, öğrenme oranı, batch ve durma kuralı.
 
 **Okuma metni (EN)**
 
-> How was it trained and tested? The frames are split three ways. 154,000 frames, with the right answer, to learn from. 33,000 to decide when to stop learning. And 33,000 kept aside, never used for learning: every result is counted on those. It stopped by itself after 58 passes over the data, and they did it once.
+> How was it trained and tested? The dataset is split three ways. 70 percent of it, 154,000 frames with the right answer, to learn from. 15 percent, 33,000 frames, to decide when to stop learning. And the last 15 percent, 33,000 frames, kept aside to test the classifier: they are never used for learning, and every result is counted on them. It stopped by itself after 58 passes over the data, and they did it once.
 
 **Olası sorular**
 - *"How does it learn?"* — It is shown a frame, it gives 11 scores, those are compared with the right answer, and all its numbers are nudged a little to make the right answer more likely. Repeated over all 154,000 frames, 58 times.
@@ -191,7 +201,7 @@ Makalenin Tablo 3'ü, RML2016.10a sütunu:
 > Their main result. ICRNNA is first, at 63.24 percent. The next model is half a point behind. The well-known older ones are two to three points behind.
 
 **Olası sorular**
-- *"Were the other models retrained?"* — The paper doesn't say (backup slide 25).
+- *"Were the other models retrained?"* — The paper doesn't say (backup slide 22).
 
 ---
 
@@ -212,90 +222,44 @@ Makalenin Tablo 3'ü, RML2016.10a sütunu:
 ## Slayt 8 — 0 dB'de hâlâ nerede hata yapıyor?
 
 **Slaytta ne var, ne demek**
-- **Matris:** Makalenin Şekil 11'indeki ICRNNA paneli, 0 dB. Genel doğruluk 92.21%.
-- **57.9%:** WBFM çerçevelerinin AM-DSB denme oranı; WBFM'e doğru denen 41.4%.
-  - Literatürdeki bilinen açıklama: WBFM'lerin bir kısmı sessiz sesten üretilmiş, AM-DSB'ye benziyor.
+- **Matris:** Makalenin Şekil 11'indeki ICRNNA paneli, 0 dB etiketi. Genel doğruluk 92.21%.
+- **Sağdaki üst satır, ne girdi:**
+  - Etiketi 0 dB olan test çerçeveleri, her tipten yaklaşık 150 (toplam ≈1,650).
+  - Satır gerçek tip, sütun sınıflandırıcının cevabı; her satır %100'e tamamlanıyor.
+  - Bölme rastgele olduğu için satırlar tam 150 değil.
+- **57.9%:** WBFM çerçevelerinin AM-DSB denme oranı, yaklaşık 145 çerçevenin 85'i. WBFM'e doğru denen 41.4%.
+  - Literatürdeki bilinen açıklama: Analog tipler ses kaydından üretiliyor. Sessiz anlarda WBFM de AM-DSB de çıplak taşıyıcıya dönüşüyor ve ayırt edilemiyor.
   - Bunu biz ölçmedik.
-- **~6%:** QAM16'nın 5.7%'si QAM64, QAM64'ün 6.1%'i QAM16 denmiş.
+- **~6%:** QAM16'nın 5.7%'si QAM64, QAM64'ün 6.1%'i QAM16 denmiş. Her yönde 9–10 çerçeve.
+- **91.9%, 8PSK:** 161 çerçeveden 148'i doğru. Kalanlar: 7 → QPSK, 3 → QAM16, 2 → AM-SSB, 1 → QAM64.
+- **Alt satır:** Diğer yedi tip bu seviyede %96–100 doğru: AM-DSB 98.0, AM-SSB 96.1, BPSK 99.3, CPFSK 100, GFSK 98.6, PAM4 99.2, QPSK 99.4.
+- **Çerçeve sayıları nereden:** Makale sadece yüzde basıyor.
+  - **8PSK satırı kesin:** Basılan beş yüzdenin hepsini veren tek satır büyüklüğü 161.
+  - **WBFM ve QAM satırları yaklaşık:** Birkaç satır büyüklüğü uyuyor, o yüzden "yaklaşık" yazıyor.
+  - **Sorulursa:** Bunu söyle.
+
+**8PSK'deki sapmalar: ne girdi, ne çıktı, neden**
+- **Girdi ve çıktı:** 161 8PSK çerçevesi girdi; 148'i 8PSK, 7'si QPSK, 3'ü QAM16, 2'si AM-SSB, 1'i QAM64 çıktı.
+- **QPSK (7):** En yakın komşu.
+  - İkisi de sabit genlikli; QPSK'nin 4 fazı, 8PSK'nin 8 fazından birer atlayarak seçilmiş 4'ü.
+  - 8PSK'de fazlar 45° aralıklı, QPSK'de 90°. Birim genlikte en yakın iki nokta arası mesafe 8PSK'de 0.77, QPSK'de 1.41. Aynı ayrımı yapmak için 8PSK ~5.3 dB daha fazla SNR istiyor.
+  - Bu etikette ölçtüğümüz SNR 8PSK için yaklaşık 4.7 dB. Gürültü 45° adımları bulanıklaştırınca çerçeve QPSK'ye benziyor.
+- **QAM16 (3), QAM64 (1):** Gürültü ve sönümleme genliği oynatıyor; tek halka birkaç halka gibi görünebiliyor.
+- **AM-SSB (2):** Sinyali göremediğinde ağın çerçeveleri yığdığı sınıf. Büyük ihtimalle sönümleme çukuruna denk gelmiş çerçeveler; o çerçeveler için SNR daha düşük.
+- **Ters yön nadir:** QPSK'nin sadece %0.6'sı 8PSK deniyor. 16 sembolün hepsinin 8 fazdan sadece 4'üne düşmesi 8PSK için çok nadir, bu yüzden "4 faz görüyorum" kanıtı QPSK'yi güçlü gösteriyor.
 
 **Okuma metni (EN)**
 
-> Where does it still make mistakes, at 0 dB? Two places. WBFM is called AM-DSB more than half the time. And QAM16 and QAM64 are mixed up, about 6 percent each way. These are the same two problems we see in our own runs.
-
----
-
-## Slayt 9 — Hangi adım önemli?
-
-**Slaytta ne var, ne demek**
-
-Makalenin Tablo 6'sı (10a):
-
-| model | doğruluk | F1 | precision |
-|---|---|---|---|
-| sadece CNN | 0.5993 | 0.6193 | 0.7486 |
-| sadece BiLSTM | 0.6313 | 0.6537 | 0.7676 |
-| attention'sız | 0.6280 | 0.6532 | 0.7526 |
-| tam model | 0.6324 | 0.6567 | 0.7536 |
-
-- Attention 0.4 puan ekliyor.
-- Sadece BiLSTM ile tam model arasında 0.1 puan var.
-- Tek koşu olduğu için bu farklar gürültü içinde kalabilir.
-
-**Okuma metni (EN)**
-
-> Which step matters? They removed steps one at a time. Step one alone: 59.9. Step two alone: 63.1. All four: 63.2. So step two, reading in order, does almost all the work; the other steps add a fraction of a point.
+> Where does it still make mistakes, at 0 dB? This is their figure. About 150 test frames of each type, labelled 0 dB, went in; each row is one true type, and the columns are what the classifier said. Three weak spots. WBFM is called AM-DSB more than half the time: about 85 of some 145 frames. QAM16 and QAM64 are mixed up, about 6 percent each way. And 8PSK: of 161 frames, 148 are right; 7 are called QPSK, its nearest neighbour, and a few go to the QAM types. The other seven types are 96 to 100 percent right.
 
 **Olası sorular**
-- *"Then why keep the CNN and attention?"* — By their own numbers, they add 0.1 points together. The paper doesn't discuss it.
+- *"Explain the 8PSK errors."* — "Of 161 8PSK frames at this label, 148 are right. Seven are called QPSK, its nearest neighbour: same constant amplitude, and QPSK's four phases are every other one of 8PSK's eight. At this noise level the 45-degree steps blur and the frame looks like it has only the 90-degree ones. A few go to the QAM types, because noise and fading make the amplitude vary, and two to AM-SSB, the class it falls back on when it can't see a signal."
+- *"Why is 8PSK the weakest digital type at 0 dB?"* — "Its points are closest together: at equal power the nearest-neighbour distance is 0.77 against 1.41 for QPSK, so it needs about 5 dB more SNR to be separated as well."
+- *"How do you know 161 frames?"* — "The paper prints percentages to one decimal. 161 is the only row size that gives all five of them: 148, 7, 3, 2 and 1 frames."
 
 ---
 
-## Slayt 10 — Onların kodu, ve verdiği sonuç
-
-**Slaytta ne var, ne demek**
-- **Nisan 2025:** Makale, kodsuz yayımlandı.
-- **Ağustos 2026:** Yazarlar kodu GitHub'a koydu. Eğitilmiş ağ (ağırlıklar) yok; sadece eğitim kodu var.
-- **Sağdaki kutu:** Onların kodunu, hiçbir şeyini değiştirmeden, Colab'da biz çalıştırdık.
-  - **Şimdilik 1 koşu:** %62.71. Makale %63.24 diyor; 0.53 puan altında.
-  - **Eğitim onlarınkine benziyor:** Kendi kendine epoch 61'de durdu (en iyi epoch 55). En iyi epoch'ta doğrulama doğruluğu %63.60; makalenin Şekil 7'si 58. epoch'ta %63.59.
-  - **0 dB'de:** %90.5 (makale %92.2). Tek koşu, yaklaşık 1,650 karar.
-  - **Yarım puan ne demek:** Tek koşudan bir şey söylemez. Test setinin kendi gürültüsü ±0.3 puan; bizim modellerde tohumdan tohuma fark 0.5–1.1 puan.
-  - **Diğer 2 koşu:** Colab'da sürüyor (koşu başına ~2.5 saat). Gelince kutu ortalama ± sapma gösterir.
-- **Koddan öğrendiklerimiz** (makale aynı, 58 bir seçim değil, tek koşu) yedek slayt 21'de; kod satırları bu sayfanın sonundaki "Yedek" bölümünde.
-
-**Okuma metni (EN)**
-
-> The paper came out without code. In August this year the authors put their code on GitHub, but not the trained network itself. We ran their code ourselves, once so far. It gives 62.71 percent, against their published 63.24: 0.5 points lower. Training behaved like theirs: it stopped by itself at epoch 61, with validation accuracy at 63.6, as in their paper. Half a point is the size of the run-to-run variation we see, so the next two runs will tell us whether this is just that.
-
-**Olası sorular**
-- *"Where is it?"* — GitHub, account noureddine395; the README names the five authors, and it is archived on Zenodo.
-- *"Why didn't you use their code from the start?"* — It didn't exist when the paper came out; it appeared sixteen months later.
-- *"So their number doesn't reproduce?"* — Not from one run. Half a point is the size of the run-to-run variation, and training behaved like theirs: validation accuracy 63.6, as in their figure. Two more runs will settle it.
-- *"Why would it be lower?"* — A different random split and a different random start; their code draws a new split each time it's run. We changed nothing.
-
----
-
-## Slayt 11 — Sayıları gerçek mi?
-
-**Slaytta ne var, ne demek**
-- **63.24%:** Makalenin sayısı.
-- **63.21%:** Bizim, modeli sadece makalenin metninden yeniden kurup eğittiğimizde aldığımız sayı. Bu, onların kodu yayımlanmadan önceydi.
-- **Alt satır:**
-  - Bizim modelin en iyi sonucu 107. geçişte (epoch) geldi.
-  - Makaledeki gibi 58'de durunca 61.75% kalıyordu.
-  - Yani sayı gerçek, ama bizim kurduğumuz modelde daha uzun eğitim gerekti.
-- **Ayrıntı:** Yedek slayt 22 ("58 epochs") ve 23 (yeniden kurduğumuz modelle onların kodunun karşılaştırması).
-
-**Okuma metni (EN)**
-
-> Is their number real? Before their code existed, I rebuilt the network from the paper's description alone. It gets 63.21 percent, against their 63.24. So yes, the result can be reproduced. It needed longer training than their 58 passes; ours was best at pass 107.
-
-**Olası sorular**
-- *"Why did yours need longer?"* — Their stopping rule watches the validation loss, which had flattened by 58, while the accuracy was still creeping up (their own Fig. 7 shows it). Ours watched the accuracy and kept going. Details on backup slide 22.
-
----
-
-## Slayt 12 — Gerçekte ne kadar iyi?
+## Slayt 9 — Gerçekte ne kadar iyi?
 
 **Slaytta ne var, ne demek**
 - **Deney:** Beş yayımlanmış modeli kendimiz, aynı şekilde eğittik: aynı veri, aynı bölme, her biri 3 tekrar.
@@ -321,27 +285,27 @@ Makalenin Tablo 6'sı (10a):
 
 ---
 
-## Slayt 13 — Özetle
+## Slayt 10 — Özetle
 
 **Okuma metni (EN)**
 
-> To sum up. It is a neural network in four steps, and step two, reading in order, does most of the work. Its 63.24 percent is real: we get 63.21 from the paper alone. And it is about one point better than older models, not a big jump. For us, it is a solid detector to build on. Thank you. I have more detail on each step if you'd like.
+> To sum up. It is a neural network in four steps, and step two, reading in order, does most of the work. Its 63.24 percent is real: we get 63.21 from the paper alone. And it is about one point better than older models, not a big jump. For us, it is a solid classifier to build on. Thank you. I have more detail on each step if you'd like.
 
 ---
 
-## Slayt 14 — Yedek bölüm
+## Slayt 11 — Yedek bölüm
 
 **Slaytta ne var, ne demek**
 - Buradan sonrası sadece Moshe ayrıntı sorarsa:
-  - 15: Modele kuşbakışı, boyutlarla.
-  - 16–19: Her adım ayrı ayrı.
-  - 20: Eğitim tarifi.
-  - 21: Kodun söyledikleri.
-  - 22: "58 epoch".
-  - 23: Yeniden kurduğumuz model ve onların kodu.
-  - 24: Tablolarıyla uyuşmayan iddialar.
-  - 25: Makalenin söylemedikleri.
-- Sormazsa göstermeye gerek yok; sunum 13. slaytta biter.
+  - 12: Modele kuşbakışı, boyutlarla.
+  - 13–16: Her adım ayrı ayrı.
+  - 17: Eğitim tarifi.
+  - 18: Kodun söyledikleri.
+  - 19: "58 epoch".
+  - 20: Yeniden kurduğumuz model ve onların kodu.
+  - 21: Tablolarıyla uyuşmayan iddialar.
+  - 22: Makalenin söylemedikleri.
+- Sormazsa göstermeye gerek yok; sunum 10. slaytta biter.
 
 **Okuma metni (EN)**
 
@@ -349,7 +313,7 @@ Makalenin Tablo 6'sı (10a):
 
 ---
 
-## Slayt 15 — Yedek: modele kuşbakışı
+## Slayt 12 — Yedek: modele kuşbakışı
 
 **Slaytta ne var, ne demek**
 - **Akış:** çerçeve → CNN → BiLSTM → Attention → Dense → 11 çıktı.
@@ -371,7 +335,7 @@ Makalenin Tablo 6'sı (10a):
 
 ---
 
-## Slayt 16 — Yedek: adım 1, CNN
+## Slayt 13 — Yedek: adım 1, CNN
 
 **Slaytta ne var, ne demek**
 - **Soldaki çizim (temsilî):** 3 örneklik bir pencere (turuncu) sinyal boyunca kayıyor; her konumda bir çıktı üretiyor.
@@ -393,7 +357,7 @@ Makalenin Tablo 6'sı (10a):
 
 ---
 
-## Slayt 17 — Yedek: adım 2, BiLSTM
+## Slayt 14 — Yedek: adım 2, BiLSTM
 
 **Slaytta ne var, ne demek**
 - **Çizim:** 64 adım. Üstteki oklar ileri okuyan LSTM'i, alttaki oklar geri okuyan ikinci LSTM'i gösteriyor.
@@ -416,7 +380,7 @@ Makalenin Tablo 6'sı (10a):
 
 ---
 
-## Slayt 18 — Yedek: adım 3, attention
+## Slayt 15 — Yedek: adım 3, attention
 
 **Slaytta ne var, ne demek**
 - **Soldaki çubuklar (temsilî):** 64 adımın her birine bir ağırlık. Toplamları 1. Turuncu olanlar ağırlığı büyük adımlar.
@@ -439,11 +403,11 @@ Makalenin Tablo 6'sı (10a):
 **Olası sorular**
 - *"Is this the attention of ChatGPT?"* — No. It is the original 2014 additive attention: one layer, applied once, a weighted average over time.
 - *"Which steps get large weights?"* — We have not looked. It would be a good thing to plot.
-- *"Does it help?"* — By their own ablation, less than half a point (slide 9).
+- *"Does it help?"* — By their own ablation, Table 6, less than half a point.
 
 ---
 
-## Slayt 19 — Yedek: adım 4, karar
+## Slayt 16 — Yedek: adım 4, karar
 
 **Slaytta ne var, ne demek**
 - **Soldaki çubuklar (temsilî):** 11 sınıfın olasılıkları. En büyüğü (burada QPSK) cevap.
@@ -464,7 +428,7 @@ Makalenin Tablo 6'sı (10a):
 
 ---
 
-## Slayt 20 — Yedek: eğitim tarifi
+## Slayt 17 — Yedek: eğitim tarifi
 
 **Slaytta ne var, ne demek**
 - **DATA:**
@@ -491,7 +455,7 @@ Makalenin Tablo 6'sı (10a):
 
 ---
 
-## Slayt 21 — Yedek: kod bize ne söylüyor?
+## Slayt 18 — Yedek: kod bize ne söylüyor?
 
 **Slaytta ne var, ne demek**
 1. **Model makaledekiyle aynı:** Aynı katmanlar. Keras'ın saydığı 794,188 sayı, makale 0.79 M diyor.
@@ -508,7 +472,7 @@ Makalenin Tablo 6'sı (10a):
 
 ---
 
-## Slayt 22 — Yedek: "58 epoch" ne demek?
+## Slayt 19 — Yedek: "58 epoch" ne demek?
 
 **Slaytta ne var, ne demek**
 - **61.75%:** Bizim makaleden kurduğumuz model, sabit 58 epoch, 3 koşu (±0.07). İki koşu son epoch'ta hâlâ iyileşiyordu.
@@ -525,7 +489,7 @@ Makalenin Tablo 6'sı (10a):
 
 ---
 
-## Slayt 23 — Yedek: yeniden kurduk; onların kodu da doğruluyor
+## Slayt 20 — Yedek: yeniden kurduk; onların kodu da doğruluyor
 
 **Slaytta ne var, ne demek**
 - **Zaman çizelgesi:**
@@ -554,7 +518,7 @@ Makalenin Tablo 6'sı (10a):
 
 ---
 
-## Slayt 24 — Yedek: kendi tablolarının desteklemediği üç iddia
+## Slayt 21 — Yedek: kendi tablolarının desteklemediği üç iddia
 
 **Slaytta ne var, ne demek**
 1. **"Best at low SNR":**
@@ -571,7 +535,7 @@ Makalenin Tablo 6'sı (10a):
 
 ---
 
-## Slayt 25 — Yedek: makalenin söylemedikleri
+## Slayt 22 — Yedek: makalenin söylemedikleri
 
 **Slaytta ne var, ne demek**
 1. **Tek koşu:** Kod bunu doğruluyor.

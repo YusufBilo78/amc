@@ -761,7 +761,7 @@ ICRNNA 8 seviyenin sadece 4'ünde birinci: −4, −2, 0 ve +2 dB.
 
 **Moshe sorarsa (EN)**
 
-- *"What do we take from it?"* — "A solid, reproducible detector to build on. Not proof that attention or this exact design is needed: the LSTM does most of the work."
+- *"What do we take from it?"* — "A solid, reproducible classifier to build on. Not proof that attention or this exact design is needed: the LSTM does most of the work."
 
 ---
 
