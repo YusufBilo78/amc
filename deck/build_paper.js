@@ -447,7 +447,8 @@ SLIDES['code_run'] = () => { const s = pres.addSlide();
   card(s, M + 5.7, 1.6, W - 2 * M - 5.7, 2.9, NAVY);
   if (OR) {
     t(s, `${OR.mean.toFixed(2)}%`, M + 6.0, 1.75, 5.8, 1.1, { fontSize: 60, bold: true, color: ORANGE, valign: "bottom" });
-    t(s, `their code, run by us ${OR.n} times (± ${OR.std.toFixed(2)});  paper: ${P.headline.acc_10a}%`, M + 6.0, 2.95, 5.9, 0.9, { fontSize: 19, color: WHITE });
+    const runs = OR.n === 1 ? "once (more runs going)" : `${OR.n} times (± ${OR.std.toFixed(2)})`;
+    t(s, `their code, run by us ${runs};  paper: ${P.headline.acc_10a}%`, M + 6.0, 2.95, 5.9, 0.9, { fontSize: 19, color: WHITE });
     const d = OR.mean - P.headline.acc_10a;
     takeaway(s, `Their own code: ${d >= 0 ? "+" : "−"}${Math.abs(d).toFixed(2)} points from their published number.`, 5.0);
   } else {
