@@ -54,7 +54,7 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 - Kodda bu böyle: <code>train_backbone.py --classes BPSK,QPSK,QAM16,QAM64</code>, etiketleri 0..3'e çeviriyor ve modeli 4 çıkışla kuruyor (<code>model_zoo.backbone(4)</code>).</p>
 <p><strong>Toplantıda yanlış verilen üç cevap:</strong>
 1. <strong>"Aynı dedektör"</strong> — Yanlış. 4 sinyal tablosu ayrı, 4 çıkışlı bir ağ. 11 sinyal sonuçları başka, 11 çıkışlı bir ağ. İkisi de aynı mimari (ICRNNA), ama ayrı ayrı eğitildi.
-2. <strong>"Yazarlar ağırlıkları paylaştı"</strong> — Yanlış. Makale ne kod ne ağırlık yayımladı ("Data will be made available on request"). Bütün ağları biz, rastgele başlangıçtan eğittik. Kodda dışarıdan ağırlık yükleyen tek bir yer yok; yüklenen her checkpoint bizim kendi eğitimimizin çıktısı.
+2. <strong>"Yazarlar ağırlıkları paylaştı"</strong> — Yanlış. Eğitilmiş ağırlıklar hiç yayımlanmadı. Makale (Nisan 2025) kod da vermedi ("Data will be made available on request"); yazarların eğitim kodu GitHub'a ancak 8 Ağustos 2026'da geldi (<code>OFFICIAL_CODE.md</code>). Bütün ağları biz, rastgele başlangıçtan eğittik. Kodda dışarıdan ağırlık yükleyen tek bir yer yok; yüklenen her checkpoint bizim kendi eğitimimizin çıktısı.
 3. <strong>"Her modülasyon için ayrı bir kod parçası var"</strong> — Yanlış. Tek bir ağ var. Bir modülasyon ağ için sadece bir çıkış numarası (BPSK 0, QPSK 1...).</p>
 <p><strong>⚠️ Senin kontrol etmen gereken bir şey:</strong>
 - Daha önce "eğittiğim verilerin bir kısmı Esmer'in" demiştin.
@@ -76,7 +76,7 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 <blockquote>
 <p>First, three answers I gave last week were wrong, and I want to correct them.</p>
 <p>I said the four-signal table came from the same detector as the eleven-signal results. It did not: it came from a separate network, trained only on those four.</p>
-<p>I said the authors published their weights. They did not publish code or weights; every network here, we trained ourselves.</p>
+<p>I said the authors published their weights. They never did. Their training code appeared only in August 2026, and every network here, we trained ourselves.</p>
 <p>And I agreed there was a piece of code for each modulation. There isn't: there is one network, and a modulation is just an output number.</p>
 </blockquote>
 <p><strong>Olası sorular</strong>
@@ -201,12 +201,13 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
     - Ibn Tofail Üniversitesi, Kenitra, Fas (ENSA, İleri Sistem Mühendisliği Laboratuvarı).
     - Results in Engineering 26 (2025) 104783. Gönderim Aralık 2024, yayın 4 Nisan 2025. Açık erişim.
 - <strong>Yayımladıkları:</strong> Katman listesi (Şekil 2) ve eğitim tarifi (Tablo 2).
-- <strong>Yayımlamadıkları:</strong> Kod ve ağırlıklar. "Data will be made available on request" diyorlar.
+- <strong>Yayımladıkları, sonradan:</strong> Eğitim kodu (TensorFlow), GitHub'da 8 Ağustos 2026, MIT lisansı.
+- <strong>Hiç yayımlamadıkları:</strong> Eğitilmiş ağırlıklar. Makalede "Data will be made available on request" diyorlar.
 - Makalenin ayrıntılı incelemesi ayrı bir sunumda: <code>moshe_paper_icrnna.pptx</code>, yedekte dursun.</p>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
 <p>Question six: the paper. It is by El-Haryqy and four colleagues at Ibn Tofail University in Kenitra, Morocco, published in Results in Engineering in April 2025.</p>
-<p>They describe the layers and the training recipe. They did not publish code or weights; the paper says data are available on request. So the code had to be written from the description.</p>
+<p>The paper describes the layers and the training recipe. The authors put their training code on GitHub only in August 2026, and they have never published trained weights. So we first wrote the code from the description; now we can also run theirs.</p>
 </blockquote>
 <p><strong>Olası sorular</strong>
 - <em>"Did you get the same result as them?"</em> — Yes. Built from the paper alone and trained to convergence: 63.21% against their 63.24%. The details are in the paper deck if you want them.</p></div></details><details id="s13"><summary><span class="n">13</span><span>Yazarlar başka ne yapmış?</span></summary><div class="body"><div class="tag">Slaytta ne var, ne demek</div>

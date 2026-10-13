@@ -55,7 +55,7 @@ def main(paths):
     OUT.mkdir(exist_ok=True)
     d, seeds = load(paths[0])
     classes = d.get("classes")
-    tag = f"e{d['config']['epochs']}"
+    tag = d.get("tag") or f"e{d['config']['epochs']}"
     n = len(seeds)
     if not seeds:
         raise SystemExit(f"{paths[0]}: no seed has confusion matrices yet")

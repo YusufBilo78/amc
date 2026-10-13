@@ -43,6 +43,12 @@ attention dropout or LayerNorm, and one dense layer of 128 at dropout 0.5 vs two
 of 128 and 64 at 0.3. Do not describe the current model as "the published
 architecture".
 
+**The authors released their own code on 2026-08-08** (TensorFlow, no
+weights): `OFFICIAL_CODE.md` compares it line by line with the paper, the
+faithful build and Esmer's version, and `colab/official_icrnna_2016.py`
+(Colab task `official_2016`) runs it as published. Its "58 epochs" is where
+early stopping on validation loss fired, not a fixed budget.
+
 The faithful build in `colab/icrnna_faithful_2016.py` **does** reproduce the
 paper, but only when trained to convergence. At the paper's own 58-epoch
 ceiling it reaches 61.75% ± 0.07 against 63.24%; given a 150-epoch ceiling it

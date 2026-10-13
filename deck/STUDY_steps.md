@@ -23,7 +23,7 @@ Her slayt için üç bölüm var:
 
 **Toplantıda yanlış verilen üç cevap:**
 1. **"Aynı dedektör"** — Yanlış. 4 sinyal tablosu ayrı, 4 çıkışlı bir ağ. 11 sinyal sonuçları başka, 11 çıkışlı bir ağ. İkisi de aynı mimari (ICRNNA), ama ayrı ayrı eğitildi.
-2. **"Yazarlar ağırlıkları paylaştı"** — Yanlış. Makale ne kod ne ağırlık yayımladı ("Data will be made available on request"). Bütün ağları biz, rastgele başlangıçtan eğittik. Kodda dışarıdan ağırlık yükleyen tek bir yer yok; yüklenen her checkpoint bizim kendi eğitimimizin çıktısı.
+2. **"Yazarlar ağırlıkları paylaştı"** — Yanlış. Eğitilmiş ağırlıklar hiç yayımlanmadı. Makale (Nisan 2025) kod da vermedi ("Data will be made available on request"); yazarların eğitim kodu GitHub'a ancak 8 Ağustos 2026'da geldi (`OFFICIAL_CODE.md`). Bütün ağları biz, rastgele başlangıçtan eğittik. Kodda dışarıdan ağırlık yükleyen tek bir yer yok; yüklenen her checkpoint bizim kendi eğitimimizin çıktısı.
 3. **"Her modülasyon için ayrı bir kod parçası var"** — Yanlış. Tek bir ağ var. Bir modülasyon ağ için sadece bir çıkış numarası (BPSK 0, QPSK 1...).
 
 **⚠️ Senin kontrol etmen gereken bir şey:**
@@ -66,7 +66,7 @@ Her slayt için üç bölüm var:
 >
 > I said the four-signal table came from the same detector as the eleven-signal results. It did not: it came from a separate network, trained only on those four.
 >
-> I said the authors published their weights. They did not publish code or weights; every network here, we trained ourselves.
+> I said the authors published their weights. They never did. Their training code appeared only in August 2026, and every network here, we trained ourselves.
 >
 > And I agreed there was a piece of code for each modulation. There isn't: there is one network, and a modulation is just an output number.
 
@@ -264,14 +264,15 @@ Her slayt için üç bölüm var:
   - Ibn Tofail Üniversitesi, Kenitra, Fas (ENSA, İleri Sistem Mühendisliği Laboratuvarı).
   - Results in Engineering 26 (2025) 104783. Gönderim Aralık 2024, yayın 4 Nisan 2025. Açık erişim.
 - **Yayımladıkları:** Katman listesi (Şekil 2) ve eğitim tarifi (Tablo 2).
-- **Yayımlamadıkları:** Kod ve ağırlıklar. "Data will be made available on request" diyorlar.
+- **Yayımladıkları, sonradan:** Eğitim kodu (TensorFlow), GitHub'da 8 Ağustos 2026, MIT lisansı.
+- **Hiç yayımlamadıkları:** Eğitilmiş ağırlıklar. Makalede "Data will be made available on request" diyorlar.
 - Makalenin ayrıntılı incelemesi ayrı bir sunumda: `moshe_paper_icrnna.pptx`, yedekte dursun.
 
 **Okuma metni (EN)**
 
 > Question six: the paper. It is by El-Haryqy and four colleagues at Ibn Tofail University in Kenitra, Morocco, published in Results in Engineering in April 2025.
 >
-> They describe the layers and the training recipe. They did not publish code or weights; the paper says data are available on request. So the code had to be written from the description.
+> The paper describes the layers and the training recipe. The authors put their training code on GitHub only in August 2026, and they have never published trained weights. So we first wrote the code from the description; now we can also run theirs.
 
 **Olası sorular**
 - *"Did you get the same result as them?"* — Yes. Built from the paper alone and trained to convergence: 63.21% against their 63.24%. The details are in the paper deck if you want them.

@@ -47,6 +47,11 @@ Three tasks, matching the numbered list in README.md "Open work":
                       whether it converged is unknown and its accuracy may be a
                       floor. Writes to its own file; the existing one is left
                       alone either way.
+  "official_2016"     the paper's own code (released 2026-08-08, TensorFlow),
+                      run as published on RML2016.10a through
+                      colab/official_icrnna_2016.py: their split, their
+                      callbacks, three runs, results and per-SNR confusion
+                      matrices written to Drive/amc-results/official_icrnna/
   "faithful_paper"    the paper-faithful ICRNNA for the paper presentation:
                       (1) the 58-epoch run's three seeds get their test
                       confusion matrices, rebuilt from their checkpoints, no
@@ -128,7 +133,7 @@ def _flag(raw):
 
 TASK = _env("AMC_TASK", "compare_methods")
                            # "compare_methods" | "whitening_seeds"
-                           # "faithful_2016" | "faithful_budget" | "faithful_paper"
+                           # "faithful_2016" | "faithful_budget" | "faithful_paper" | "official_2016"
                            # "converged_2016" | "converged_2018"
 
 # converged_2016 only. 300 is a ceiling, not a run length. One seed: this asks
@@ -152,6 +157,13 @@ BUDGET_SEEDS = 1
 # faithful_paper: the same 150 ceiling, now with three seeds, so the converged
 # number has an error bar like the 58-epoch one. Seed 42 already finished.
 PAPER_SEEDS = _env("AMC_PAPER_SEEDS", 3, int)
+
+# official_2016: the authors' code, pinned to the commit we read. Each run is
+# one full training of their script (early stopping on validation loss).
+OFFICIAL_REPO = ("https://github.com/noureddine395/mproved-automatic-modulation-"
+                 "recognition-using-deep-learning-with-additive-attention.git")
+OFFICIAL_COMMIT = "ac000a0"
+OFFICIAL_RUNS = _env("AMC_OFFICIAL_RUNS", 3, int)
 
 SEEDS = _env("AMC_SEEDS", 5, int)   # compare_methods: 4 methods x 5 seeds
 EPOCHS = _env("AMC_EPOCHS", 60, int)
@@ -203,7 +215,7 @@ LIT_EPOCHS = _env("AMC_LIT_EPOCHS", 150, int)
 
 _TASKS = ("literature_2016", "rebuild_snr_2018", "compare_methods", "compare_methods_2016", "whitening_seeds",
           "whitening_smoothing_2016", "whitening_crop_2018",
-          "faithful_2016", "faithful_budget", "faithful_paper", "converged_2016",
+          "faithful_2016", "faithful_budget", "faithful_paper", "official_2016", "converged_2016",
           "converged_2018", "sink_24", "sink_arch")
 if TASK not in _TASKS:
     raise SystemExit(f"AMC_TASK={TASK!r}: expected one of {', '.join(_TASKS)}")
@@ -339,6 +351,36 @@ def main():
         proc.wait()
         if proc.returncode != 0:
             raise SystemExit(f"failed ({proc.returncode})")
+        return
+
+    if TASK == "official_2016":
+        hr("3. The paper's own code, as published")
+        off = pathlib.Path("/content/icrnna_official")
+        if not (off / ".git").exists():
+            sh(["git", "clone", "-q", OFFICIAL_REPO, str(off)])
+        sh(["git", "checkout", "-q", OFFICIAL_COMMIT], cwd=off)
+        sh(["git", "log", "--oneline", "-1"], cwd=off)
+        pkl = None
+        for hint in PKL_HINTS_2016:
+            if (DRIVE / hint).is_file():
+                pkl = DRIVE / hint
+                break
+        if pkl is None:
+            found = list(DRIVE.rglob("RML2016.10a_dict.pkl"))
+            if not found:
+                raise SystemExit("RML2016.10a_dict.pkl not found in Drive.")
+            pkl = found[0]
+        print(f"data: {pkl}")
+        print(f"{OFFICIAL_RUNS} runs of their training, batch 32, up to 100 epochs with")
+        print("early stopping on validation loss. Budget about an hour a run; a")
+        print("rerun of this cell skips runs that already finished.\n")
+        env = dict(os.environ, PYTHONHASHSEED="0", MPLBACKEND="Agg",
+                   AMC_OFFICIAL_DIR=str(off), AMC_PKL=str(pkl),
+                   AMC_OUT=str(OUT_DIR / "official_icrnna"),
+                   AMC_OFFICIAL_RUNS=str(OFFICIAL_RUNS))
+        sh_env([sys.executable, str(REPO_DIR / "colab" / "official_icrnna_2016.py")], REPO_DIR / "colab", env)
+        hr("Done")
+        print(f"Results: {OUT_DIR / 'official_icrnna' / 'official_icrnna_2016_results.json'}")
         return
 
     if TASK == "faithful_paper":

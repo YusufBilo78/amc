@@ -76,7 +76,7 @@ const QS = ["Is it a neural network? Trained, or fixed weights?", "Is there a se
 { const s = pres.addSlide();
   title(s, "Three answers I got wrong last week");
   const rows = [["“The four-signal table used the same 11-signal detector.”", "It used a separate network, trained only on those four."],
-    ["“They published their weights.”", "No code, no weights. We trained every network ourselves."],
+    ["“They published their weights.”", "No weights, ever; their code came in Aug 2026. We trained every network."],
     ["“There is a piece of code for each modulation.”", "One network. A modulation is just an output number."]];
   rows.forEach(([a, b], i) => {
     const y = 1.65 + i * 1.45;
@@ -247,10 +247,11 @@ const QS = ["Is it a neural network? Trained, or fixed weights?", "Is there a se
   t(s, "El-Haryqy, Kharbouche, Ouamna, Madini, Zouine  ·  Ibn Tofail University, Kenitra, Morocco\nResults in Engineering 26 (2025) 104783  ·  online April 2025", M, 2.45, W - 2 * M, 0.9, { fontSize: 20, color: MUTED });
   card(s, M, 3.7, 5.9, 1.9); card(s, M + 6.15, 3.7, 5.9, 1.9, NAVY);
   t(s, "PUBLISHED", M + 0.3, 3.85, 5, 0.4, { fontSize: 15, bold: true, color: ORANGE, charSpacing: 2 });
-  t(s, "the layers (Fig. 2) and the training recipe (Table 2)", M + 0.3, 4.3, 5.3, 1.1, { fontSize: 21 });
-  t(s, "NOT PUBLISHED", M + 6.45, 3.85, 5, 0.4, { fontSize: 15, bold: true, color: ORANGE, charSpacing: 2 });
-  t(s, "code and weights (“available on request”)", M + 6.45, 4.3, 5.3, 1.1, { fontSize: 21, color: WHITE });
-  takeaway(s, "So the code had to be written from the description.", 6.0);
+  t(s, [{ text: "Apr 2025: ", options: { bold: true } }, { text: "the layers and the recipe", options: { breakLine: true } },
+    { text: "Aug 2026: ", options: { bold: true } }, { text: "their training code (GitHub)" }], M + 0.3, 4.3, 5.3, 1.1, { fontSize: 21 });
+  t(s, "NEVER PUBLISHED", M + 6.45, 3.85, 5, 0.4, { fontSize: 15, bold: true, color: ORANGE, charSpacing: 2 });
+  t(s, "the trained weights", M + 6.45, 4.3, 5.3, 1.1, { fontSize: 21, color: WHITE });
+  takeaway(s, "We wrote our code from the description; theirs appeared later, and we can now run it.", 6.0);
   done(s);
 }
 
