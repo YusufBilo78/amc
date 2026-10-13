@@ -161,6 +161,37 @@
   "MCLDNN": 406199,
   "PET-CGDNN": 71871
  },
+ "official": {
+  "released": "2026-08-08",
+  "commit": "ac000a0",
+  "params": 794188,
+  "trainable": 792396,
+  "blocks": {
+   "CNN": 25920,
+   "BiLSTM": 659456,
+   "Attention": 66177,
+   "Dense": 42635
+  },
+  "shapes": [
+   "2 \u00d7 128",
+   "128 \u00d7 64",
+   "128 \u00d7 128",
+   "64 \u00d7 128",
+   "64 \u00d7 256",
+   "64 \u00d7 256",
+   "256",
+   "128",
+   "64",
+   "11"
+  ],
+  "train_frames": 154000,
+  "batch": 32,
+  "max_epochs": 100,
+  "es_patience": 6,
+  "lr_patience": 5,
+  "clipnorm": 1.0
+ },
+ "official_runs": null,
  "ours": {
   "e58_mean": 61.75,
   "e58_std": 0.07,

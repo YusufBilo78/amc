@@ -1,21 +1,25 @@
 // The ICRNNA paper (El-Haryqy et al., Results in Engineering 26 (2025) 104783),
-// presented for Moshe's group: what the paper says, then what we found when we
-// rebuilt it. Same style as the simple deck: large type, one message per slide.
+// presented so that Moshe can follow it: the data, the model block by block,
+// the training, the results; then what we checked. Same style as the other
+// decks: large type, one message per slide.
 // Numbers come from paper_data.json (deck/extract_paper.py): paper values are
-// transcribed with their table numbers, ours are read from the result files.
-// Figures in deck/paper/ are cropped from the paper (CC BY-NC 4.0) and say so.
+// transcribed with their table numbers, the authors' code (OFFICIAL_CODE.md) is
+// read from the code itself, ours from the result files. Figures in deck/paper/
+// cropped from the paper (CC BY-NC 4.0) say so; drawings marked "illustration"
+// are ours and carry no data. The "official" slide appears only once the Colab
+// results of the authors' code are in the repository.
 const pptxgen = require("pptxgenjs");
 const fs = require("fs");
 const D = JSON.parse(fs.readFileSync("paper_data.json", "utf8"));
 const TALK = require("./talk_paper.js");
-const P = D.paper, O = D.ours;
+const P = D.paper, O = D.ours, OF = D.official, OR = D.official_runs;
 
-const NAVY = "0F1B2D", ORANGE = "F08A24", CARD = "EEF2F6", INK = "1E293B", MUTED = "5B6B7F", WHITE = "FFFFFF", LINE = "D5DDE5", SOFT = "C9D3E0";
+const NAVY = "0F1B2D", ORANGE = "F08A24", CARD = "EEF2F6", INK = "1E293B", MUTED = "5B6B7F", WHITE = "FFFFFF", LINE = "D5DDE5", SOFT = "C9D3E0", GREY = "8FA0B5";
 const F = "Calibri";
 const pres = new pptxgen();
 pres.layout = "LAYOUT_WIDE";
 pres.author = "Yusuf Bilal Cetinkaya";
-pres.title = "ICRNNA: the paper, and what we found";
+pres.title = "ICRNNA: the paper, step by step";
 const W = 13.33, M = 0.6;
 const num = v => v.toLocaleString("en-US");
 const FROM = "Figure from El-Haryqy et al. 2025 (CC BY-NC 4.0)";
@@ -25,7 +29,7 @@ function t(s, text, x, y, w, h, o = {}) {
   s.addText(text, { x, y, w, h, fontFace: F, fontSize: 20, color: INK, isTextBox: true, margin: 0, valign: "top", ...o });
 }
 function title(s, text, kicker) {
-  if (kicker) t(s, kicker, M, 0.3, 8, 0.35, { fontSize: 14, bold: true, color: ORANGE, charSpacing: 2 });
+  if (kicker) t(s, kicker, M, 0.3, 9, 0.35, { fontSize: 14, bold: true, color: ORANGE, charSpacing: 2 });
   t(s, text, M, 0.6, W - 2 * M, 0.8, { fontSize: 34, bold: true, valign: "middle" });
 }
 function takeaway(s, text, y = 6.3, dark = false) {
@@ -34,16 +38,19 @@ function takeaway(s, text, y = 6.3, dark = false) {
 function card(s, x, y, w, h, fill = CARD) {
   s.addShape(pres.ShapeType.roundRect, { x, y, w, h, fill: { color: fill }, line: { color: fill }, rectRadius: 0.12 });
 }
+function box(s, x, y, w, h, fill) {
+  s.addShape(pres.ShapeType.rect, { x, y, w, h, fill: { color: fill }, line: { color: fill } });
+}
 function badge(s, x, y, k, fill = NAVY, d = 0.6) {
   s.addShape(pres.ShapeType.ellipse, { x, y, w: d, h: d, fill: { color: fill }, line: { color: fill } });
   t(s, String(k), x, y, d, d, { fontSize: 22, bold: true, color: WHITE, align: "center", valign: "middle" });
 }
-function arrow(s, x, y, w = 0.5) {
-  s.addShape(pres.ShapeType.rightArrow, { x, y, w, h: 0.45, fill: { color: ORANGE }, line: { color: ORANGE } });
+function arrow(s, x, y, w = 0.5, kind = "rightArrow", color = ORANGE) {
+  s.addShape(pres.ShapeType[kind], { x, y, w, h: kind === "downArrow" ? 0.5 : 0.42, fill: { color }, line: { color } });
 }
-function big(s, x, y, w, value, label, color = INK, size = 60, align = "left") {
-  t(s, value, x, y, w, 1.05, { fontSize: size, bold: true, color, align, valign: "bottom" });
-  t(s, label, x, y + 1.1, w, 0.8, { fontSize: 20, color: MUTED, align });
+function big(s, x, y, w, value, label, color = INK, size = 56, align = "left") {
+  t(s, value, x, y, w, 1.0, { fontSize: size, bold: true, color, align, valign: "bottom" });
+  t(s, label, x, y + 1.05, w, 0.8, { fontSize: 19, color: MUTED, align });
 }
 function pic(s, path, x, y, w, pxW, pxH) {
   const h = w * pxH / pxW;
@@ -53,120 +60,221 @@ function pic(s, path, x, y, w, pxW, pxH) {
 function credit(s, text, x, y, w) {
   t(s, text, x, y, w, 0.3, { fontSize: 12, color: MUTED, italic: true });
 }
-function done(s, dark = false) {
+function done(s, id, dark = false) {
   n++;
-  if (TALK[n]) s.addNotes(TALK[n]);
+  if (!TALK[id]) throw new Error(`no notes for slide ${id}`);
+  s.addNotes(TALK[id]);
   t(s, String(n), W - M - 0.5, 7.0, 0.5, 0.3, { fontSize: 12, color: dark ? "8FA0B5" : MUTED, align: "right" });
 }
-const PARTS = [["CNN", "2 conv layers"], ["BiLSTM", "2 layers"], ["Attention", "weights"], ["Dense", "→ 11 classes"]];
+const PARTS = [["CNN", "short filters"], ["BiLSTM", "reads in order"], ["Attention", "weighs the steps"], ["Dense", "decides"]];
+const pct = (a, b) => Math.round(100 * a / b);
 
-// 1. title ======================================================================
+// title =========================================================================
 { const s = pres.addSlide(); s.background = { color: NAVY };
-  t(s, "PAPER REVIEW", M, 1.0, 6, 0.4, { fontSize: 16, bold: true, color: ORANGE, charSpacing: 4 });
+  t(s, "PAPER PRESENTATION", M, 1.0, 6, 0.4, { fontSize: 16, bold: true, color: ORANGE, charSpacing: 4 });
   t(s, "ICRNNA", M, 1.45, 12, 1.2, { fontSize: 66, bold: true, color: WHITE });
   t(s, "Improved automatic modulation recognition using deep learning with additive attention", M, 2.7, 11.5, 1.0, { fontSize: 26, color: SOFT });
-  t(s, "El-Haryqy, Kharbouche, Ouamna, Madini, Zouine  ·  Results in Engineering 26 (2025) 104783", M, 3.85, 12, 0.5, { fontSize: 18, color: "9AA8BA" });
+  t(s, "El-Haryqy, Kharbouche, Ouamna, Madini, Zouine  ·  Ibn Tofail University, Morocco  ·  Results in Engineering 26 (2025) 104783", M, 3.85, 12.2, 0.5, { fontSize: 17, color: "9AA8BA" });
   PARTS.forEach(([h], i) => {
     const x = M + i * 2.6;
     s.addShape(pres.ShapeType.roundRect, { x, y: 4.85, w: 2.1, h: 0.65, fill: { color: ORANGE }, line: { color: ORANGE }, rectRadius: 0.12 });
     t(s, h, x, 4.85, 2.1, 0.65, { fontSize: 20, bold: true, color: WHITE, align: "center", valign: "middle" });
-    if (i < 3) arrow(s, x + 2.15, 4.95, 0.4);
+    if (i < 3) arrow(s, x + 2.15, 4.97, 0.4);
   });
   t(s, "Yusuf Bilal Cetinkaya  ·  Moshe Kam's research group  ·  NJIT  ·  October 2026", M, 6.5, 10, 0.4, { fontSize: 16, color: "9AA8BA" });
-  done(s, true);
+  done(s, "title", true);
 }
 
-// 2. the claims ===================================================================
+// why this paper, what it claims ==================================================
 { const s = pres.addSlide();
-  title(s, "What the paper claims", "THE PAPER");
-  const H = P.headline;
-  [[`${H.acc_10a}%`, "highest accuracy on RML2016.10a", ORANGE], [`${H.params_m} M`, "parameters", INK], [`${H.mflops}`, "MFLOPs", INK]].forEach(([v, l, c], i) => {
+  title(s, "Why this paper, and what it claims", "THE PAPER");
+  ["This paper (2025)", "Esmer's version", "Our detector"].forEach((h, i) => {
     const x = M + i * 4.15;
-    card(s, x, 1.75, 3.75, 2.75);
-    big(s, x + 0.35, 1.95, 3.1, v, l, c, 60);
+    card(s, x, 1.6, 3.55, 0.9, i === 2 ? NAVY : CARD);
+    t(s, h, x, 1.6, 3.55, 0.9, { fontSize: 22, bold: true, align: "center", valign: "middle", color: i === 2 ? WHITE : INK });
+    if (i < 2) arrow(s, x + 3.6, 1.85, 0.5);
   });
-  takeaway(s, "And: especially good at low SNR.", 5.0);
-  done(s);
+  const H = P.headline;
+  [[`${H.acc_10a}%`, "best accuracy on RML2016.10a", ORANGE], [`${H.params_m} M`, "numbers to learn: a small model", INK], ["low SNR", "claimed to be its strength", INK]].forEach(([v, l, c], i) => {
+    const x = M + i * 4.15;
+    card(s, x, 2.85, 3.85, 2.45);
+    big(s, x + 0.3, 3.0, 3.3, v, l, c, 50);
+  });
+  takeaway(s, "Today: what it does, step by step. Then what we checked.", 5.75);
+  done(s, "claims");
 }
 
-// 3. the model ====================================================================
+// the data =======================================================================
 { const s = pres.addSlide();
-  title(s, "The model: four parts", "THE PAPER");
-  const boxes = [["Input", "I and Q\n2 × 128"], ["CNN", "2 conv layers\n64, 128 filters"], ["BiLSTM", "2 layers\n128 each way"], ["Attention", "weighs the\n time steps"], ["Dense", "128, 64\n→ 11 classes"]];
-  boxes.forEach(([h, b], i) => {
-    const x = M + i * 2.48, w = 2.05, fill = i === 0 ? CARD : (i === 2 ? ORANGE : NAVY), ink = i === 0 ? INK : WHITE;
-    s.addShape(pres.ShapeType.roundRect, { x, y: 2.0, w, h: 2.6, fill: { color: fill }, line: { color: fill }, rectRadius: 0.12 });
-    t(s, h, x, 2.2, w, 0.6, { fontSize: 26, bold: true, color: ink, align: "center" });
-    t(s, b, x + 0.1, 3.0, w - 0.2, 1.4, { fontSize: 18, color: ink, align: "center" });
-    if (i < 4) arrow(s, x + w + 0.0, 3.05, 0.43);
+  title(s, "The data: what the model sees", "THE PAPER  ·  DATA");
+  [["11", "modulation types"], ["20", "SNR labels, −20 to 18 dB"], ["220,000", "frames"]].forEach(([v, l], i) => {
+    big(s, M + i * 3.0, 1.45, 2.9, v, l, INK, 50);
   });
-  credit(s, "Redrawn from their Fig. 2. Each block also has batch normalization and dropout.", M, 4.85, 11);
-  takeaway(s, "CNN for short pieces, BiLSTM for order, attention to focus.", 5.6);
-  done(s);
+  pic(s, "simple/frame.png", 9.3, 1.55, 3.45, 1530, 544);
+  t(s, "one frame: I (orange), Q (blue)", 9.3, 2.85, 3.45, 0.4, { fontSize: 15, color: MUTED });
+  card(s, M, 3.65, W - 2 * M, 1.7, NAVY);
+  t(s, "2 × 128", M + 0.4, 3.75, 4, 1.5, { fontSize: 66, bold: true, color: ORANGE, valign: "middle" });
+  t(s, "Each frame: 128 samples of I and 128 of Q.\nThat array is the only input.", M + 4.6, 3.75, 7.2, 1.5, { fontSize: 24, color: WHITE, valign: "middle" });
+  takeaway(s, "RML2016.10a, the same dataset we use.", 5.8);
+  done(s, "data");
 }
 
-// 4. attention =====================================================================
+// the model at a glance ===========================================================
 { const s = pres.addSlide();
-  title(s, "Attention in one formula", "THE PAPER");
-  card(s, M, 1.7, 7.4, 3.6);
-  const eq = [["score", " = v · tanh(W₁q + W₂kₜ)"], ["α", " = softmax(score)"], ["c", " = Σ αₜ vₜ"]];
-  eq.forEach(([a, b], i) => t(s, [{ text: a, options: { bold: true, color: ORANGE } }, { text: b }], M + 0.4, 1.95 + i * 1.05, 6.8, 0.9,
-    { fontFace: "Cambria", fontSize: 30, valign: "middle" }));
-  t(s, "Their “improved” version adds:", 8.4, 1.75, 4.4, 0.5, { fontSize: 20, bold: true });
-  ["scaling of the scores", "dropout 0.1", "layer normalization"].forEach((x, i) => {
-    badge(s, 8.4, 2.45 + i * 0.95, "+", ORANGE, 0.55);
-    t(s, x, 9.15, 2.45 + i * 0.95, 3.6, 0.55, { fontSize: 22, valign: "middle" });
+  title(s, "The model at a glance", "THE PAPER  ·  MODEL");
+  const flow = [["frame", "2 × 128", CARD, INK], ["CNN", "64 × 128", NAVY, WHITE], ["BiLSTM", "64 × 256", ORANGE, WHITE],
+    ["Attention", "256", NAVY, WHITE], ["Dense", "128 → 64", NAVY, WHITE], ["output", "11", CARD, INK]];
+  const bw = 1.62, gap = 0.44;
+  flow.forEach(([h, sz, fill, ink], i) => {
+    const x = M + i * (bw + gap);
+    s.addShape(pres.ShapeType.roundRect, { x, y: 2.0, w: bw, h: 1.6, fill: { color: fill }, line: { color: fill }, rectRadius: 0.12 });
+    t(s, h, x, 2.0, bw, 1.6, { fontSize: 21, bold: true, color: ink, align: "center", valign: "middle" });
+    t(s, sz, x, 3.8, bw, 0.5, { fontSize: 20, bold: true, color: MUTED, align: "center" });
+    if (i < 5) arrow(s, x + bw + 0.03, 2.6, 0.38);
   });
-  takeaway(s, "A learned weighted average over the time steps.", 5.75);
-  done(s);
+  t(s, "size of what comes out", M, 4.35, 6, 0.4, { fontSize: 16, italic: true, color: MUTED });
+  takeaway(s, "One frame in, eleven probabilities out. The largest is the answer.", 5.4);
+  credit(s, "Redrawn from their Fig. 2; sizes from their code.", M, 6.25, 8);
+  done(s, "model");
 }
 
-// 5. training =======================================================================
+// block 1: CNN =====================================================================
 { const s = pres.addSlide();
-  const T = P.training;
-  title(s, "How they trained it", "THE PAPER");
-  const cols = [["DATA", ["RML2016.10a", "11 types, 220,000 frames", "128 samples per frame", `split ${T.split.join(" / ")}`]],
-    ["RECIPE", [`batch ${T.batch}`, `learning rate ${T.lr}`, `× ${T.lr_drop} after ${T.lr_patience} flat epochs`, `dropout ${T.dropout}, L2 ${T.l2}`]]];
+  title(s, "Block 1: short learned filters", "THE PAPER  ·  CNN");
+  // a strip of samples with a 3-sample window sliding along it (illustration)
+  const cells = 22, cw = 0.27, x0 = M, y0 = 1.9;
+  for (let i = 0; i < cells; i++) box(s, x0 + i * cw, y0, cw - 0.04, 0.45, i >= 6 && i < 9 ? ORANGE : CARD);
+  t(s, "samples →", x0, y0 + 0.5, 3, 0.35, { fontSize: 15, color: MUTED });
+  arrow(s, x0 + 7 * cw - 0.05, y0 + 0.55, 0.5, "downArrow");
+  for (let i = 0; i < cells; i++) box(s, x0 + i * cw, y0 + 1.15, cw - 0.04, 0.45, i === 7 ? NAVY : "DDE3EA");
+  t(s, "one output per sample, per filter", x0, y0 + 1.65, 6, 0.35, { fontSize: 15, color: MUTED });
+  credit(s, "illustration", x0, y0 + 2.0, 3);
+  const steps = [["64 filters, 3 taps", "2 × 128  →  128 × 64"], ["128 filters, 3 taps", "→  128 × 128"], ["pool: larger of each pair", "→  64 × 128"]];
+  steps.forEach(([a, b], i) => {
+    const y = 1.6 + i * 1.05;
+    badge(s, 7.0, y + 0.1, i + 1, i === 2 ? ORANGE : NAVY, 0.55);
+    t(s, a, 7.75, y, 5.0, 0.45, { fontSize: 21, bold: true });
+    t(s, b, 7.75, y + 0.45, 5.0, 0.45, { fontSize: 19, color: MUTED });
+  });
+  card(s, M, 4.95, W - 2 * M, 0.95);
+  t(s, "Like an FIR filter whose taps are learned instead of designed.", M + 0.3, 4.95, W - 2 * M - 0.6, 0.95, { fontSize: 22, valign: "middle" });
+  takeaway(s, "Each of the 64 steps sums up about 6 samples: less than one symbol.", 6.15);
+  done(s, "cnn");
+}
+
+// block 2: BiLSTM ==================================================================
+{ const s = pres.addSlide();
+  title(s, "Block 2: reading the steps in order", "THE PAPER  ·  BiLSTM");
+  const k = 6, bw = 1.25, gap = 0.45, y = 2.55;
+  ["1", "2", "3", "…", "63", "64"].forEach((lab, i) => {
+    const x = M + i * (bw + gap);
+    s.addShape(pres.ShapeType.roundRect, { x, y, w: bw, h: 0.9, fill: { color: CARD }, line: { color: CARD }, rectRadius: 0.1 });
+    t(s, `step ${lab}`, x, y, bw, 0.9, { fontSize: 17, bold: true, align: "center", valign: "middle" });
+    if (i < k - 1) {
+      arrow(s, x + bw + 0.02, y - 0.5, gap - 0.04, "rightArrow", NAVY);
+      arrow(s, x + bw + 0.02, y + 1.0, gap - 0.04, "leftArrow", ORANGE);
+    }
+  });
+  t(s, "forwards, with a memory", M, y - 0.95, 6, 0.4, { fontSize: 17, bold: true, color: NAVY });
+  t(s, "backwards, a second LSTM", M, y + 1.45, 6, 0.4, { fontSize: 17, bold: true, color: ORANGE });
+  card(s, M, 4.55, 7.2, 1.4);
+  t(s, [{ text: "2 layers, 128 numbers each way", options: { breakLine: true } }, { text: "→  64 × 256" , options: { color: MUTED } }],
+    M + 0.3, 4.55, 6.7, 1.4, { fontSize: 22, bold: true, valign: "middle" });
+  card(s, 8.1, 4.55, W - M - 8.1, 1.4, NAVY);
+  t(s, `${pct(OF.blocks.BiLSTM, OF.params)}%`, 8.35, 4.55, 2.0, 1.4, { fontSize: 48, bold: true, color: ORANGE, valign: "middle" });
+  t(s, "of the model's numbers are here", 10.3, 4.55, 2.3, 1.4, { fontSize: 18, color: WHITE, valign: "middle" });
+  takeaway(s, "After this block, every step knows the whole frame.", 6.2);
+  done(s, "lstm");
+}
+
+// block 3: attention ===============================================================
+{ const s = pres.addSlide();
+  title(s, "Block 3: a learned weighted average", "THE PAPER  ·  ATTENTION");
+  const hs = [0.25, 0.4, 0.3, 0.9, 1.6, 1.2, 0.5, 0.35, 0.6, 1.4, 1.8, 0.9, 0.4, 0.3, 0.5, 0.7];
+  hs.forEach((h, i) => box(s, M + 0.15 + i * 0.36, 3.9 - h, 0.26, h, h > 1.0 ? ORANGE : GREY));
+  t(s, "a weight for each of the 64 steps; they add up to 1", M, 4.05, 6.2, 0.4, { fontSize: 15, color: MUTED });
+  credit(s, "illustration", M, 4.4, 3);
+  const eq = [["score", " = v · tanh(W₁q + W₂k)"], ["weights", " = softmax(score)"], ["output", " = Σ weightₜ · stepₜ"]];
+  eq.forEach(([a, b], i) => t(s, [{ text: a, options: { bold: true, color: ORANGE } }, { text: b }], 6.75, 1.65 + i * 0.75, 6.0, 0.65,
+    { fontFace: "Cambria", fontSize: 24, valign: "middle" }));
+  t(s, "“Improved” (from their code):", 6.75, 4.0, 6, 0.45, { fontSize: 19, bold: true });
+  t(s, "a learned scale on the scores · dropout 0.1 on the weights · normalization of the output", 6.75, 4.45, 6.0, 0.9, { fontSize: 18, color: MUTED });
+  takeaway(s, "64 steps in, one vector of 256 out: the frame's summary.", 5.75);
+  done(s, "attention");
+}
+
+// block 4: decision + where the numbers are ==========================================
+{ const s = pres.addSlide();
+  title(s, "Block 4: the decision", "THE PAPER  ·  DENSE");
+  const probs = [["8PSK", 0.03], ["AM-DSB", 0.01], ["AM-SSB", 0.02], ["BPSK", 0.04], ["CPFSK", 0.01], ["GFSK", 0.01], ["PAM4", 0.02], ["QAM16", 0.08], ["QAM64", 0.03], ["QPSK", 0.72], ["WBFM", 0.03]];
+  probs.forEach(([c, p], i) => {
+    const y = 1.55 + i * 0.37;
+    t(s, c, M, y, 1.3, 0.33, { fontSize: 15, valign: "middle", bold: c === "QPSK" });
+    box(s, M + 1.35, y + 0.06, 4.0 * p + 0.04, 0.22, c === "QPSK" ? ORANGE : GREY);
+  });
+  t(s, "256 → 128 → 64 → 11 probabilities; the largest wins (illustration)", M, 5.65, 6.3, 0.4, { fontSize: 15, color: MUTED });
+  const b = OF.blocks;
+  s.addChart(pres.ChartType.doughnut, [{ name: "numbers", labels: ["BiLSTM", "Attention", "Dense", "CNN"], values: [b.BiLSTM, b.Attention, b.Dense, b.CNN] }],
+    { x: 6.9, y: 1.4, w: 3.4, h: 3.6, holeSize: 55, chartColors: [ORANGE, NAVY, GREY, "C9D3E0"], showLegend: false, showPercent: false, showValue: false, dataLabelColor: WHITE });
+  [["BiLSTM", b.BiLSTM, ORANGE], ["Attention", b.Attention, NAVY], ["Dense", b.Dense, GREY], ["CNN", b.CNN, "B7C3D0"]].forEach(([k, v, c], i) => {
+    const y = 1.9 + i * 0.62;
+    box(s, 10.45, y + 0.12, 0.3, 0.3, c);
+    t(s, `${k}  ${pct(v, OF.params)}%`, 10.9, y, 2.0, 0.55, { fontSize: 19, bold: k === "BiLSTM", valign: "middle" });
+  });
+  t(s, `${num(OF.params)} numbers in total`, 6.9, 5.1, 6, 0.5, { fontSize: 20, bold: true });
+  takeaway(s, "Most of the model is the LSTM.", 6.15);
+  done(s, "decision");
+}
+
+// training =========================================================================
+{ const s = pres.addSlide();
+  title(s, "How it is trained", "THE PAPER  ·  TABLE 2 AND THEIR CODE");
+  const steps = Math.ceil(OF.train_frames / OF.batch);
+  const cols = [["DATA", ["70% learn: 154,000 frames", "15% watch: 33,000", "15% test: 33,000"]],
+    ["LOOP", [`batches of ${OF.batch} frames`, `${num(steps)} steps per epoch`, "loss: cross-entropy", "Adam, learning rate 0.001"]]];
   cols.forEach(([h, lines], i) => {
     const x = M + i * 4.15;
-    card(s, x, 1.7, 3.85, 3.9);
-    t(s, h, x + 0.3, 1.85, 3.3, 0.45, { fontSize: 16, bold: true, color: ORANGE, charSpacing: 2 });
-    t(s, lines.map((l, k) => ({ text: l, options: { breakLine: k < lines.length - 1 } })), x + 0.3, 2.45, 3.3, 3.0, { fontSize: 21, paraSpaceAfter: 10 });
+    card(s, x, 1.6, 3.85, 3.9);
+    t(s, h, x + 0.3, 1.75, 3.3, 0.45, { fontSize: 16, bold: true, color: ORANGE, charSpacing: 2 });
+    t(s, lines.map((l, k) => ({ text: l, options: { breakLine: k < lines.length - 1 } })), x + 0.3, 2.35, 3.35, 3.0, { fontSize: 20, paraSpaceAfter: 10 });
   });
   const x = M + 2 * 4.15;
-  card(s, x, 1.7, W - M - x, 3.9, NAVY);
-  t(s, "EPOCHS", x + 0.3, 1.85, 3, 0.45, { fontSize: 16, bold: true, color: ORANGE, charSpacing: 2 });
-  t(s, String(T.epochs), x + 0.3, 2.3, 3.5, 1.9, { fontSize: 110, bold: true, color: WHITE, valign: "middle" });
-  t(s, "remember this number", x + 0.3, 4.4, 3.5, 0.6, { fontSize: 20, color: SOFT });
-  takeaway(s, "They also test RML2016.10b; we stay with 10a.", 6.0);
-  done(s);
+  card(s, x, 1.6, W - M - x, 3.9, NAVY);
+  t(s, "STOPPING", x + 0.3, 1.75, 3, 0.45, { fontSize: 16, bold: true, color: ORANGE, charSpacing: 2 });
+  t(s, [{ text: `loss flat ${OF.lr_patience} epochs: rate × 0.2`, options: { breakLine: true } },
+    { text: `loss flat ${OF.es_patience} epochs: stop`, options: { breakLine: true } },
+    { text: `at most ${OF.max_epochs} epochs` }], x + 0.3, 2.3, 3.6, 1.6, { fontSize: 18, color: WHITE, paraSpaceAfter: 6 });
+  t(s, String(P.training.epochs), x + 0.3, 3.85, 1.6, 1.0, { fontSize: 54, bold: true, color: ORANGE, valign: "middle" });
+  t(s, "where it stopped", x + 1.9, 3.85, 2.0, 1.0, { fontSize: 18, color: SOFT, valign: "middle" });
+  takeaway(s, "Trained once: one split, one run.", 5.85);
+  done(s, "training");
 }
 
-// 6. headline table ==================================================================
+// main table ===========================================================================
 { const s = pres.addSlide();
   title(s, "Their main table: first by half a point", "THE PAPER  ·  TABLE 3");
   const rows = [...P.table3_10a].reverse();
   s.addChart(pres.ChartType.bar, [{ name: "accuracy %", labels: rows.map(r => r[0]), values: rows.map(r => r[1]) }],
     { x: M, y: 1.45, w: W - 2 * M, h: 4.75, barDir: "bar", barGapWidthPct: 35,
-      chartColors: rows.map(r => (r[0] === "ICRNNA" ? ORANGE : (r[0] === "CNN-BiLSTM-DNN" ? "8FA0B5" : NAVY))),
+      chartColors: rows.map(r => (r[0] === "ICRNNA" ? ORANGE : (r[0] === "CNN-BiLSTM-DNN" ? GREY : NAVY))),
       showValue: true, dataLabelPosition: "outEnd", dataLabelFontSize: 15, dataLabelColor: INK, dataLabelFontFace: F, dataLabelFormatCode: "0.00",
       showLegend: false, valAxisHidden: true, valAxisMinVal: 0, valAxisMaxVal: 70, valGridLine: { style: "none" }, catGridLine: { style: "none" },
       catAxisLabelColor: INK, catAxisLabelFontSize: 15, catAxisLabelFontFace: F });
   takeaway(s, "63.24 vs 62.73: the runner-up is half a point behind.", 6.3);
-  done(s);
+  done(s, "table3");
 }
 
-// 7. accuracy vs SNR =================================================================
+// accuracy vs SNR ======================================================================
 { const s = pres.addSlide();
   title(s, "Accuracy against SNR", "THE PAPER  ·  FIG. 8");
   pic(s, "paper/fig8_accuracy_snr.jpg", M, 1.45, 6.9, 1561, 1023);
   credit(s, FROM, M, 6.0, 7);
   big(s, 8.1, 1.7, 4.6, `${P.acc_m20}%`, "at −20 dB: chance\n(1 in 11)", INK, 60);
   big(s, 8.1, 3.75, 4.6, "~93%", "from 0 dB up", ORANGE, 60);
-  done(s);
+  done(s, "snr");
 }
 
-// 8. confusion at 0 dB ===============================================================
+// confusion at 0 dB ====================================================================
 { const s = pres.addSlide();
   const F11 = P.fig11;
   title(s, "Where it still fails, at 0 dB", "THE PAPER  ·  FIG. 11");
@@ -175,12 +283,12 @@ const PARTS = [["CNN", "2 conv layers"], ["BiLSTM", "2 layers"], ["Attention", "
   big(s, 7.3, 1.6, 5.4, `${F11.wbfm_as_amdsb}%`, "of WBFM called AM-DSB", ORANGE, 60);
   big(s, 7.3, 3.6, 5.4, `~${Math.round(F11.q16_as_q64)}%`, "QAM16 ↔ QAM64, each way", INK, 60);
   takeaway(s, "The same two problems we see in our runs.", 6.2);
-  done(s);
+  done(s, "confusion");
 }
 
-// 9. ablation ========================================================================
+// ablation =============================================================================
 { const s = pres.addSlide();
-  title(s, "Which part matters?", "THE PAPER  ·  TABLE 6");
+  title(s, "Which block matters?", "THE PAPER  ·  TABLE 6");
   const r = P.table6_10a;
   s.addChart(pres.ChartType.bar, [{ name: "accuracy %", labels: r.map(x => x[0]), values: r.map(x => +(100 * x[1]).toFixed(1)) }],
     { x: M, y: 1.45, w: 8.0, h: 4.6, barDir: "col", barGapWidthPct: 40, chartColors: [NAVY, ORANGE, NAVY, NAVY],
@@ -189,57 +297,70 @@ const PARTS = [["CNN", "2 conv layers"], ["BiLSTM", "2 layers"], ["Attention", "
       catAxisLabelColor: INK, catAxisLabelFontSize: 18, catAxisLabelFontFace: F });
   big(s, 9.1, 1.7, 3.6, `+${(100 * (r[3][1] - r[2][1])).toFixed(1)}`, "points from attention", INK, 54);
   big(s, 9.1, 3.75, 3.6, `${(100 * (r[3][1] - r[1][1])).toFixed(1)}`, "points between BiLSTM alone and the full model", ORANGE, 54);
-  takeaway(s, "The BiLSTM does almost all the work.", 6.25);
-  done(s);
+  takeaway(s, "The LSTM does almost all the work.", 6.25);
+  done(s, "ablation");
 }
 
-// 10. divider =========================================================================
+// divider ===============================================================================
 { const s = pres.addSlide(); s.background = { color: NAVY };
   t(s, "PART 2", M, 2.4, 6, 0.5, { fontSize: 20, bold: true, color: ORANGE, charSpacing: 4 });
-  t(s, "Does it hold up?", M, 2.95, 12, 1.2, { fontSize: 60, bold: true, color: WHITE });
-  t(s, "We rebuilt the model from the paper and checked it against their own tables.", M, 4.25, 12, 0.6, { fontSize: 24, color: SOFT });
-  done(s, true);
+  t(s, "What we checked", M, 2.95, 12, 1.2, { fontSize: 60, bold: true, color: WHITE });
+  t(s, "Our rebuild from the paper, their own code, and their own tables.", M, 4.25, 12, 0.6, { fontSize: 24, color: SOFT });
+  done(s, "divider", true);
 }
 
-// 11. rebuild ==========================================================================
+// rebuild + their code ======================================================================
 { const s = pres.addSlide();
-  title(s, "We rebuilt it from the paper", "OUR CHECK");
-  const items = [[num(O.params), `parameters (paper: ${P.headline.params_m} M)`, INK],
-    [`${O.e58_mean}%`, `at their ${P.training.epochs} epochs, ${O.e58_seeds} runs`, INK],
-    [`${O.e150_acc}%`, `trained to epoch ${O.e150_best_epoch} (paper: ${P.headline.acc_10a}%)`, ORANGE]];
-  items.forEach(([v, l, c], i) => {
-    t(s, v, M, 1.5 + i * 1.5, 4.3, 0.9, { fontSize: 44, bold: true, color: c, valign: "bottom" });
-    t(s, l, M, 2.4 + i * 1.5, 5.6, 0.5, { fontSize: 19, color: MUTED });
+  title(s, "We rebuilt it; their code agrees", "OUR CHECK");
+  [["Apr 2025", "paper, no code"], ["Aug 2026", "their code on GitHub, no weights"], ["Sep 2026", "our rebuild from the paper alone"]].forEach(([d, l], i) => {
+    const x = M + i * 4.15;
+    card(s, x, 1.55, 3.85, 1.05, i === 2 ? NAVY : CARD);
+    t(s, d, x + 0.25, 1.6, 3.4, 0.5, { fontSize: 20, bold: true, color: ORANGE });
+    t(s, l, x + 0.25, 2.05, 3.5, 0.5, { fontSize: 17, color: i === 2 ? WHITE : MUTED });
   });
-  pic(s, "paper/fig7_accuracy_epochs.jpg", 6.55, 1.5, 6.15, 1041, 659);
-  t(s, "Their Fig. 7: still rising at epoch 58", 6.55, 5.45, 6.15, 0.4, { fontSize: 18, bold: true, color: INK });
-  credit(s, FROM, 6.55, 5.85, 6.15);
-  takeaway(s, "Their 63.24% is real. It needs more than 58 epochs.", 6.3);
-  done(s);
+  card(s, M, 2.9, 3.85, 2.75);
+  big(s, M + 0.3, 3.0, 3.4, `${O.e150_acc}%`, `our rebuild, trained to the end (paper: ${P.headline.acc_10a}%)`, ORANGE, 48);
+  card(s, M + 4.15, 2.9, 3.85, 2.75);
+  t(s, "MATCHED THEIR CODE", M + 4.45, 3.05, 3.4, 0.4, { fontSize: 15, bold: true, color: ORANGE, charSpacing: 1 });
+  t(s, "one pooling step\nnormalization after each LSTM\ndropout on attention weights\nsize: " + num(O.params) + " vs " + num(OF.params), M + 4.45, 3.5, 3.4, 2.0, { fontSize: 17 });
+  card(s, M + 8.3, 2.9, W - 2 * M - 8.3, 2.75);
+  t(s, "MISSED", M + 8.6, 3.05, 3.4, 0.4, { fontSize: 15, bold: true, color: ORANGE, charSpacing: 1 });
+  t(s, "exact attention form and its learned scale\ninput normalization\ngradient clipping", M + 8.6, 3.5, 3.4, 2.0, { fontSize: 17 });
+  takeaway(s, "Their 63.24% is reproducible from the paper alone.", 5.95);
+  done(s, "rebuild");
 }
 
-// 12. per SNR ===========================================================================
+// what 58 epochs means =======================================================================
 { const s = pres.addSlide();
-  title(s, "Per SNR: our rebuild against their table", "OUR CHECK");
-  const snr = P.table5_snr;
-  s.addChart(pres.ChartType.line, [
-    { name: "their Table 5", labels: snr.map(v => String(v).replace("-", "−") + " dB"), values: P.table5.ICRNNA },
-    { name: "our rebuild", labels: snr.map(v => String(v).replace("-", "−") + " dB"), values: snr.map(v => O.per_snr[v]) }],
-    { x: M, y: 1.45, w: W - 2 * M, h: 4.6, chartColors: [NAVY, ORANGE], lineSize: 4, lineDataSymbol: "circle", lineDataSymbolSize: 9,
-      showLegend: true, legendPos: "t", legendFontSize: 18, legendFontFace: F, legendColor: INK,
-      valAxisMinVal: 0, valAxisMaxVal: 100, valAxisMajorUnit: 20, showValAxisTitle: true, valAxisTitle: "accuracy %", valAxisTitleFontSize: 16, valAxisTitleColor: MUTED,
-      catAxisLabelColor: INK, valAxisLabelColor: MUTED, catAxisLabelFontSize: 16, valAxisLabelFontSize: 15,
-      valGridLine: { color: "E3E8EE", size: 0.5 }, catGridLine: { style: "none" } });
-  takeaway(s, "Same model, same curve: within five points at every SNR.", 6.25);
-  done(s);
+  title(s, "What “58 epochs” means", "OUR CHECK");
+  big(s, M, 1.5, 5.6, `${O.e58_mean}%`, `our rebuild at a fixed ${P.training.epochs} epochs (${O.e58_seeds} runs)`, INK, 48);
+  big(s, M, 3.4, 5.6, `${O.e150_acc}%`, `the same, left to run: best at epoch ${O.e150_best_epoch}`, ORANGE, 48);
+  pic(s, "paper/fig7_accuracy_epochs.jpg", 6.55, 1.5, 6.15, 1041, 659);
+  t(s, "Their Fig. 7: accuracy still rising at 58", 6.55, 5.45, 6.15, 0.4, { fontSize: 18, bold: true });
+  credit(s, FROM, 6.55, 5.85, 6.15);
+  takeaway(s, "Their rule stopped on the loss; the accuracy was still climbing.", 6.3);
+  done(s, "epochs");
 }
 
-// 13. claims vs tables ==================================================================
+// their code, our runs (only when the results are in) ===========================================
+if (OR) {
+  const s = pres.addSlide();
+  title(s, "Their own code, run by us", "OUR CHECK");
+  big(s, M, 1.5, 5.2, `${OR.mean.toFixed(2)}%`, `mean of ${OR.n} runs, ± ${OR.std.toFixed(2)} (paper: ${P.headline.acc_10a}%)`, ORANGE, 56);
+  t(s, `stopped after ${OR.stopped.join(", ")} epochs`, M, 3.55, 5.4, 0.5, { fontSize: 20 });
+  t(s, `runs: ${OR.accs.map(a => a.toFixed(2) + "%").join(", ")}`, M, 4.05, 5.4, 0.5, { fontSize: 20, color: MUTED });
+  const img = "paper/ours_official_curve.png";
+  if (fs.existsSync(img)) pic(s, img, 6.4, 1.5, 6.3, 1275, 782);
+  takeaway(s, "Their code, their split, three runs.", 6.2);
+  done(s, "official");
+}
+
+// claims vs their tables ======================================================================
 { const s = pres.addSlide();
   title(s, "Three claims their own tables don't support", "OUR CHECK");
-  const t5 = P.table5, t6 = P.table6_10a, mc = D.verified_params.MCLDNN;
+  const t6 = P.table6_10a, mc = D.verified_params.MCLDNN;
   const rows = [["“Best at low SNR”", "Table 5: beaten at −10, −8 and −6 dB"],
-    ["“Full model has the highest precision”", `Table 6: BiLSTM alone is higher, ${t6[1][3].toFixed(3)} vs ${t6[3][3].toFixed(3)}`],
+    ["“Full model has the highest precision”", `Table 6: LSTM alone is higher, ${t6[1][3].toFixed(3)} vs ${t6[3][3].toFixed(3)}`],
     [`“MCLDNN: ${P.table7_params_m.MCLDNN} million parameters”`, `It has ${num(mc)}: 0.41 million`]];
   rows.forEach(([a, b], i) => {
     const y = 1.6 + i * 1.4;
@@ -249,14 +370,14 @@ const PARTS = [["CNN", "2 conv layers"], ["BiLSTM", "2 layers"], ["Attention", "
     t(s, b, M + 6.2, y, W - 2 * M - 6.4, 1.2, { fontSize: 22, bold: true, valign: "middle" });
   });
   takeaway(s, "ICRNNA is about twice MCLDNN's size, not smaller.", 5.95);
-  done(s);
+  done(s, "tables");
 }
 
-// 14. not said ==========================================================================
+// what the paper doesn't tell us ===============================================================
 { const s = pres.addSlide();
   title(s, "What the paper doesn't tell us", "OUR CHECK");
   const q0 = O.snr_at_label0;
-  const items = [["One run", "no spread reported; our seeds vary by up to a point"],
+  const items = [["One run", "no spread; our seeds vary by up to a point"],
     ["Baselines", "retrained on the same split, or copied from their papers?"],
     ["SNR label", "taken as the true SNR"]];
   items.forEach(([h, b], i) => {
@@ -269,10 +390,10 @@ const PARTS = [["CNN", "2 conv layers"], ["BiLSTM", "2 layers"], ["Attention", "
   t(s, `+${(q0.QAM16 - q0.QPSK).toFixed(0)} dB`, 8.95, 1.8, 3.6, 1.1, { fontSize: 60, bold: true, color: ORANGE, valign: "bottom" });
   t(s, "more signal in QAM16 than in QPSK, both labelled 0 dB (measured in the file)", 8.95, 2.95, 3.5, 1.6, { fontSize: 19, color: MUTED });
   takeaway(s, "A half-point lead from one run may not be real.", 5.95);
-  done(s);
+  done(s, "unknown");
 }
 
-// 15. same protocol ======================================================================
+// one protocol for every model ===================================================================
 { const s = pres.addSlide();
   title(s, "One protocol for every model", "OUR CHECK");
   t(s, "All 11 types. Same data, split and 3 seeds for every model.", M, 1.35, W - 2 * M, 0.5, { fontSize: 20, color: MUTED });
@@ -287,22 +408,22 @@ const PARTS = [["CNN", "2 conv layers"], ["BiLSTM", "2 layers"], ["Attention", "
   });
   s.addTable(rows, { x: M, y: 2.0, w: W - 2 * M, colW: [4.3, 2.6, 2.3, 2.93], fontFace: F, border: { type: "solid", pt: 0.5, color: LINE }, rowH: 0.62, autoPage: false, valign: "middle" });
   takeaway(s, "First, but the top four are within about one point.", 6.0);
-  done(s);
+  done(s, "protocol");
 }
 
-// 16. summary =============================================================================
+// summary =========================================================================================
 { const s = pres.addSlide(); s.background = { color: NAVY };
   t(s, "In short", M, 0.55, 8, 0.9, { fontSize: 40, bold: true, color: WHITE });
-  const pts = ["The model and its 63.24% are reproducible, if trained long enough.",
-    "Its lead is about one point; the BiLSTM does most of the work.",
-    "Some claims don't match the paper's own tables."];
+  const pts = ["CNN → BiLSTM → attention → classifier; the LSTM does most of the work.",
+    "63.24% is reproducible: 63.21% from the paper alone.",
+    "Its lead over other models is about one point."];
   pts.forEach((p, i) => {
     badge(s, M, 1.85 + i * 1.25, i + 1, ORANGE, 0.7);
-    t(s, p, M + 1.0, 1.75 + i * 1.25, W - 2 * M - 1.0, 0.9, { fontSize: 28, color: WHITE, valign: "middle" });
+    t(s, p, M + 1.0, 1.75 + i * 1.25, W - 2 * M - 1.0, 0.9, { fontSize: 27, color: WHITE, valign: "middle" });
   });
   t(s, [{ text: "For us: ", options: { bold: true, color: ORANGE } }, { text: "a solid backbone, not a clearly better one.", options: { color: SOFT } }],
     M, 5.75, W - 2 * M, 0.7, { fontSize: 26 });
-  done(s, true);
+  done(s, "summary", true);
 }
 
-pres.writeFile({ fileName: "moshe_paper_icrnna.pptx" }).then(f => console.log("wrote", f, "slides:", n));
+pres.writeFile({ fileName: "moshe_paper_icrnna.pptx" }).then(f => console.log("wrote", f, "slides:", n, OR ? "(with official runs)" : "(official runs not in yet)"));

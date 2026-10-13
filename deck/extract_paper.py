@@ -42,6 +42,18 @@ PAPER = {
     "fig11": {"wbfm_as_amdsb": 57.9, "wbfm": 41.4, "q16_as_q64": 5.7, "q64_as_q16": 6.1, "acc": 92.21},
 }
 
+# The authors' own code (OFFICIAL_CODE.md), commit ac000a0: layer shapes and
+# parameter counts printed from build_improved_model(11) itself, BatchNorm
+# statistics included (Keras count); 792,396 of them trainable.
+OFFICIAL = {
+    "released": "2026-08-08", "commit": "ac000a0",
+    "params": 794_188, "trainable": 792_396,
+    "blocks": {"CNN": 25_920, "BiLSTM": 659_456, "Attention": 66_177, "Dense": 42_635},
+    "shapes": ["2 × 128", "128 × 64", "128 × 128", "64 × 128", "64 × 256", "64 × 256", "256", "128", "64", "11"],
+    "train_frames": 154_000, "batch": 32, "max_epochs": 100, "es_patience": 6,
+    "lr_patience": 5, "clipnorm": 1.0,
+}
+
 # Independently verified parameter counts (LITERATURE_CHECK.md, section 1)
 VERIFIED_PARAMS = {"MCLDNN": 406_199, "PET-CGDNN": 71_871}
 
@@ -64,8 +76,22 @@ def ours():
     }
 
 
+def official_runs():
+    """Our runs of the authors' code (Colab task official_2016), if the
+    results file has been copied into the repository yet."""
+    f = ROOT / "official_icrnna_2016_results.json"
+    if not f.is_file():
+        return None
+    d = json.loads(f.read_text())
+    runs = d["per_seed"]
+    return {"n": len(runs), "mean": d["summary"]["mean_test_acc"], "std": d["summary"]["std_test_acc"],
+            "accs": [r["test_acc"] for r in runs], "stopped": [r["stopped_epoch"] for r in runs],
+            "best": [r["best_epoch"] for r in runs], "split_id": d.get("split_id")}
+
+
 if __name__ == "__main__":
-    out = {"paper": PAPER, "verified_params": VERIFIED_PARAMS, "ours": ours()}
+    out = {"paper": PAPER, "verified_params": VERIFIED_PARAMS, "official": OFFICIAL,
+           "official_runs": official_runs(), "ours": ours()}
     (HERE / "paper_data.json").write_text(json.dumps(out, indent=1))
     o = out["ours"]
     print("wrote paper_data.json", o["e58_mean"], o["e150_acc"], o["params"], o["snr_at_label0"])
