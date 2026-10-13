@@ -39,14 +39,11 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 .intro{color:var(--muted);font-size:.95rem}
 .tools{display:flex;gap:8px;margin:10px 0}
 .tools button{flex:1;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px;font-size:.9rem}
-</style></head><body><nav><a href="#x0">★</a><a href="#x1">?</a><a href="#s1">1</a><a href="#s2">2</a><a href="#s3">3</a><a href="#s4">4</a><a href="#s5">5</a><a href="#s6">6</a><a href="#s7">7</a><a href="#s8">8</a><a href="#s9">9</a><a href="#s10">10</a><a href="#s11">11</a><a href="#s12">12</a><a href="#s13">13</a><a href="#s14">14</a><a href="#s15">15</a><a href="#s16">16</a><a href="#s17">17</a><a href="#s18">18</a><a href="#s19">19</a><a href="#s20">20</a><a href="#s21">21</a><a href="#s22">22</a><a href="#s23">23</a><a href="#x25">✓</a><a href="#x26">✓</a></nav><main><h1>Makale sunumu çalışma metni — moshe_paper_icrnna.pptx</h1><div class="intro"><p>Makale: El-Haryqy, Kharbouche, Ouamna, Madini, Zouine. <em>Improved automatic modulation recognition using deep learning with additive attention.</em> Results in Engineering 26 (2025) 104783. Ibn Tofail Üniversitesi, Kenitra, Fas. Nisan 2025'te yayımlandı, açık erişim (CC BY-NC 4.0).</p>
-<p><strong>Bu sunumun amacı:</strong> Moshe makaleyi anlamak istiyor. O yüzden önce makalenin ne yaptığı adım adım anlatılıyor:
-- veri;
-- model, blok blok, her blokta boyutlarla;
-- eğitim;
-- sonuçlar.</p>
-<p>Sonra yazarların Ağustos 2026'da yayımladığı kodun ne söylediği ve onu çalıştırınca çıkan doğruluk; eleştiriler en sonda ("What we checked"). Kod satırları slaytta yok, aşağıda yedek bölümde.</p>
-<p><strong>Slayt sayısı:</strong> 23 slayt, yaklaşık 10 dakika. Üç bölüm: 1. makale (2–13), 2. onların kodu (14–16), 3. bizim kontrolümüz (17–23). Slayt 16, Colab'daki <code>official_2016</code> sonuçları gelince doğruluk sayılarıyla dolar; gelmezse "çalışıyor" der.</p>
+</style></head><body><nav><a href="#x0">★</a><a href="#x1">?</a><a href="#s1">1</a><a href="#s2">2</a><a href="#s3">3</a><a href="#s4">4</a><a href="#s5">5</a><a href="#s6">6</a><a href="#s7">7</a><a href="#s8">8</a><a href="#s9">9</a><a href="#s10">10</a><a href="#s11">11</a><a href="#s12">12</a><a href="#s13">13</a><a href="#s14">14</a><a href="#s15">15</a><a href="#s16">16</a><a href="#s17">17</a><a href="#s18">18</a><a href="#s19">19</a><a href="#s20">20</a><a href="#s21">21</a><a href="#s22">22</a><a href="#s23">23</a><a href="#s24">24</a><a href="#s25">25</a><a href="#x27">✓</a><a href="#x28">✓</a></nav><main><h1>Makale sunumu çalışma metni — moshe_paper_icrnna.pptx</h1><div class="intro"><p>Makale: El-Haryqy, Kharbouche, Ouamna, Madini, Zouine. <em>Improved automatic modulation recognition using deep learning with additive attention.</em> Results in Engineering 26 (2025) 104783. Ibn Tofail Üniversitesi, Kenitra, Fas. Nisan 2025'te yayımlandı, açık erişim (CC BY-NC 4.0).</p>
+<p><strong>Bu sunumun amacı:</strong> Moshe makaleyi anlamak istiyor ve sade anlatım istiyor. O yüzden sunum ikiye ayrıldı:
+- <strong>Ana akış (slayt 1–13, yaklaşık 6 dakika):</strong> Her slaytta tek düz mesaj; slaytlarda makine öğrenmesi jargonu yok. Model "dört adım" olarak anlatılıyor: parçalara bak, sırayla oku, ağırlıklandır, karar ver.
+- <strong>Yedek (slayt 14–25):</strong> Her adımın ayrıntısı, eğitim tarifi, onların kodu, "58 epoch", tablolarıyla uyuşmayan iddialar. Sadece Moshe sorarsa açılır.</p>
+<p><strong>Slayt 10</strong>, Colab'daki <code>official_2016</code> sonuçları gelince onların kodunun doğruluğuyla dolar; gelmezse "çalışıyor" der.</p>
 <p>Her slayt için üç bölüm var:
 - <strong>Slaytta ne var, ne demek:</strong> Türkçe açıklama.
 - <strong>Okuma metni (EN):</strong> Slayt notlarıyla aynı metin.
@@ -144,128 +141,76 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 - Turuncu dört kutu modelin dört bloğu: CNN → BiLSTM → Attention → Dense. Sunum bunları sırayla açacak.</p>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>Today I present the paper our detector comes from: ICRNNA, by El-Haryqy and colleagues, Results in Engineering, 2025. First I'll go through what the paper does, step by step: the data, the model block by block, how it is trained, and what it reports. Then what we checked ourselves.</p>
-</blockquote></div></details><details id="s2"><summary><span class="n">2</span><span>Neden bu makale, ne iddia ediyor?</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
-- <strong>Üstteki zincir:</strong> Bu makale → bizim dedektörümüz. Bizim modelimiz bu makaleden geliyor; Moshe'nin "bu model nereden çıktı" sorusunun cevabı.
-- <strong>63.24%:</strong> RML2016.10a'da, 11 sınıfın ve 20 SNR seviyesinin tamamında doğruluk (Tablo 3).
-- <strong>0.79 M:</strong> Öğrenilen sayı (parametre) adedi (Tablo 7). Onların kodu da bunu doğruluyor: 792,396 öğrenilen sayı.
-- <strong>"low SNR":</strong> Makalenin düşük SNR'da özellikle iyi olduğu iddiası. 20. slaytta kendi tablolarıyla karşılaştırılıyor.</p>
+<p>Today I present the paper our detector comes from: ICRNNA, from a group in Morocco, published in 2025. I'll keep it simple: what it does, how it works, what it reports, and whether it holds up.</p>
+</blockquote></div></details><details id="s2"><summary><span class="n">2</span><span>Makale tek cümlede</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
+- <strong>Tek cümle:</strong> Bir sinir ağı, bir radyo sinyalinin 128 örneğine bakıp 11 modülasyondan hangisiyle gönderildiğini söylüyor.
+- <strong>63.24%:</strong> RML2016.10a'da doğru oranı; makalenin karşılaştırdığı 12 model içinde en iyisi (Tablo 3).
+- <strong>"our detector":</strong> Bizim dedektörümüz bu tasarım üzerine kurulu. Moshe'nin "bu model nereden çıktı" sorusunun cevabı.</p>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>Why this paper? Because our detector is built on it. The paper makes three claims. The best accuracy on RML2016.10a, 63.24 percent. A small model: 0.79 million numbers to learn. And it says it is especially good at low SNR.</p>
+<p>The paper in one sentence: a neural network looks at 128 samples of a radio signal and says which of 11 modulations sent it. They report 63.24 percent right on this dataset, the best of the twelve models they compare. Our own detector is built on this design.</p>
 </blockquote>
 <p><strong>Olası sorular</strong>
-- <em>"Is it a well-known journal?"</em> — Results in Engineering is a broad, open-access Elsevier engineering journal, not a signal-processing one. That is one reason we checked the numbers ourselves.</p></div></details><details id="s3"><summary><span class="n">3</span><span>Veri: model neyi görüyor?</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
+- <em>"Is it a well-known journal?"</em> — Results in Engineering is a broad, open-access Elsevier engineering journal, not a signal-processing one. That is one reason we checked the number ourselves.</p></div></details><details id="s3"><summary><span class="n">3</span><span>Veri: model neyi görüyor?</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
 - <strong>Veri seti:</strong> RML2016.10a, bizim kullandığımızla aynı. 11 modülasyon, 20 SNR etiketi (−20…18 dB), 220,000 çerçeve.
 - <strong>Sağdaki resim:</strong> Bir çerçevenin I (turuncu) ve Q (mavi) bileşenleri. Biz çizdik, açıklama amaçlı.
 - <strong>2 × 128:</strong> Modelin tek girdisi. 2 satır (I ve Q) × 128 örnek. Model başka hiçbir şey görmüyor: frekans bilgisi, SNR etiketi, ek bir özellik yok.
 - <strong>RML2016.10b:</strong> Makale ayrıca daha büyük olan 10b'yi de test ediyor (65.39%). Biz 10a ile kalıyoruz.</p>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>The data is the same dataset we use: RML2016.10a. Eleven modulation types, twenty SNR labels, 220,000 frames. Each frame is 128 complex samples, written as two rows: I and Q. So the input to the model is a 2 by 128 array. That is all the model ever sees.</p>
+<p>The data is the same dataset we use, RML2016.10a: eleven modulation types, twenty noise levels, 220,000 frames. Each frame is 128 samples of I and 128 of Q. That is the only input; the network sees nothing else.</p>
 </blockquote>
 <p><strong>Olası sorular</strong>
-- <em>"Does the model see the SNR?"</em> — No. Only the 2 × 128 array. The SNR label is used only afterwards, to sort the test results.</p></div></details><details id="s4"><summary><span class="n">4</span><span>Modele kuşbakışı</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
-- <strong>Akış:</strong> çerçeve → CNN → BiLSTM → Attention → Dense → 11 çıktı.
-- <strong>Kutuların altındaki sayılar:</strong> O bloktan çıkan verinin boyutu. Hepsi onların kodundan yazdırıldı:
-    - giriş 2 × 128;
-    - CNN'den sonra 64 × 128 (64 zaman adımı, her birinde 128 sayı);
-    - BiLSTM'den sonra 64 × 256;
-    - attention'dan sonra tek bir 256'lık vektör;
-    - dense'ten sonra 128, sonra 64;
-    - çıkışta 11 olasılık.
-- <strong>Şema:</strong> Makalenin Şekil 2'sinden sadeleştirerek yeniden çizildi.</p>
+- <em>"Does the model see the SNR?"</em> — No. Only the 2 × 128 array. The SNR label is used only afterwards, to sort the test results.</p></div></details><details id="s4"><summary><span class="n">4</span><span>Nasıl çalışıyor: dört adım</span></summary><div class="body"><div class="tag">Slaytta ne var, ne demek</div>
+<p>Modelin tamamı dört adım. Slaytta düz adları büyük, teknik adları küçük yazıyor.</p>
+<ol>
+<li><strong>Look at short pieces (CNN):</strong><ul>
+<li>3 örnek uzunluğunda küçük filtreler sinyal boyunca kayıyor; katsayıları öğrenilen FIR filtreler gibi.</li>
+<li>Sonunda sinyal 64 kısa parçaya dönüşüyor; her parça yaklaşık 6 örneği, bir sembolden kısa bir kısmı özetliyor.</li>
+</ul>
+</li>
+<li><strong>Read them in order (LSTM, iki yönlü):</strong><ul>
+<li>64 parçayı sırayla okuyor ve parçadan parçaya bir hafıza taşıyor; bir kez ileri, bir kez geri.</li>
+<li>Sonunda her parça bütün çerçeveyi "biliyor".</li>
+<li>Modelin sayılarının %83'ü burada.</li>
+</ul>
+</li>
+<li><strong>Weigh the pieces (attention):</strong> Her parçaya bir ağırlık veriyor (toplamları 1) ve ağırlıklı ortalamasını alıyor: çerçevenin tek bir özeti.</li>
+<li>
+<p><strong>Decide (dense katmanlar):</strong> 11 skor, her modülasyon için bir tane; en büyüğü cevap.</p>
+</li>
+<li>
+<p><strong>Alttaki satır:</strong></p>
+<ul>
+<li>Giriş 128 örnek (I ve Q), çıkış 11 skor.</li>
+<li>794,188 öğrenilen sayı. Bu, onların kodunun saydığı sayı, BatchNorm istatistikleri dahil; makale 0.79 M diyor.</li>
+</ul>
+</li>
+<li><strong>Ayrıntılar</strong> yedek slaytlarda (15–19): her adımın boyutları, formülleri, parametreleri.</li>
+</ol>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>Here is the whole model. A frame of 2 by 128 goes in. Four blocks process it. Eleven probabilities come out, one per modulation, and the largest is the answer. Below each block I wrote the size of what comes out of it, so you can follow one frame through. I'll now take the blocks one at a time.</p>
+<p>How does it work? Four steps. One: it looks at short pieces of the signal, with small filters that slide along it. Two: it reads those pieces in order, forwards and backwards, carrying a memory from piece to piece. Three: it weighs the pieces and takes a weighted average. Four: it gives eleven scores, one per modulation, and the largest wins. Most of the network, 83 percent, is in step two. That is the heart of it.</p>
 </blockquote>
 <p><strong>Olası sorular</strong>
-- <em>"Why these sizes?"</em> — They are the authors' design choices (Fig. 2). The paper tuned learning rate, dropout and L2 by grid search, not the layer sizes.</p></div></details><details id="s5"><summary><span class="n">5</span><span>Blok 1: kısa öğrenilmiş filtreler (CNN)</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
-- <strong>Soldaki çizim (temsilî):</strong> 3 örneklik bir pencere (turuncu) sinyal boyunca kayıyor; her konumda bir çıktı üretiyor.
-- <strong>1:</strong> 64 filtre, her biri 3 örnek uzunluğunda. Girdi 128 adım × 2 (I, Q), çıktı 128 adım × 64. Kenarlarda "same" doldurma var, uzunluk değişmiyor.
-- <strong>2:</strong> 128 filtre daha, yine 3 örnek: 128 × 128. Her konvolüsyondan sonra ReLU ve batch normalization.
-- <strong>3:</strong> Max pool, komşu iki değerden büyüğünü alıyor: 64 × 128. Sonra dropout 0.3.
-- <strong>FIR benzetmesi:</strong> Konvolüsyon, katsayıları tasarlanmak yerine veriden öğrenilen bir FIR filtre. Moshe elektrik mühendisi; bu benzetme tanıdık gelir.
-- <strong>"Yaklaşık 6 örnek":</strong> İlk filtre 3 örnek görüyor. İkinci filtre ilkinin 3 çıkışını görüyor, yani 5 örnek. Pooling ikisini birleştiriyor, 6 örnek. Sembol 8 örnek olduğu için bu bir sembolden kısa.
-- <strong>Parametreler:</strong> Bu blokta 25,920 sayı var, modelin %3'ü.</p>
+- <em>"What do the filters in step 1 learn?"</em> — We haven't looked. Typically they respond to changes between neighbouring samples: phase jumps and amplitude steps.
+- <em>"What is the memory in step 2?"</em> — 128 numbers per direction, updated piece by piece. What they encode is learned; we haven't interpreted them.
+- <em>"Is step 3 the attention of ChatGPT?"</em> — No. It is a single weighted average over the 64 pieces, the 2014 form of attention.
+- <em>"Why is step 2 the heart of it?"</em> — Telling QAM16 from QAM64 needs many symbols together; step 1 sees less than one symbol, step 2 connects all of them. Their own experiment (slide 9) agrees.</p></div></details><details id="s5"><summary><span class="n">5</span><span>Nasıl eğitildi, nasıl test edildi</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
+- <strong>Bölme:</strong> 220,000 çerçeve üçe bölünüyor.
+    - <strong>154,000 (%70):</strong> Doğru cevaplarıyla birlikte modele gösteriliyor; model bunlardan öğreniyor.
+    - <strong>33,000 (%15):</strong> Ne zaman durulacağına karar vermek için (doğrulama).
+    - <strong>33,000 (%15):</strong> Kenara ayrılıyor, öğrenmede hiç kullanılmıyor. Bütün sonuçlar bunlar üzerinden sayılıyor (test).
+- <strong>"58 passes":</strong> Bütün öğrenme çerçevelerinin üzerinden 58 kez geçilmiş (epoch). Bu seçilmiş bir sayı değil: model iyileşmeyi bırakınca eğitim kendiliğinden durmuş.
+- <strong>"Done once":</strong> Tek bölme, tek eğitim, tek sayı.
+- <strong>Teknik ayrıntılar</strong> yedek slayt 20'de: Adam, öğrenme oranı, batch ve durma kuralı.</p>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>Block one: two convolution layers. A convolution here is a short filter, three samples long, slid along the frame, like an FIR filter whose taps are learned instead of designed. The first layer has 64 such filters, the second 128. So every time step is now described by 128 numbers. Then a pooling step keeps the larger of each pair of neighbours, so 128 time steps become 64. Each of the 64 steps summarizes about 6 samples, less than one symbol.</p>
+<p>How was it trained and tested? The frames are split three ways. 154,000 frames, with the right answer, to learn from. 33,000 to decide when to stop learning. And 33,000 kept aside, never used for learning: every result is counted on those. It stopped by itself after 58 passes over the data, and they did it once.</p>
 </blockquote>
 <p><strong>Olası sorular</strong>
-- <em>"What do the filters learn?"</em> — We haven't looked at them. Typically such filters respond to changes between neighbouring samples: phase jumps and amplitude steps.
-- <em>"Why pool?"</em> — It halves the sequence the LSTM has to read (128 → 64), which makes it cheaper.
-- <em>"Why only 3 taps?"</em> — The authors' choice. Two stacked layers already see 5 samples, and the LSTM connects everything after that.</p></div></details><details id="s6"><summary><span class="n">6</span><span>Blok 2: adımları sırayla okumak (BiLSTM)</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
-- <strong>Çizim:</strong> 64 adım. Üstteki oklar ileri okuyan LSTM'i, alttaki oklar geri okuyan ikinci LSTM'i gösteriyor.
-- <strong>LSTM:</strong>
-    - Adımları tek tek okuyor ve adımdan adıma bir hafıza vektörü (128 sayı) taşıyor.
-    - Hafızaya neyin girip neyin silineceğine öğrenilen "kapılar" (gate) karar veriyor.
-- <strong>Bidirectional:</strong> Her adımın çıktısı, ileri okuyandan 128 ve geri okuyandan 128 sayı; toplam 256. Böylece her adım hem öncesini hem sonrasını "biliyor".
-- <strong>2 katman:</strong> İkinci LSTM, birincinin çıktısını okuyor. Her birinden sonra batch normalization ve dropout 0.3 var.
-- <strong>%83:</strong> Modelin 794,188 sayısının 659,456'sı bu blokta.
-    - Çünkü bir LSTM'de 4 kapı var ve her kapı girdi ile hafızanın tamamına bağlı.
-    - Örneğin ikinci katmanın bir yönünde 4 × 128 × (256 + 128) ağırlık var.</p>
-<div class="tag">Okuma metni (EN)</div>
-<blockquote>
-<p>Block two: two bidirectional LSTM layers. An LSTM reads the 64 steps in order, one at a time, and carries a memory from step to step. Bidirectional means a second LSTM reads the same steps backwards. So at every step, the output knows what came before and what comes after: 128 numbers from each direction, 256 in total. This block holds 83 percent of the model's numbers.</p>
-</blockquote>
-<p><strong>Olası sorular</strong>
-- <em>"Why an LSTM and not just more convolutions?"</em> — The convolutions see less than one symbol. Telling QAM16 from QAM64 needs many symbols together; the LSTM connects all 64 steps.
-- <em>"What is in the memory?"</em> — 128 numbers per direction, updated at every step. What they encode is learned; we have not interpreted them.</p></div></details><details id="s7"><summary><span class="n">7</span><span>Blok 3: öğrenilmiş ağırlıklı ortalama (attention)</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
-- <strong>Soldaki çubuklar (temsilî):</strong> 64 adımın her birine bir ağırlık. Toplamları 1. Turuncu olanlar ağırlığı büyük adımlar.
-- <strong>Formüller</strong> (makalenin Denklem 4–6):
-    - <strong>score:</strong> Her adıma küçük bir ağın verdiği puan.
-        - Onların kodunda q (query), ikinci LSTM'in batch norm ve dropout'tan geçmiş çıktısı. k, aynı LSTM'in ham çıktısı.
-        - W₁ ve W₂ 128 birimlik katmanlar.
-    - <strong>weights = softmax(score):</strong> Puanlar toplamı 1 olan ağırlıklara dönüşüyor.
-    - <strong>output:</strong> Adımların ağırlıklı ortalaması. Ortalaması alınan, LSTM'in ham çıktısı. Sonuç 256 sayılık tek bir vektör.
-- <strong>"Improved"</strong> (onların kodundan):
-    - puanlara öğrenilen bir ölçek katsayısı (başlangıç değeri 1);
-    - ağırlıklara dropout 0.1;
-    - çıktıya layer normalization.
-- <strong>Parametreler:</strong> 66,177 sayı, modelin %8'i.</p>
-<div class="tag">Okuma metni (EN)</div>
-<blockquote>
-<p>Block three: attention. Each of the 64 steps gets a score from a small learned network. A softmax turns the scores into weights that add up to one. The output is the weighted average of the 64 steps: one vector of 256 numbers for the whole frame. The paper calls it improved because of three additions. From their code we now know exactly what they are: a learned scale on the scores, dropout on the weights, and a normalization of the result.</p>
-</blockquote>
-<p><strong>Olası sorular</strong>
-- <em>"Is this the attention of ChatGPT?"</em> — No. It is the original 2014 additive attention: one layer, applied once, a weighted average over time.
-- <em>"Which steps get large weights?"</em> — We have not looked. It would be a good thing to plot.
-- <em>"Does it help?"</em> — By their own ablation, less than half a point (slide 13).</p></div></details><details id="s8"><summary><span class="n">8</span><span>Blok 4: karar</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
-- <strong>Soldaki çubuklar (temsilî):</strong> 11 sınıfın olasılıkları. En büyüğü (burada QPSK) cevap.
-- <strong>Katmanlar:</strong> 256 → 128 → 64 → 11. Her ara katmanda ReLU, batch normalization ve dropout 0.3. Son katmanda softmax.
-- <strong>Pasta grafiği:</strong> 794,188 sayının bloklara dağılımı.
-    - BiLSTM 659,456 (%83).
-    - Attention 66,177 (%8).
-    - Dense 42,635 (%5).
-    - CNN 25,920 (%3).
-- <strong>Not:</strong> Toplam sayıya batch normalization'ın 1,792 istatistiği dahil; öğrenilen sayı 792,396.</p>
-<div class="tag">Okuma metni (EN)</div>
-<blockquote>
-<p>Block four: the decision. Two ordinary layers, 128 and 64 numbers, and then 11 outputs. A softmax turns them into probabilities, and the largest one is the answer. In total the model has 794 thousand numbers. The pie shows where they are: almost all in the LSTM.</p>
-</blockquote>
-<p><strong>Olası sorular</strong>
-- <em>"Is the 0.72 a real probability?"</em> — The softmax outputs add up to one, but they are not guaranteed to be calibrated. We use only which one is largest.</p></div></details><details id="s9"><summary><span class="n">9</span><span>Nasıl eğitiliyor?</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
-- <strong>DATA:</strong>
-    - 220,000 çerçevenin %70'i öğrenme (154,000), %15'i doğrulama (33,000), %15'i test (33,000).
-    - Onların kodunda bölme rastgele, sınıf ve SNR'a göre dengeli değil.
-- <strong>LOOP:</strong>
-    - 32 çerçevelik batch'ler, epoch başına 4,813 adım.
-    - Loss: cross-entropy. Optimizer: Adam, öğrenme oranı 0.001.
-    - Kodda bir de gradient clipping var (<code>clipnorm=1.0</code>), makalede yazmıyor.
-- <strong>STOPPING:</strong>
-    - Doğrulama kaybı 5 epoch iyileşmezse öğrenme oranı ×0.2.
-    - 6 epoch iyileşmezse eğitim duruyor ve en iyi ağırlıklara dönülüyor.
-    - En fazla 100 epoch.
-- <strong>58:</strong> Makalenin Tablo 2'si "Number of Epochs 58" diyor. Ama koddan anlaşılıyor ki bu seçilmiş bir sayı değil, durma kuralının tetiklendiği yer.
-- <strong>"Trained once":</strong> Kodda seed döngüsü yok; tek bölme, tek koşu.</p>
-<div class="tag">Okuma metni (EN)</div>
-<blockquote>
-<p>How it is trained. Seventy percent of the frames to learn from, fifteen to watch, fifteen to test. Batches of 32 frames; the loss is cross-entropy; the optimizer is Adam with learning rate 0.001. When the validation loss stops improving for 5 epochs, the learning rate is cut by five. When it stops improving for 6 epochs, training stops and the best weights are restored. The paper's table says 58 epochs. From their code we now know that 58 is where this stopping rule fired, not a number they chose. They trained once.</p>
-</blockquote>
-<p><strong>Olası sorular</strong>
-- <em>"Why stop on the loss and not the accuracy?"</em> — It is the common Keras default. Loss and accuracy can disagree: here the loss had flattened while accuracy was still creeping up (slide 19).
-- <em>"How were the hyperparameters chosen?"</em> — Section 4.1: grid search over learning rate, dropout and L2; batch size and epochs by hand.</p></div></details><details id="s10"><summary><span class="n">10</span><span>Ana tablo</span></summary><div class="body"><div class="tag">Slaytta ne var, ne demek</div>
+- <em>"How does it learn?"</em> — It is shown a frame, it gives 11 scores, those are compared with the right answer, and all its numbers are nudged a little to make the right answer more likely. Repeated over all 154,000 frames, 58 times.
+- <em>"Why keep 33,000 to decide when to stop?"</em> — If you decide on the test frames, you are choosing the number you report. The stopping decision uses a separate set.</p></div></details><details id="s6"><summary><span class="n">6</span><span>Ana tablo</span></summary><div class="body"><div class="tag">Slaytta ne var, ne demek</div>
 <p>Makalenin Tablo 3'ü, RML2016.10a sütunu:</p>
 <div class="table"><table>
 <thead>
@@ -331,18 +276,18 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </ul>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>Their main result, on 2016.10a. ICRNNA is first, at 63.24 percent. The runner-up, CNN-BiLSTM-DNN, is half a point behind. MCLDNN and PET-CGDNN, the well-known ones, are two to three points behind.</p>
+<p>Their main result. ICRNNA is first, at 63.24 percent. The next model is half a point behind. The well-known older ones are two to three points behind.</p>
 </blockquote>
 <p><strong>Olası sorular</strong>
-- <em>"Were the other models retrained?"</em> — The paper doesn't say (slide 21).</p></div></details><details id="s11"><summary><span class="n">11</span><span>SNR&#x27;a göre doğruluk</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
+- <em>"Were the other models retrained?"</em> — The paper doesn't say (backup slide 25).</p></div></details><details id="s7"><summary><span class="n">7</span><span>SNR&#x27;a göre doğruluk</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
 - <strong>Grafik:</strong> Makalenin Şekil 8'i.
 - <strong>9%:</strong> −20 dB'de doğruluk. 11 sınıfta şans 1/11 = 9.1%.
 - <strong>~93%:</strong> 0 dB'den itibaren. Makale "5–15 dB'de 93–94%" diyor.
 - <strong>Not:</strong> Buradaki "SNR" veri setinin etiketi, ölçülmüş SNR değil (<code>NOISE_2016.md</code>).</p>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>Accuracy against SNR. Below minus 10 dB it is about 9 percent, which is chance with eleven classes. It climbs between minus 10 and 0 dB, and from 0 dB up it stays around 93 percent.</p>
-</blockquote></div></details><details id="s12"><summary><span class="n">12</span><span>0 dB&#x27;de hâlâ nerede hata yapıyor?</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
+<p>Accuracy against noise. At the noisiest level it is right 9 percent of the time, which is guessing among eleven. It improves quickly between minus 10 and 0 dB, and from 0 dB up it is right about 93 percent of the time.</p>
+</blockquote></div></details><details id="s8"><summary><span class="n">8</span><span>0 dB&#x27;de hâlâ nerede hata yapıyor?</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
 - <strong>Matris:</strong> Makalenin Şekil 11'indeki ICRNNA paneli, 0 dB. Genel doğruluk 92.21%.
 - <strong>57.9%:</strong> WBFM çerçevelerinin AM-DSB denme oranı; WBFM'e doğru denen 41.4%.
     - Literatürdeki bilinen açıklama: WBFM'lerin bir kısmı sessiz sesten üretilmiş, AM-DSB'ye benziyor.
@@ -350,8 +295,8 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 - <strong>~6%:</strong> QAM16'nın 5.7%'si QAM64, QAM64'ün 6.1%'i QAM16 denmiş.</p>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>Where does it still fail? Their matrix at 0 dB. Two problems are left. WBFM is called AM-DSB 58 percent of the time. And QAM16 and QAM64 are mixed up, about 6 percent each way. These are the same two problems we see in our runs.</p>
-</blockquote></div></details><details id="s13"><summary><span class="n">13</span><span>Hangi blok önemli?</span></summary><div class="body"><div class="tag">Slaytta ne var, ne demek</div>
+<p>Where does it still make mistakes, at 0 dB? Two places. WBFM is called AM-DSB more than half the time. And QAM16 and QAM64 are mixed up, about 6 percent each way. These are the same two problems we see in our own runs.</p>
+</blockquote></div></details><details id="s9"><summary><span class="n">9</span><span>Hangi adım önemli?</span></summary><div class="body"><div class="tag">Slaytta ne var, ne demek</div>
 <p>Makalenin Tablo 6'sı (10a):</p>
 <div class="table"><table>
 <thead>
@@ -396,24 +341,176 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </ul>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>Which block matters? They removed blocks one at a time. CNN alone: 59.9. BiLSTM alone: 63.1. Everything but the attention: 62.8. The full model: 63.2. So the LSTM does almost all the work, and attention adds less than half a point.</p>
+<p>Which step matters? They removed steps one at a time. Step one alone: 59.9. Step two alone: 63.1. All four: 63.2. So step two, reading in order, does almost all the work; the other steps add a fraction of a point.</p>
 </blockquote>
 <p><strong>Olası sorular</strong>
-- <em>"Then why keep the CNN and attention?"</em> — By their own numbers, they add 0.1 points together. The paper doesn't discuss it.</p></div></details><details id="s14"><summary><span class="n">14</span><span>Onların kodu</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
-- <strong>Zaman çizelgesi:</strong>
-    - Nisan 2025: makale, kodsuz.
-    - 8 Ağustos 2026: yazarlar eğitim kodunu GitHub'a koydu.
-    - Ekim 2026: biz çalıştırıyoruz.
-- <strong>İçinde olan:</strong> Her veri seti (10a, 10b) için eğitim script'i (TensorFlow).
-- <strong>İçinde olmayan:</strong> Eğitilmiş model, yani ağırlıklar. Onları kullanamayız; modeli kendimiz eğitmek zorundayız.
-- <strong>Mesaj:</strong> Artık onların çalıştırdığının aynısını çalıştırabiliyoruz.</p>
+- <em>"Then why keep the CNN and attention?"</em> — By their own numbers, they add 0.1 points together. The paper doesn't discuss it.</p></div></details><details id="s10"><summary><span class="n">10</span><span>Onların kodu, ve verdiği sonuç</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
+- <strong>Nisan 2025:</strong> Makale, kodsuz yayımlandı.
+- <strong>Ağustos 2026:</strong> Yazarlar kodu GitHub'a koydu. Eğitilmiş ağ (ağırlıklar) yok; sadece eğitim kodu var.
+- <strong>Sağdaki kutu:</strong>
+    - <strong>Sonuç gelmediyse:</strong> "3 runs … on Colab now. Do we get 63.24% too?"
+    - <strong>Sonuç geldiyse:</strong> Onların kodunun bizim 3 koşumuzdaki ortalaması ve sapması, makalenin 63.24%'ü ile yan yana. Alt satırda kaç puan fark olduğu.
+- <strong>Koddan öğrendiklerimiz</strong> (makale aynı, 58 bir seçim değil, tek koşu) yedek slayt 21'de; kod satırları bu sayfanın sonundaki "Yedek" bölümünde.</p>
+<p><strong>Okuma metni (EN), sonuçlar gelmediyse</strong></p>
+<blockquote>
+<p>The paper came out without code. In August this year the authors put their code on GitHub, but not the trained network itself. So we are now running their code ourselves on Colab, three times, to see if we also get 63.24 percent. I'll have the numbers next time.</p>
+</blockquote>
+<p><strong>Okuma metni (EN), sonuçlar geldiyse</strong></p>
+<blockquote>
+<p>The paper came out without code. In August this year the authors put their code on GitHub, but not the trained network itself. We ran their code ourselves, three times. On the right is what it gives, next to their published 63.24.</p>
+</blockquote>
+<p><strong>Olası sorular</strong>
+- <em>"Where is it?"</em> — GitHub, account noureddine395; the README names the five authors, and it is archived on Zenodo.
+- <em>"Why didn't you use their code from the start?"</em> — It didn't exist when the paper came out; it appeared sixteen months later.</p></div></details><details id="s11"><summary><span class="n">11</span><span>Sayıları gerçek mi?</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
+- <strong>63.24%:</strong> Makalenin sayısı.
+- <strong>63.21%:</strong> Bizim, modeli sadece makalenin metninden yeniden kurup eğittiğimizde aldığımız sayı. Bu, onların kodu yayımlanmadan önceydi.
+- <strong>Alt satır:</strong>
+    - Bizim modelin en iyi sonucu 107. geçişte (epoch) geldi.
+    - Makaledeki gibi 58'de durunca 61.75% kalıyordu.
+    - Yani sayı gerçek, ama bizim kurduğumuz modelde daha uzun eğitim gerekti.
+- <strong>Ayrıntı:</strong> Yedek slayt 22 ("58 epochs") ve 23 (yeniden kurduğumuz modelle onların kodunun karşılaştırması).</p>
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>Part two: their code. The paper came out in April 2025 without code. In August this year the authors put their training script on GitHub. It contains the training script for each dataset; it does not contain the trained model itself. But it means we can now run exactly what they ran.</p>
+<p>Is their number real? Before their code existed, I rebuilt the network from the paper's description alone. It gets 63.21 percent, against their 63.24. So yes, the result can be reproduced. It needed longer training than their 58 passes; ours was best at pass 107.</p>
 </blockquote>
 <p><strong>Olası sorular</strong>
-- <em>"Where is it?"</em> — GitHub, account noureddine395, archived on Zenodo; the README names the five authors. (Tam adres ve ayrıntılar aşağıdaki "Yedek" bölümünde ve <code>OFFICIAL_CODE.md</code>'de.)
-- <em>"Is it really theirs?"</em> — The README and citation file name the authors and the paper's DOI. The account shows no name, so I can't prove it, but nothing suggests otherwise.</p></div></details><details id="s15"><summary><span class="n">15</span><span>Kod bize ne söylüyor?</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
+- <em>"Why did yours need longer?"</em> — Their stopping rule watches the validation loss, which had flattened by 58, while the accuracy was still creeping up (their own Fig. 7 shows it). Ours watched the accuracy and kept going. Details on backup slide 22.</p></div></details><details id="s12"><summary><span class="n">12</span><span>Gerçekte ne kadar iyi?</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
+- <strong>Deney:</strong> Beş yayımlanmış modeli kendimiz, aynı şekilde eğittik: aynı veri, aynı bölme, her biri 3 tekrar.
+- <strong>Sütunlar:</strong>
+    - "right, all noise levels": bütün SNR seviyelerinde doğru oranı.
+    - "right, 10 dB and above": temiz sinyallerde doğru oranı.
+- <strong>Mesaj:</strong>
+    - ICRNNA birinci, ama ilk dört model 1.25 puan içinde.
+    - Temiz sinyallerde dördü de ~91%'de.
+    - VT-CNN2 (2016'nın ilk modeli) belirgin şekilde geride.
+- <strong>Makalenin sayılarıyla uyum:</strong>
+    - MCLDNN: makalede 61.42, bizde 61.41.
+    - PET-CGDNN: makalede 60.58, bizde 60.98.
+    - Yani eğitimimiz literatürle tutarlı.
+- <strong>ICRNNA satırı:</strong> Bizim çalışan versiyonumuz (62.2%), bütün diğer sonuçlarımız bununla. Makaleden birebir kurduğumuz model 63.21%; o da ilk dördün içinde birinci olurdu.</p>
+<p><strong>Olası sorular</strong>
+- <em>"Why is the 2016 model so far behind?"</em> — It is a plain convolutional network with no step that reads in order; the others all have one.</p>
+<div class="tag">Okuma metni (EN)</div>
+<blockquote>
+<p>How much better is it, really? We trained five published models the same way: same data, same split, three repeats each. ICRNNA is first, but only by about one point. At 10 dB and above, the best four are all about 91 percent.</p>
+</blockquote></div></details><details id="s13"><summary><span class="n">13</span><span>Özetle</span></summary><div class="body"><div class="tag">Okuma metni (EN)</div>
+<blockquote>
+<p>To sum up. It is a neural network in four steps, and step two, reading in order, does most of the work. Its 63.24 percent is real: we get 63.21 from the paper alone. And it is about one point better than older models, not a big jump. For us, it is a solid detector to build on. Thank you. I have more detail on each step if you'd like.</p>
+</blockquote></div></details><details id="s14"><summary><span class="n">14</span><span>Yedek bölüm</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
+- Buradan sonrası sadece Moshe ayrıntı sorarsa:
+    - 15: Modele kuşbakışı, boyutlarla.
+    - 16–19: Her adım ayrı ayrı.
+    - 20: Eğitim tarifi.
+    - 21: Kodun söyledikleri.
+    - 22: "58 epoch".
+    - 23: Yeniden kurduğumuz model ve onların kodu.
+    - 24: Tablolarıyla uyuşmayan iddialar.
+    - 25: Makalenin söylemedikleri.
+- Sormazsa göstermeye gerek yok; sunum 13. slaytta biter.</p>
+<div class="tag">Okuma metni (EN)</div>
+<blockquote>
+<p>Backup slides with the details, if you want to go deeper.</p>
+</blockquote></div></details><details id="s15"><summary><span class="n">15</span><span>Yedek: modele kuşbakışı</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
+- <strong>Akış:</strong> çerçeve → CNN → BiLSTM → Attention → Dense → 11 çıktı.
+- <strong>Kutuların altındaki sayılar:</strong> O bloktan çıkan verinin boyutu. Hepsi onların kodundan yazdırıldı:
+    - giriş 2 × 128;
+    - CNN'den sonra 64 × 128 (64 zaman adımı, her birinde 128 sayı);
+    - BiLSTM'den sonra 64 × 256;
+    - attention'dan sonra tek bir 256'lık vektör;
+    - dense'ten sonra 128, sonra 64;
+    - çıkışta 11 olasılık.
+- <strong>Şema:</strong> Makalenin Şekil 2'sinden sadeleştirerek yeniden çizildi.</p>
+<div class="tag">Okuma metni (EN)</div>
+<blockquote>
+<p>Here is the whole model. A frame of 2 by 128 goes in. Four blocks process it. Eleven probabilities come out, one per modulation, and the largest is the answer. Below each block I wrote the size of what comes out of it, so you can follow one frame through. I'll now take the blocks one at a time.</p>
+</blockquote>
+<p><strong>Olası sorular</strong>
+- <em>"Why these sizes?"</em> — They are the authors' design choices (Fig. 2). The paper tuned learning rate, dropout and L2 by grid search, not the layer sizes.</p></div></details><details id="s16"><summary><span class="n">16</span><span>Yedek: adım 1, CNN</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
+- <strong>Soldaki çizim (temsilî):</strong> 3 örneklik bir pencere (turuncu) sinyal boyunca kayıyor; her konumda bir çıktı üretiyor.
+- <strong>1:</strong> 64 filtre, her biri 3 örnek uzunluğunda. Girdi 128 adım × 2 (I, Q), çıktı 128 adım × 64. Kenarlarda "same" doldurma var, uzunluk değişmiyor.
+- <strong>2:</strong> 128 filtre daha, yine 3 örnek: 128 × 128. Her konvolüsyondan sonra ReLU ve batch normalization.
+- <strong>3:</strong> Max pool, komşu iki değerden büyüğünü alıyor: 64 × 128. Sonra dropout 0.3.
+- <strong>FIR benzetmesi:</strong> Konvolüsyon, katsayıları tasarlanmak yerine veriden öğrenilen bir FIR filtre. Moshe elektrik mühendisi; bu benzetme tanıdık gelir.
+- <strong>"Yaklaşık 6 örnek":</strong> İlk filtre 3 örnek görüyor. İkinci filtre ilkinin 3 çıkışını görüyor, yani 5 örnek. Pooling ikisini birleştiriyor, 6 örnek. Sembol 8 örnek olduğu için bu bir sembolden kısa.
+- <strong>Parametreler:</strong> Bu blokta 25,920 sayı var, modelin %3'ü.</p>
+<div class="tag">Okuma metni (EN)</div>
+<blockquote>
+<p>Block one: two convolution layers. A convolution here is a short filter, three samples long, slid along the frame, like an FIR filter whose taps are learned instead of designed. The first layer has 64 such filters, the second 128. So every time step is now described by 128 numbers. Then a pooling step keeps the larger of each pair of neighbours, so 128 time steps become 64. Each of the 64 steps summarizes about 6 samples, less than one symbol.</p>
+</blockquote>
+<p><strong>Olası sorular</strong>
+- <em>"What do the filters learn?"</em> — We haven't looked at them. Typically such filters respond to changes between neighbouring samples: phase jumps and amplitude steps.
+- <em>"Why pool?"</em> — It halves the sequence the LSTM has to read (128 → 64), which makes it cheaper.
+- <em>"Why only 3 taps?"</em> — The authors' choice. Two stacked layers already see 5 samples, and the LSTM connects everything after that.</p></div></details><details id="s17"><summary><span class="n">17</span><span>Yedek: adım 2, BiLSTM</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
+- <strong>Çizim:</strong> 64 adım. Üstteki oklar ileri okuyan LSTM'i, alttaki oklar geri okuyan ikinci LSTM'i gösteriyor.
+- <strong>LSTM:</strong>
+    - Adımları tek tek okuyor ve adımdan adıma bir hafıza vektörü (128 sayı) taşıyor.
+    - Hafızaya neyin girip neyin silineceğine öğrenilen "kapılar" (gate) karar veriyor.
+- <strong>Bidirectional:</strong> Her adımın çıktısı, ileri okuyandan 128 ve geri okuyandan 128 sayı; toplam 256. Böylece her adım hem öncesini hem sonrasını "biliyor".
+- <strong>2 katman:</strong> İkinci LSTM, birincinin çıktısını okuyor. Her birinden sonra batch normalization ve dropout 0.3 var.
+- <strong>%83:</strong> Modelin 794,188 sayısının 659,456'sı bu blokta.
+    - Çünkü bir LSTM'de 4 kapı var ve her kapı girdi ile hafızanın tamamına bağlı.
+    - Örneğin ikinci katmanın bir yönünde 4 × 128 × (256 + 128) ağırlık var.</p>
+<div class="tag">Okuma metni (EN)</div>
+<blockquote>
+<p>Block two: two bidirectional LSTM layers. An LSTM reads the 64 steps in order, one at a time, and carries a memory from step to step. Bidirectional means a second LSTM reads the same steps backwards. So at every step, the output knows what came before and what comes after: 128 numbers from each direction, 256 in total. This block holds 83 percent of the model's numbers.</p>
+</blockquote>
+<p><strong>Olası sorular</strong>
+- <em>"Why an LSTM and not just more convolutions?"</em> — The convolutions see less than one symbol. Telling QAM16 from QAM64 needs many symbols together; the LSTM connects all 64 steps.
+- <em>"What is in the memory?"</em> — 128 numbers per direction, updated at every step. What they encode is learned; we have not interpreted them.</p></div></details><details id="s18"><summary><span class="n">18</span><span>Yedek: adım 3, attention</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
+- <strong>Soldaki çubuklar (temsilî):</strong> 64 adımın her birine bir ağırlık. Toplamları 1. Turuncu olanlar ağırlığı büyük adımlar.
+- <strong>Formüller</strong> (makalenin Denklem 4–6):
+    - <strong>score:</strong> Her adıma küçük bir ağın verdiği puan.
+        - Onların kodunda q (query), ikinci LSTM'in batch norm ve dropout'tan geçmiş çıktısı. k, aynı LSTM'in ham çıktısı.
+        - W₁ ve W₂ 128 birimlik katmanlar.
+    - <strong>weights = softmax(score):</strong> Puanlar toplamı 1 olan ağırlıklara dönüşüyor.
+    - <strong>output:</strong> Adımların ağırlıklı ortalaması. Ortalaması alınan, LSTM'in ham çıktısı. Sonuç 256 sayılık tek bir vektör.
+- <strong>"Improved"</strong> (onların kodundan):
+    - puanlara öğrenilen bir ölçek katsayısı (başlangıç değeri 1);
+    - ağırlıklara dropout 0.1;
+    - çıktıya layer normalization.
+- <strong>Parametreler:</strong> 66,177 sayı, modelin %8'i.</p>
+<div class="tag">Okuma metni (EN)</div>
+<blockquote>
+<p>Block three: attention. Each of the 64 steps gets a score from a small learned network. A softmax turns the scores into weights that add up to one. The output is the weighted average of the 64 steps: one vector of 256 numbers for the whole frame. The paper calls it improved because of three additions. From their code we now know exactly what they are: a learned scale on the scores, dropout on the weights, and a normalization of the result.</p>
+</blockquote>
+<p><strong>Olası sorular</strong>
+- <em>"Is this the attention of ChatGPT?"</em> — No. It is the original 2014 additive attention: one layer, applied once, a weighted average over time.
+- <em>"Which steps get large weights?"</em> — We have not looked. It would be a good thing to plot.
+- <em>"Does it help?"</em> — By their own ablation, less than half a point (slide 9).</p></div></details><details id="s19"><summary><span class="n">19</span><span>Yedek: adım 4, karar</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
+- <strong>Soldaki çubuklar (temsilî):</strong> 11 sınıfın olasılıkları. En büyüğü (burada QPSK) cevap.
+- <strong>Katmanlar:</strong> 256 → 128 → 64 → 11. Her ara katmanda ReLU, batch normalization ve dropout 0.3. Son katmanda softmax.
+- <strong>Pasta grafiği:</strong> 794,188 sayının bloklara dağılımı.
+    - BiLSTM 659,456 (%83).
+    - Attention 66,177 (%8).
+    - Dense 42,635 (%5).
+    - CNN 25,920 (%3).
+- <strong>Not:</strong> Toplam sayıya batch normalization'ın 1,792 istatistiği dahil; öğrenilen sayı 792,396.</p>
+<div class="tag">Okuma metni (EN)</div>
+<blockquote>
+<p>Block four: the decision. Two ordinary layers, 128 and 64 numbers, and then 11 outputs. A softmax turns them into probabilities, and the largest one is the answer. In total the model has 794 thousand numbers. The pie shows where they are: almost all in the LSTM.</p>
+</blockquote>
+<p><strong>Olası sorular</strong>
+- <em>"Is the 0.72 a real probability?"</em> — The softmax outputs add up to one, but they are not guaranteed to be calibrated. We use only which one is largest.</p></div></details><details id="s20"><summary><span class="n">20</span><span>Yedek: eğitim tarifi</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
+- <strong>DATA:</strong>
+    - 220,000 çerçevenin %70'i öğrenme (154,000), %15'i doğrulama (33,000), %15'i test (33,000).
+    - Onların kodunda bölme rastgele, sınıf ve SNR'a göre dengeli değil.
+- <strong>LOOP:</strong>
+    - 32 çerçevelik batch'ler, epoch başına 4,813 adım.
+    - Loss: cross-entropy. Optimizer: Adam, öğrenme oranı 0.001.
+    - Kodda bir de gradient clipping var (<code>clipnorm=1.0</code>), makalede yazmıyor.
+- <strong>STOPPING:</strong>
+    - Doğrulama kaybı 5 epoch iyileşmezse öğrenme oranı ×0.2.
+    - 6 epoch iyileşmezse eğitim duruyor ve en iyi ağırlıklara dönülüyor.
+    - En fazla 100 epoch.
+- <strong>58:</strong> Makalenin Tablo 2'si "Number of Epochs 58" diyor. Ama koddan anlaşılıyor ki bu seçilmiş bir sayı değil, durma kuralının tetiklendiği yer.
+- <strong>"Trained once":</strong> Kodda seed döngüsü yok; tek bölme, tek koşu.</p>
+<div class="tag">Okuma metni (EN)</div>
+<blockquote>
+<p>How it is trained. Seventy percent of the frames to learn from, fifteen to watch, fifteen to test. Batches of 32 frames; the loss is cross-entropy; the optimizer is Adam with learning rate 0.001. When the validation loss stops improving for 5 epochs, the learning rate is cut by five. When it stops improving for 6 epochs, training stops and the best weights are restored. The paper's table says 58 epochs. From their code we now know that 58 is where this stopping rule fired, not a number they chose. They trained once.</p>
+</blockquote>
+<p><strong>Olası sorular</strong>
+- <em>"Why stop on the loss and not the accuracy?"</em> — It is the common Keras default. Loss and accuracy can disagree: here the loss had flattened while accuracy was still creeping up (slide 19).
+- <em>"How were the hyperparameters chosen?"</em> — Section 4.1: grid search over learning rate, dropout and L2; batch size and epochs by hand.</p></div></details><details id="s21"><summary><span class="n">21</span><span>Yedek: kod bize ne söylüyor?</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
 1. <strong>Model makaledekiyle aynı:</strong> Aynı katmanlar. Keras'ın saydığı 794,188 sayı, makale 0.79 M diyor.
 2. <strong>"58 epoch" bir seçim değil:</strong>
       - Kodda en fazla 100 epoch var.
@@ -424,29 +521,18 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
 <p>What does their code tell us? Three things. First, the model in the code is the model in the paper: same layers, 794 thousand numbers. Second, the 58 epochs in the paper were not a choice: the training stops by itself when it stops improving, and for them that happened at 58. Third, they trained it once: one split of the data, one run, one number. And one run leaves a question: how much would that number move if you ran it again?</p>
-</blockquote></div></details><details id="s16"><summary><span class="n">16</span><span>Onların kodunu biz çalıştırdık</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
-- <strong>Colab görevi <code>official_2016</code>:</strong> Onların script'i, kendi fonksiyonlarıyla, 3 kez.
-    - Hep aynı veri bölmesi.
-    - Her seferinde farklı rastgele başlangıç ağırlıkları.
-- <strong>Sonuçlar gelmediyse</strong> slayt "3 runs … running now" diyor.
-- <strong>Sonuçlar gelince</strong> slayt kendiliğinden şunlara dönüşüyor:
-    - 3 koşunun ortalama doğruluğu ve sapması, makalenin 63.24%'ü ile yan yana;
-    - 0 dB doğruluğu, makalenin 92.21%'i ile yan yana;
-    - her koşunun doğruluğu ve kendiliğinden durduğu epoch;
-    - alt satırda makaleye göre kaç puan fark olduğu.</p>
-<p><strong>Okuma metni (EN), sonuçlar gelmediyse</strong></p>
+</blockquote></div></details><details id="s22"><summary><span class="n">22</span><span>Yedek: &quot;58 epoch&quot; ne demek?</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
+- <strong>61.75%:</strong> Bizim makaleden kurduğumuz model, sabit 58 epoch, 3 koşu (±0.07). İki koşu son epoch'ta hâlâ iyileşiyordu.
+- <strong>63.21%:</strong> Aynı model, durmasına izin verilince; en iyi epoch 107.
+- <strong>Sağdaki grafik:</strong> Makalenin Şekil 7'si. Doğrulama doğruluğu 58'de hâlâ yükseliyor.
+- <strong>Mesaj:</strong>
+    - Onların durma kuralı kaybı izliyor; kayıp 40. epoch'tan sonra düzleşmiş (makale: "around 1.05").
+    - Doğruluk ise hâlâ biraz artıyordu.
+    - Bu bir hata değil; yöntemin bir özelliği. Sayı gerçek, ama doğruluğun hâlâ tırmandığı bir noktada.</p>
+<div class="tag">Okuma metni (EN)</div>
 <blockquote>
-<p>To answer that, we are running their own script on Colab, three times on the same split, each time from a different random start. The question is simple: do we get their 63.24 percent, and how much does it move from run to run? The runs are going now; I'll bring the accuracies next time.</p>
-</blockquote>
-<p><strong>Okuma metni (EN), sonuçlar geldiyse</strong></p>
-<blockquote>
-<p>And this is their own code, which we ran on Colab, three times on the same split, each time from a different random start. On the left, the average accuracy over the three runs, next to the paper's 63.24. On the right, the accuracy at 0 dB, next to the paper's 92.21. Below, each run, and the epoch where each one stopped by itself.</p>
-</blockquote>
-<p><strong>Olası sorular</strong>
-- <em>"Why only three runs?"</em> — Each run is about an hour on Colab. Three are enough to see whether the number moves by tenths or by points.</p></div></details><details id="s17"><summary><span class="n">17</span><span>Ara slayt: Part 3</span></summary><div class="body"><div class="tag">Okuma metni (EN)</div>
-<blockquote>
-<p>Part three: what we checked ourselves.</p>
-</blockquote></div></details><details id="s18"><summary><span class="n">18</span><span>Yeniden kurduk; onların kodu da doğruluyor</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
+<p>One detail about the 58 epochs. Their stopping rule watches the validation loss, and the loss had flattened. But the validation accuracy, in their own figure on the right, is still rising at 58. When I trained our rebuild for a fixed 58 epochs, I got 61.75 percent. Letting it continue, it peaked at epoch 107 at 63.21. So their number is real, but it sits where the accuracy was still climbing.</p>
+</blockquote></div></details><details id="s23"><summary><span class="n">23</span><span>Yedek: yeniden kurduk; onların kodu da doğruluyor</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
 - <strong>Zaman çizelgesi:</strong>
     - <strong>Nisan 2025:</strong> Makale, kodsuz.
     - <strong>8 Ağustos 2026:</strong> Yazarlar kodu GitHub'a koydu (TensorFlow, MIT lisanslı), ağırlık yok.
@@ -468,18 +554,7 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 </blockquote>
 <p><strong>Olası sorular</strong>
 - <em>"Why didn't you use their code from the start?"</em> — It didn't exist when the paper came out, and we didn't know it had appeared. Now we run it too (Colab, three runs).
-- <em>"Did they publish weights?"</em> — No. Only the training code.</p></div></details><details id="s19"><summary><span class="n">19</span><span>&quot;58 epoch&quot; ne demek?</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
-- <strong>61.75%:</strong> Bizim makaleden kurduğumuz model, sabit 58 epoch, 3 koşu (±0.07). İki koşu son epoch'ta hâlâ iyileşiyordu.
-- <strong>63.21%:</strong> Aynı model, durmasına izin verilince; en iyi epoch 107.
-- <strong>Sağdaki grafik:</strong> Makalenin Şekil 7'si. Doğrulama doğruluğu 58'de hâlâ yükseliyor.
-- <strong>Mesaj:</strong>
-    - Onların durma kuralı kaybı izliyor; kayıp 40. epoch'tan sonra düzleşmiş (makale: "around 1.05").
-    - Doğruluk ise hâlâ biraz artıyordu.
-    - Bu bir hata değil; yöntemin bir özelliği. Sayı gerçek, ama doğruluğun hâlâ tırmandığı bir noktada.</p>
-<div class="tag">Okuma metni (EN)</div>
-<blockquote>
-<p>One detail about the 58 epochs. Their stopping rule watches the validation loss, and the loss had flattened. But the validation accuracy, in their own figure on the right, is still rising at 58. When I trained our rebuild for a fixed 58 epochs, I got 61.75 percent. Letting it continue, it peaked at epoch 107 at 63.21. So their number is real, but it sits where the accuracy was still climbing.</p>
-</blockquote></div></details><details id="s20"><summary><span class="n">20</span><span>Kendi tablolarının desteklemediği üç iddia</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
+- <em>"Did they publish weights?"</em> — No. Only the training code.</p></div></details><details id="s24"><summary><span class="n">24</span><span>Yedek: kendi tablolarının desteklemediği üç iddia</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
 1. <strong>"Best at low SNR":</strong>
       - Tablo 5'te CNN-BiLSTM-DNN −10 dB'de (27.73 vs 25.32) ve −8 dB'de (39.55 vs 37.45) daha yüksek.
       - MCLDNN −6 dB'de daha yüksek (56.32 vs 55.26).
@@ -490,7 +565,7 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
 <p>Reading their tables closely, three statements in the text don't match their own numbers. Best at low SNR: in their Table 5, other models are higher at minus 10, minus 8 and minus 6 dB. Highest precision: in Table 6, the LSTM-only model is higher. And MCLDNN is listed with 406 million parameters; it has 406 thousand. So ICRNNA is about twice the size of MCLDNN, not smaller.</p>
-</blockquote></div></details><details id="s21"><summary><span class="n">21</span><span>Makalenin söylemedikleri</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
+</blockquote></div></details><details id="s25"><summary><span class="n">25</span><span>Yedek: makalenin söylemedikleri</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
 1. <strong>Tek koşu:</strong> Kod bunu doğruluyor.
       - Bizim 3-seed ölçümlerimizde modelden modele 0.2 ile 1.1 puan arası oynama var.
       - Ayrıca kodlarındaki bölme her çalıştırmada değişiyor; sınıf listesi bir Python <code>set</code>'inden okunuyor (<code>OFFICIAL_CODE.md</code>).
@@ -501,19 +576,7 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 <div class="tag">Okuma metni (EN)</div>
 <blockquote>
 <p>And three things the paper doesn't tell us. It reports one training run, with no spread; across seeds we see up to a point of variation, so a half-point lead may not be real. It doesn't say whether the other models were retrained or copied from their papers. And it treats the SNR label as a true SNR; in this data, at label 0 dB, QAM16 has about 9 dB more signal than QPSK.</p>
-</blockquote></div></details><details id="s22"><summary><span class="n">22</span><span>Her model için tek protokol</span></summary><div class="body"><p><strong>Slaytta ne var, ne demek</strong>
-- <strong>Deney:</strong> Beş modeli aynı protokolle eğittik: aynı veri, aynı bölme, 3 seed.
-- <strong>"their Table 3":</strong> Makalenin bu modeller için verdiği sayı.
-    - MCLDNN: makalede 61.42, bizde 61.41.
-    - PET-CGDNN: makalede 60.58, bizde 60.98.
-- <strong>ICRNNA satırı:</strong> Bizim çalışan versiyonumuz (62.2%), bütün diğer sonuçlarımız bununla. Makaleden birebir kurduğumuz model 63.21%.</p>
-<div class="tag">Okuma metni (EN)</div>
-<blockquote>
-<p>So we trained five models ourselves under one protocol: same data, same split, three seeds. Our MCLDNN and PET-CGDNN numbers match their table within half a point. ICRNNA is first, but the top four are within about one point, and above 10 dB they all stop near 91 percent.</p>
-</blockquote></div></details><details id="s23"><summary><span class="n">23</span><span>Özetle</span></summary><div class="body"><div class="tag">Okuma metni (EN)</div>
-<blockquote>
-<p>To sum up. ICRNNA is a CNN, then a bidirectional LSTM, then attention, then a small classifier, and the LSTM does most of the work. Its 63.24 percent is reproducible: we got 63.21 from the paper alone. Its lead over other models is about one point. For us, it is a solid backbone, not a clearly better one. Thank you.</p>
-</blockquote></div></details><details id="x25"><summary><span class="n">✓</span><span>Yedek — Kodun ayrıntıları (slaytta yok)</span></summary><div class="body"><p>Moshe ayrıntı sorarsa diye: kodun içinde ne var, satır satır. Tam karşılaştırma <code>OFFICIAL_CODE.md</code>'de.</p>
+</blockquote></div></details><details id="x27"><summary><span class="n">✓</span><span>Yedek — Kodun ayrıntıları (slaytta yok)</span></summary><div class="body"><p>Moshe ayrıntı sorarsa diye: kodun içinde ne var, satır satır. Tam karşılaştırma <code>OFFICIAL_CODE.md</code>'de.</p>
 <h3>Ne yayımladılar?</h3>
 <ul>
 <li><strong>Depo adresi:</strong> Depo adı "mproved-…" diye başlıyor; "Improved"ın baş harfi eksik, onların yazım hatası.</li>
@@ -666,7 +729,7 @@ code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;ov
 <li><strong>Bizim çözümümüz:</strong> Colab'daki sarmalayıcı <code>PYTHONHASHSEED</code>'i sabitliyor ve bölmenin parmak izini kaydediyor; bütün koşular aynı bölmeyi kullanıyor.</li>
 </ol>
 <p><strong>Olası sorular</strong>
-- <em>"Does this change their 63.24%?"</em> — Not by itself. It means their single number came from one particular split that cannot be recreated exactly. Our three runs of their code will show how much the number moves.</p></div></details><details id="x26"><summary><span class="n">✓</span><span>Genel tavsiyeler</span></summary><div class="body"><ul>
+- <em>"Does this change their 63.24%?"</em> — Not by itself. It means their single number came from one particular split that cannot be recreated exactly. Our three runs of their code will show how much the number moves.</p></div></details><details id="x28"><summary><span class="n">✓</span><span>Genel tavsiyeler</span></summary><div class="body"><ul>
 <li><strong>Önce modeli anlat, sonra eleştir.</strong> Moshe "anlamak istiyorum" dedi. 4–9. slaytlarda acele etme; her blokta "giren ne, çıkan ne, ne işe yarıyor" sırasını koru.</li>
 <li><strong>Boyutları göster:</strong> 2 × 128 → 64 × 128 → 64 × 256 → 256 → 11. Moshe bir çerçevenin modelin içinden nasıl geçtiğini takip edebilsin.</li>
 <li><strong>Temsilî çizimleri öyle söyle.</strong> Filtre penceresi, attention çubukları ve olasılık çubukları açıklama amaçlı; veri değil.</li>
