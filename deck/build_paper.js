@@ -66,19 +66,6 @@ function done(s, id, dark = false) {
   s.addNotes(TALK[id]);
   t(s, String(n), W - M - 0.5, 7.0, 0.5, 0.3, { fontSize: 12, color: dark ? "8FA0B5" : MUTED, align: "right" });
 }
-// One row per code line: the line in a monospaced box on the left, what it
-// does on the right. Lines are quoted from their rml2016_10a.py (commit
-// ac000a0); a slide says when arguments were left out to fit.
-function codeRows(s, rows, y0, rowH = 0.62, codeW = 8.55, size = 14) {
-  const tags = rows.some(r => r[2] !== undefined), off = tags ? 1.55 : 0.15;
-  rows.forEach(([code, note, tag], i) => {
-    const y = y0 + i * rowH;
-    box(s, M, y, codeW, rowH - 0.08, i % 2 ? "F6F8FA" : "EEF2F6");
-    t(s, code, M + 0.15, y, codeW - 0.2, rowH - 0.08, { fontFace: "Courier New", fontSize: size, valign: "middle", color: INK });
-    if (tag) t(s, tag, M + codeW + 0.15, y, 1.35, rowH - 0.08, { fontSize: 16, bold: true, color: ORANGE, valign: "middle" });
-    t(s, note, M + codeW + off, y, W - 2 * M - codeW - off, rowH - 0.08, { fontSize: 16, color: MUTED, valign: "middle" });
-  });
-}
 const PARTS = [["CNN", "short filters"], ["BiLSTM", "reads in order"], ["Attention", "weighs the steps"], ["Dense", "decides"]];
 const pct = (a, b) => Math.round(100 * a / b);
 
@@ -314,126 +301,69 @@ const pct = (a, b) => Math.round(100 * a / b);
   done(s, "ablation");
 }
 
-// part 2: their code ==========================================================================
-{ const s = pres.addSlide(); s.background = { color: NAVY };
-  t(s, "PART 2", M, 2.4, 6, 0.5, { fontSize: 20, bold: true, color: ORANGE, charSpacing: 4 });
-  t(s, "Their code", M, 2.95, 12, 1.2, { fontSize: 60, bold: true, color: WHITE });
-  t(s, "Published on GitHub on 8 August 2026, sixteen months after the paper.", M, 4.25, 12, 0.6, { fontSize: 24, color: SOFT });
-  done(s, "code_divider", true);
-}
-
+// part 2: their code, in plain words ================================================================
 { const s = pres.addSlide();
-  title(s, "What they published", "THEIR CODE");
-  card(s, M, 1.55, W - 2 * M, 1.0);
-  t(s, "github.com/noureddine395/mproved-automatic-modulation-recognition-using-deep-learning-with-additive-attention",
-    M + 0.3, 1.55, W - 2 * M - 0.6, 1.0, { fontFace: "Courier New", fontSize: 14, valign: "middle" });
-  [["IN IT", ["two scripts: 2016.10a and 2016.10b", "TensorFlow / Keras, MIT licence"]], ["NOT IN IT", ["trained weights", "more than one run"]]].forEach(([h, lines], i) => {
+  title(s, "Their code", "PART 2  ·  THEIR CODE");
+  [["Apr 2025", "the paper, without code"], ["Aug 2026", "their code on GitHub"], ["Oct 2026", "we run it ourselves"]].forEach(([d, l], i) => {
+    const x = M + i * 4.15;
+    card(s, x, 1.6, 3.85, 1.25, i === 2 ? NAVY : CARD);
+    t(s, d, x + 0.3, 1.7, 3.3, 0.5, { fontSize: 24, bold: true, color: ORANGE });
+    t(s, l, x + 0.3, 2.2, 3.4, 0.5, { fontSize: 19, color: i === 2 ? WHITE : MUTED });
+    if (i < 2) arrow(s, x + 3.88, 2.0, 0.24);
+  });
+  [["IN IT", "the training script, for each dataset"], ["NOT IN IT", "the trained model (weights)"]].forEach(([h, b], i) => {
     const x = M + i * 6.15;
-    card(s, x, 2.8, 5.9, 1.55, i ? NAVY : CARD);
-    t(s, h, x + 0.3, 2.9, 5, 0.4, { fontSize: 15, bold: true, color: ORANGE, charSpacing: 2 });
-    t(s, lines.join("\n"), x + 0.3, 3.3, 5.4, 1.0, { fontSize: 20, color: i ? WHITE : INK });
+    card(s, x, 3.2, 5.9, 1.6, i ? NAVY : CARD);
+    t(s, h, x + 0.3, 3.32, 5, 0.4, { fontSize: 16, bold: true, color: ORANGE, charSpacing: 2 });
+    t(s, b, x + 0.3, 3.8, 5.4, 0.8, { fontSize: 24, color: i ? WHITE : INK });
   });
-  const flow = ["load the file", "normalize", "shuffle, split", "train", "test, plot"];
-  flow.forEach((h, i) => {
-    const x = M + i * 2.45;
-    s.addShape(pres.ShapeType.roundRect, { x, y: 4.65, w: 2.0, h: 0.8, fill: { color: i === 3 ? ORANGE : CARD }, line: { color: i === 3 ? ORANGE : CARD }, rectRadius: 0.1 });
-    t(s, h, x, 4.65, 2.0, 0.8, { fontSize: 18, bold: true, align: "center", valign: "middle", color: i === 3 ? WHITE : INK });
-    if (i < 4) arrow(s, x + 2.03, 4.85, 0.38);
+  takeaway(s, "Now we can run exactly what they ran.", 5.4);
+  done(s, "code");
+}
+
+{ const s = pres.addSlide();
+  title(s, "What their code tells us", "PART 2  ·  THEIR CODE");
+  const pts = [["The model is the one in the paper", `same layers, ${num(OF.params)} numbers (paper: 0.79 M)`],
+    ["“58 epochs” was not a choice", "training stops by itself when it stops improving; for them, at 58"],
+    ["They trained it once", "one split of the data, one run, one number"]];
+  pts.forEach(([h, b], i) => {
+    const y = 1.6 + i * 1.4;
+    badge(s, M, y + 0.15, i + 1, i === 1 ? ORANGE : NAVY, 0.7);
+    t(s, h, M + 1.0, y, W - 2 * M - 1.0, 0.6, { fontSize: 26, bold: true, valign: "middle" });
+    t(s, b, M + 1.0, y + 0.6, W - 2 * M - 1.0, 0.55, { fontSize: 20, color: MUTED, valign: "middle" });
   });
-  takeaway(s, "One run of their script: these five steps, once.", 6.0);
-  done(s, "code_intro");
+  takeaway(s, "One run gives one number: how much would it move?", 5.95);
+  done(s, "code_shows");
 }
 
+// their code, run by us: accuracy (results once official_icrnna_2016_results.json is committed)
 { const s = pres.addSlide();
-  title(s, "The model, in their code", "THEIR CODE  ·  THE MODEL");
-  codeRows(s, [
-    ["x = Conv1D(64, 3, activation='relu', padding='same')(x)", "64 filters, 3 taps", "CNN"],
-    ["x = Conv1D(128, 3, activation='relu', padding='same')(x)", "128 filters, 3 taps", ""],
-    ["x = MaxPooling1D(pool_size=2)(x)", "128 steps → 64", ""],
-    ["x = Bidirectional(LSTM(128, return_sequences=True))(x)", "both directions", "BiLSTM"],
-    ["lstm_out = Bidirectional(LSTM(128, return_sequences=True))(x)", "kept for attention", ""],
-    ["x = attention(x, lstm_out)", "weighted average", "Attention"],
-    ["x = Dense(128, activation='relu')(x)", "", "Dense"],
-    ["x = Dense(64, activation='relu')(x)", "", ""],
-    ["outputs = Dense(num_classes, activation='softmax')(x)", "11 probabilities", ""],
-  ], 1.5, 0.52, 8.55, 16);
-  credit(s, "Their lines, with the BatchNormalization, Dropout and L2 arguments left out to fit.", M, 6.25, 10);
-  takeaway(s, "Nine lines are the whole model.", 5.65);
-  done(s, "code_model");
-}
-
-{ const s = pres.addSlide();
-  title(s, "The attention, in their code", "THEIR CODE  ·  THE ATTENTION");
-  codeRows(s, [
-    ["score = self.V(tf.nn.tanh(self.W1(query) + self.W2(value)))", "a score per step"],
-    ["score = score * self.scale", "learned scale, starts at 1"],
-    ["attention_weights = tf.nn.softmax(score, axis=1)", "weights over 64 steps, sum to 1"],
-    ["attention_weights = self.dropout(attention_weights)", "10% dropped while training"],
-    ["context_vector = attention_weights * value", "weight each step"],
-    ["context_vector = tf.reduce_sum(context_vector, axis=1)", "add them up: 256 numbers"],
-    ["context_vector = self.layer_norm(context_vector)", "normalize the result"],
-  ], 1.55, 0.6, 8.3, 16);
-  credit(s, "Their lines from call(), slightly shortened (the if around the scale, the training flag).", M, 5.75, 11);
-  card(s, M, 6.1, W - 2 * M, 0.75);
-  t(s, "query = the LSTM output after normalization;  value = the same output before it. Each step is scored on its own.", M + 0.3, 6.1, W - 2 * M - 0.6, 0.75, { fontSize: 18, valign: "middle" });
-  done(s, "code_attention");
-}
-
-{ const s = pres.addSlide();
-  title(s, "The training, in their code", "THEIR CODE  ·  THE TRAINING");
-  codeRows(s, [
-    ["train_test_split(X, Y, snrs, test_size=0.3, random_state=2016)", "70% learn, 30% held out"],
-    ["train_test_split(X_temp, ..., test_size=0.5, random_state=2016)", "15% watch, 15% test"],
-    ["Adam(learning_rate=0.001, clipnorm=1.0)", "steps capped: not in the paper"],
-    ["ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5)", "loss flat 5 epochs: rate × 0.2"],
-    ["EarlyStopping(monitor='val_loss', patience=6, restore_best_weights=True)", "loss flat 6 epochs: stop"],
-    ["model.fit(X_train, Y_train, epochs=100, batch_size=32, ...)", "at most 100 epochs"],
-  ], 1.55, 0.66, 8.75);
-  credit(s, "Their lines, slightly shortened (mode='min', min_lr=1e-6 and the checkpoint callback left out).", M, 5.6, 11);
-  takeaway(s, "The paper's “58 epochs” is where this stopping rule fired.", 6.0);
-  done(s, "code_training");
-}
-
-{ const s = pres.addSlide();
-  title(s, "What the code tells us that the paper didn't", "THEIR CODE");
-  const hc = (x) => ({ text: x, options: { bold: true, fill: { color: CARD }, color: INK, fontSize: 18 } });
-  const rows = [[hc(""), hc("the paper"), hc("their code")],
-    ["epochs", "58", "up to 100; stop when val loss is flat 6 epochs"],
-    ["optimizer", "not named", "Adam, with gradient clipping"],
-    ["input scaling", "“normalization”", "per time index, over the whole dataset"],
-    ["pooling", "unclear", "one max-pool, after the 2nd conv"],
-    ["attention scale", "“if enabled”", "learned, starts at 1"],
-    ["runs", "not stated", "one run, one split"],
-    ["weights", "not published", "still not published"]]
-    .map((r, i) => i === 0 ? r : r.map((c, j) => ({ text: c, options: { fontSize: 18, bold: j === 0, color: j === 1 ? MUTED : INK } })));
-  s.addTable(rows, { x: M, y: 1.5, w: W - 2 * M, colW: [2.6, 3.0, W - 2 * M - 5.6], fontFace: F, color: INK,
-    border: { type: "solid", pt: 0.5, color: LINE }, rowH: 0.56, autoPage: false, valign: "middle" });
-  takeaway(s, "Most of what the paper left open, the code settles.", 6.25);
-  done(s, "code_vs_paper");
-}
-
-{ const s = pres.addSlide();
-  title(s, "Two problems in their code", "THEIR CODE");
-  const items = [["The split changes every run",
-    "The class list comes from a Python set, whose order changes between runs. The data are put together in that order, then shuffled with seed 2016: a different train/test split each time, despite the fixed seed."],
-    ["The scaling sees the test set",
-    "The normalization statistics are computed on all 220,000 frames before the split. Probably a small effect, but the test frames are not untouched."]];
-  items.forEach(([h, b], i) => {
-    const y = 1.6 + i * 2.05;
-    card(s, M, y, W - 2 * M, 1.8);
-    badge(s, M + 0.3, y + 0.3, i + 1, ORANGE);
-    t(s, h, M + 1.15, y + 0.15, W - 2 * M - 1.5, 0.55, { fontSize: 23, bold: true });
-    t(s, b, M + 1.15, y + 0.7, W - 2 * M - 1.5, 1.05, { fontSize: 18, color: MUTED });
-  });
-  takeaway(s, "Neither changes the model; both make one run harder to repeat.", 5.85);
-  done(s, "code_issues");
+  title(s, "Their code, run by us", "PART 2  ·  THEIR CODE");
+  if (OR) {
+    card(s, M, 1.55, 5.9, 2.6);
+    big(s, M + 0.3, 1.7, 5.3, `${OR.mean.toFixed(2)}%`, `average of ${OR.n} runs, ± ${OR.std.toFixed(2)}   (paper: ${P.headline.acc_10a}%)`, ORANGE, 60);
+    card(s, M + 6.15, 1.55, 5.98, 2.6);
+    big(s, M + 6.45, 1.7, 5.4, `${OR.acc0.toFixed(1)}%`, `at 0 dB   (paper: ${P.fig11.acc}%)`, INK, 60);
+    t(s, `each run: ${OR.accs.map(a => a.toFixed(2) + "%").join("  ·  ")}`, M, 4.45, W - 2 * M, 0.5, { fontSize: 22 });
+    t(s, `stopped by itself after ${OR.stopped.join(", ")} epochs`, M, 5.0, W - 2 * M, 0.5, { fontSize: 20, color: MUTED });
+    const d = OR.mean - P.headline.acc_10a;
+    takeaway(s, `${d >= 0 ? "+" : "−"}${Math.abs(d).toFixed(2)} points from the paper's number, run to run ± ${OR.std.toFixed(2)}.`, 5.9);
+  } else {
+    card(s, M, 1.6, W - 2 * M, 2.4, NAVY);
+    t(s, "3 runs", M + 0.4, 1.75, 4, 1.2, { fontSize: 60, bold: true, color: ORANGE, valign: "middle" });
+    t(s, "of their own script, on Colab: same data split, different random start each time.", M + 0.4, 2.95, W - 2 * M - 0.8, 0.9, { fontSize: 22, color: WHITE });
+    t(s, [{ text: "The question: ", options: { bold: true } }, { text: "do we get 63.24% too, and how much does it move from run to run?" }],
+      M, 4.35, W - 2 * M, 0.9, { fontSize: 22 });
+    takeaway(s, "Running now; the accuracies come next time.", 5.6);
+  }
+  done(s, OR ? "official" : "official_pending");
 }
 
 // part 3: what we checked ======================================================================
 { const s = pres.addSlide(); s.background = { color: NAVY };
   t(s, "PART 3", M, 2.4, 6, 0.5, { fontSize: 20, bold: true, color: ORANGE, charSpacing: 4 });
   t(s, "What we checked", M, 2.95, 12, 1.2, { fontSize: 60, bold: true, color: WHITE });
-  t(s, "Our rebuild from the paper, their own code, and their own tables.", M, 4.25, 12, 0.6, { fontSize: 24, color: SOFT });
+  t(s, "Our rebuild from the paper, and the paper's own tables.", M, 4.25, 12, 0.6, { fontSize: 24, color: SOFT });
   done(s, "divider", true);
 }
 
@@ -468,19 +398,6 @@ const pct = (a, b) => Math.round(100 * a / b);
   credit(s, FROM, 6.55, 5.85, 6.15);
   takeaway(s, "Their rule stopped on the loss; the accuracy was still climbing.", 6.3);
   done(s, "epochs");
-}
-
-// their code, our runs (only when the results are in) ===========================================
-if (OR) {
-  const s = pres.addSlide();
-  title(s, "Their own code, run by us", "OUR CHECK");
-  big(s, M, 1.5, 5.2, `${OR.mean.toFixed(2)}%`, `mean of ${OR.n} runs, ± ${OR.std.toFixed(2)} (paper: ${P.headline.acc_10a}%)`, ORANGE, 56);
-  t(s, `stopped after ${OR.stopped.join(", ")} epochs`, M, 3.55, 5.4, 0.5, { fontSize: 20 });
-  t(s, `runs: ${OR.accs.map(a => a.toFixed(2) + "%").join(", ")}`, M, 4.05, 5.4, 0.5, { fontSize: 20, color: MUTED });
-  const img = "paper/ours_official_curve.png";
-  if (fs.existsSync(img)) pic(s, img, 6.4, 1.5, 6.3, 1275, 782);
-  takeaway(s, "Their code, their split, three runs.", 6.2);
-  done(s, "official");
 }
 
 // claims vs their tables ======================================================================

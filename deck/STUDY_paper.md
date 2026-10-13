@@ -8,9 +8,9 @@ Makale: El-Haryqy, Kharbouche, Ouamna, Madini, Zouine. *Improved automatic modul
 - eğitim;
 - sonuçlar.
 
-Sonra yazarların Ağustos 2026'da yayımladığı kod satır satır gösteriliyor, eleştiriler en sonda ("What we checked").
+Sonra yazarların Ağustos 2026'da yayımladığı kodun ne söylediği ve onu çalıştırınca çıkan doğruluk; eleştiriler en sonda ("What we checked"). Kod satırları slaytta yok, aşağıda yedek bölümde.
 
-**Slayt sayısı:** 27 slayt, yaklaşık 12 dakika. Üç bölüm: 1. makale (2–13), 2. onların kodu (14–20), 3. bizim kontrolümüz (21–27). Colab'daki `official_2016` sonuçları gelirse 23. slayttan sonra "Their own code, run by us" slaytı eklenir; sonraki slaytların numarası bir kayar.
+**Slayt sayısı:** 23 slayt, yaklaşık 10 dakika. Üç bölüm: 1. makale (2–13), 2. onların kodu (14–16), 3. bizim kontrolümüz (17–23). Slayt 16, Colab'daki `official_2016` sonuçları gelince doğruluk sayılarıyla dolar; gelmezse "çalışıyor" der.
 
 Her slayt için üç bölüm var:
 - **Slaytta ne var, ne demek:** Türkçe açıklama.
@@ -85,7 +85,7 @@ Temel terimler (recall, precision, epoch, SNR, dB...) `STUDY_simple.html`'deki s
 - **Üstteki zincir:** Bu makale → bizim dedektörümüz. Bizim modelimiz bu makaleden geliyor; Moshe'nin "bu model nereden çıktı" sorusunun cevabı.
 - **63.24%:** RML2016.10a'da, 11 sınıfın ve 20 SNR seviyesinin tamamında doğruluk (Tablo 3).
 - **0.79 M:** Öğrenilen sayı (parametre) adedi (Tablo 7). Onların kodu da bunu doğruluyor: 792,396 öğrenilen sayı.
-- **"low SNR":** Makalenin düşük SNR'da özellikle iyi olduğu iddiası. 24. slaytta kendi tablolarıyla karşılaştırılıyor.
+- **"low SNR":** Makalenin düşük SNR'da özellikle iyi olduğu iddiası. 20. slaytta kendi tablolarıyla karşılaştırılıyor.
 
 **Okuma metni (EN)**
 
@@ -250,7 +250,7 @@ Temel terimler (recall, precision, epoch, SNR, dB...) `STUDY_simple.html`'deki s
 > How it is trained. Seventy percent of the frames to learn from, fifteen to watch, fifteen to test. Batches of 32 frames; the loss is cross-entropy; the optimizer is Adam with learning rate 0.001. When the validation loss stops improving for 5 epochs, the learning rate is cut by five. When it stops improving for 6 epochs, training stops and the best weights are restored. The paper's table says 58 epochs. From their code we now know that 58 is where this stopping rule fired, not a number they chose. They trained once.
 
 **Olası sorular**
-- *"Why stop on the loss and not the accuracy?"* — It is the common Keras default. Loss and accuracy can disagree: here the loss had flattened while accuracy was still creeping up (slide 23).
+- *"Why stop on the loss and not the accuracy?"* — It is the common Keras default. Loss and accuracy can disagree: here the loss had flattened while accuracy was still creeping up (slide 19).
 - *"How were the hyperparameters chosen?"* — Section 4.1: grid search over learning rate, dropout and L2; batch size and epochs by hand.
 
 ---
@@ -284,7 +284,7 @@ Makalenin Tablo 3'ü, RML2016.10a sütunu:
 > Their main result, on 2016.10a. ICRNNA is first, at 63.24 percent. The runner-up, CNN-BiLSTM-DNN, is half a point behind. MCLDNN and PET-CGDNN, the well-known ones, are two to three points behind.
 
 **Olası sorular**
-- *"Were the other models retrained?"* — The paper doesn't say (slide 25).
+- *"Were the other models retrained?"* — The paper doesn't say (slide 21).
 
 ---
 
@@ -343,165 +343,71 @@ Makalenin Tablo 6'sı (10a):
 
 ---
 
-## Slayt 14 — Part 2: Onların kodu
+## Slayt 14 — Onların kodu
 
 **Slaytta ne var, ne demek**
-- Bölüm geçişi. Makale kodsuz yayımlanmıştı (Nisan 2025). Yazarlar kodu 8 Ağustos 2026'da GitHub'a koydu.
+- **Zaman çizelgesi:**
+  - Nisan 2025: makale, kodsuz.
+  - 8 Ağustos 2026: yazarlar eğitim kodunu GitHub'a koydu.
+  - Ekim 2026: biz çalıştırıyoruz.
+- **İçinde olan:** Her veri seti (10a, 10b) için eğitim script'i (TensorFlow).
+- **İçinde olmayan:** Eğitilmiş model, yani ağırlıklar. Onları kullanamayız; modeli kendimiz eğitmek zorundayız.
+- **Mesaj:** Artık onların çalıştırdığının aynısını çalıştırabiliyoruz.
 
 **Okuma metni (EN)**
 
-> Part two: their code. The paper came out without code. In August this year the authors put their code on GitHub. That lets us see exactly what they did.
-
----
-
-## Slayt 15 — Ne yayımladılar?
-
-**Slaytta ne var, ne demek**
-- **Depo adresi:** Depo adı "mproved-…" diye başlıyor; "Improved"ın baş harfi eksik, onların yazım hatası.
-- **İçinde olanlar:**
-  - `rml2016_10a.py` ve `rml2016_10b.py`: her veri seti için bir script.
-  - TensorFlow/Keras, MIT lisansı.
-  - Zenodo'da arşivli (10.5281/zenodo.21854712).
-- **İçinde olmayanlar:**
-  - Eğitilmiş ağırlıklar. Script `best_model.keras` dosyasını kendi bilgisayarına kaydediyor, ama depoda yok.
-  - Birden fazla koşu; script tek koşu yapıyor.
-- **Beş adım:** Script bir kez çalıştırıldığında sırayla şunları yapıyor:
-  1. pickle dosyasını okuyor;
-  2. normalize ediyor;
-  3. karıştırıp bölüyor;
-  4. eğitiyor;
-  5. test edip grafikleri çiziyor.
-- **Kimin hesabı:** Hesapta isim yok. README ve atıf dosyası makalenin beş yazarını veriyor. Aynı hesapta iki AMR deposu daha var (MCSBA ve FPGA üzerinde AMR).
-
-**Okuma metni (EN)**
-
-> This is what they published. Two scripts, one for each dataset, written in TensorFlow. No trained weights. A run of the script does five things, once: load the file, normalize the frames, shuffle and split them, train, and then test and draw the figures.
+> Part two: their code. The paper came out in April 2025 without code. In August this year the authors put their training script on GitHub. It contains the training script for each dataset; it does not contain the trained model itself. But it means we can now run exactly what they ran.
 
 **Olası sorular**
-- *"How do you know it is really theirs?"* — The README and citation file name the five authors and the paper's DOI, and it is archived on Zenodo under their names. The account itself shows no name, so I can't prove it, but nothing suggests otherwise.
-- *"Why did they publish so late?"* — I don't know. The paper only said data are available on request.
+- *"Where is it?"* — GitHub, account noureddine395, archived on Zenodo; the README names the five authors. (Tam adres ve ayrıntılar aşağıdaki "Yedek" bölümünde ve `OFFICIAL_CODE.md`'de.)
+- *"Is it really theirs?"* — The README and citation file name the authors and the paper's DOI. The account shows no name, so I can't prove it, but nothing suggests otherwise.
 
 ---
 
-## Slayt 16 — Model, onların kodunda
+## Slayt 15 — Kod bize ne söylüyor?
 
 **Slaytta ne var, ne demek**
-- **Kaynak:** `build_improved_model` fonksiyonunun satırları. Batch normalization, dropout ve L2 argümanları sığsın diye çıkarıldı (slaytta yazıyor).
-- **Satır satır:**
-  - `Conv1D(64, 3)` → 64 filtre, 3 örneklik. `padding='same'` uzunluğu korur.
-  - `Conv1D(128, 3)` → 128 filtre.
-  - `MaxPooling1D(2)` → 128 adım 64 olur.
-  - `Bidirectional(LSTM(128, return_sequences=True))` → çift yönlü LSTM. `return_sequences=True` her adımın çıktısını verir, sadece sonuncusunu değil.
-  - İkinci LSTM'in çıktısı `lstm_out` diye ayrıca saklanıyor; attention'a "value" olarak gidiyor.
-  - `attention(x, lstm_out)` → x, batch norm ve dropout'tan geçmiş hali (query); lstm_out ham hali (value).
-  - `Dense(128)`, `Dense(64)` → karar katmanları.
-  - `Dense(num_classes, activation='softmax')` → 11 olasılık.
-- **Ayrıca kodda olan, slaytta gösterilmeyen:** Girişte `Lambda(transpose)` 2 × 128'i 128 × 2'ye çeviriyor; Keras zaman eksenini önce istiyor.
+1. **Model makaledekiyle aynı:** Aynı katmanlar. Keras'ın saydığı 794,188 sayı, makale 0.79 M diyor.
+2. **"58 epoch" bir seçim değil:**
+   - Kodda en fazla 100 epoch var.
+   - Doğrulama kaybı 6 epoch iyileşmezse eğitim kendiliğinden duruyor ve en iyi ağırlıklara dönüyor.
+   - Onların koşusunda bu 58'de olmuş.
+3. **Tek koşu:** Kodda tekrar yok; bir bölme, bir eğitim, bir sayı.
+- **Mesaj:** Tek koşu tek sayı verir; tekrar edilse ne kadar oynar? Bir sonraki slayt bunu soruyor.
 
 **Okuma metni (EN)**
 
-> Here is the model in their own code; I left out the normalization and dropout lines to make it fit. Two convolutions and a pooling step: the CNN. Two bidirectional LSTMs: the second one's output is kept and passed to the attention. Then the attention. Then two dense layers and the output layer with eleven softmax outputs. These nine lines are the whole model.
+> What does their code tell us? Three things. First, the model in the code is the model in the paper: same layers, 794 thousand numbers. Second, the 58 epochs in the paper were not a choice: the training stops by itself when it stops improving, and for them that happened at 58. Third, they trained it once: one split of the data, one run, one number. And one run leaves a question: how much would that number move if you ran it again?
+
+---
+
+## Slayt 16 — Onların kodunu biz çalıştırdık
+
+**Slaytta ne var, ne demek**
+- **Colab görevi `official_2016`:** Onların script'i, kendi fonksiyonlarıyla, 3 kez.
+  - Hep aynı veri bölmesi.
+  - Her seferinde farklı rastgele başlangıç ağırlıkları.
+- **Sonuçlar gelmediyse** slayt "3 runs … running now" diyor.
+- **Sonuçlar gelince** slayt kendiliğinden şunlara dönüşüyor:
+  - 3 koşunun ortalama doğruluğu ve sapması, makalenin 63.24%'ü ile yan yana;
+  - 0 dB doğruluğu, makalenin 92.21%'i ile yan yana;
+  - her koşunun doğruluğu ve kendiliğinden durduğu epoch;
+  - alt satırda makaleye göre kaç puan fark olduğu.
+
+**Okuma metni (EN), sonuçlar gelmediyse**
+
+> To answer that, we are running their own script on Colab, three times on the same split, each time from a different random start. The question is simple: do we get their 63.24 percent, and how much does it move from run to run? The runs are going now; I'll bring the accuracies next time.
+
+**Okuma metni (EN), sonuçlar geldiyse**
+
+> And this is their own code, which we ran on Colab, three times on the same split, each time from a different random start. On the left, the average accuracy over the three runs, next to the paper's 63.24. On the right, the accuracy at 0 dB, next to the paper's 92.21. Below, each run, and the epoch where each one stopped by itself.
 
 **Olası sorular**
-- *"Where is the L2 regularization?"* — As an argument on each Conv1D, LSTM and Dense layer: `kernel_regularizer=l2(1e-4)`. I left it out of the slide to fit.
+- *"Why only three runs?"* — Each run is about an hour on Colab. Three are enough to see whether the number moves by tenths or by points.
 
 ---
 
-## Slayt 17 — Attention, onların kodunda
-
-**Slaytta ne var, ne demek**
-
-`ImprovedAdditiveAttention.call()` satırları:
-
-1. `score = self.V(tanh(self.W1(query) + self.W2(value)))`
-   - W1 ve W2: 256 sayıyı 128'e indiren öğrenilen katmanlar (bias'sız).
-   - V: 128'i tek bir puana indiriyor.
-   - Her zaman adımı için bir puan.
-2. `score * self.scale`: Öğrenilen tek bir sayı, başlangıçta 1. Makalenin "if scaling is enabled" dediği şey bu.
-3. `softmax(score, axis=1)`: Zaman ekseni (64 adım) üzerinde; ağırlıkların toplamı 1.
-4. `dropout`: Eğitimde ağırlıkların %10'u rastgele sıfırlanıyor.
-5. `attention_weights * value`: Her adım kendi ağırlığıyla çarpılıyor.
-6. `reduce_sum(..., axis=1)`: 64 adım toplanıyor → 256 sayılık tek vektör.
-7. `layer_norm`: Sonuç vektörü normalize ediliyor.
-
-- **Alttaki kutu:** Klasik attention'da "query" başka bir yerden gelir (örneğin çeviride, üretilen kelimeden). Burada query ve value aynı LSTM çıktısının iki hali. Yani her adım kendi içeriğine göre puanlanıyor; bu bir "attention pooling".
-
-**Okuma metni (EN)**
-
-> And the attention, line by line. Each step gets a score from a small network. The score is multiplied by a learned scale. A softmax over the 64 steps turns scores into weights. Ten percent of the weights are dropped during training. Each step is multiplied by its weight and they are added up: one vector of 256. Finally that vector is normalized. One detail: the query and the value are the same LSTM output, before and after normalization, so each step is scored on its own content.
-
-**Olası sorular**
-- *"Is the attention looking for relations between steps?"* — No. Each step's score depends only on that step. It decides how much each step counts in the average, not how steps relate to each other.
-
----
-
-## Slayt 18 — Eğitim, onların kodunda
-
-**Slaytta ne var, ne demek**
-- **İlk `train_test_split`:** Verinin %30'unu ayırıyor; kalan %70 öğrenme. `random_state=2016` bölmeyi sabitlemeye çalışıyor (ama bkz. slayt 20).
-- **İkinci `train_test_split`:** Ayrılan %30'u ikiye bölüyor: %15 doğrulama, %15 test.
-- **`Adam(learning_rate=0.001, clipnorm=1.0)`:**
-  - Adam optimizer.
-  - `clipnorm=1.0`: Her güncellemede gradyanın büyüklüğü 1 ile sınırlanıyor.
-  - Makalede yazmıyor.
-- **`ReduceLROnPlateau`:** Doğrulama kaybı 5 epoch iyileşmezse öğrenme oranı ×0.2 (en düşük 1e-6).
-- **`EarlyStopping`:** Doğrulama kaybı 6 epoch iyileşmezse durdur ve en iyi ağırlıklara dön.
-- **`fit(epochs=100, batch_size=32)`:** En fazla 100 epoch, 32'lik batch'ler.
-- **Mesaj:** Makaledeki "58 epoch" bu kuralın tetiklendiği yer, seçilmiş bir sayı değil.
-
-**Okuma metni (EN)**
-
-> And the training. Two calls split the data: 70 percent to learn from, then the rest in half, 15 to watch and 15 to test, always with seed 2016. Adam with learning rate 0.001, and the step size is capped, which the paper does not mention. When the validation loss is flat for 5 epochs the learning rate is cut by five; flat for 6, training stops and goes back to the best weights. At most 100 epochs. So the 58 in the paper is simply where this rule fired.
-
----
-
-## Slayt 19 — Kodun makalede olmayan şeyleri söyledikleri
-
-**Slaytta ne var, ne demek**
-
-| | makale | onların kodu |
-|---|---|---|
-| epoch | 58 | en fazla 100; doğrulama kaybı 6 epoch iyileşmezse dur |
-| optimizer | adı yok | Adam + gradient clipping |
-| girdi ölçekleme | "normalization" | zaman indeksi başına, bütün veri üzerinden |
-| pooling | belirsiz | bir max-pool, 2. konvolüsyondan sonra |
-| attention ölçeği | "if enabled" | öğrenilen, başlangıç 1 |
-| koşu sayısı | yazmıyor | bir koşu, bir bölme |
-| ağırlıklar | yok | hâlâ yok |
-
-- **"Zaman indeksi başına" normalizasyon:**
-  - Keras'ın `Normalization` katmanı 128 zaman noktasının her biri için ayrı bir ortalama ve varyans hesaplıyor.
-  - Bu hesap bütün çerçeveler ve hem I hem Q üzerinden yapılıyor.
-  - Bizim kodumuz ise her çerçeveyi kendi gücüne bölüyor.
-
-**Okuma metni (EN)**
-
-> Putting the paper and the code side by side. The epochs: 58 in the paper, a stopping rule in the code. The optimizer: not named in the paper, Adam with clipping in the code. The input scaling, the pooling, the attention scale: all left open in the paper, all settled by the code. And both agree on two things: one run, and no published weights.
-
----
-
-## Slayt 20 — Koddaki iki sorun
-
-**Slaytta ne var, ne demek**
-1. **Bölme her çalıştırmada değişiyor:**
-   - `preprocess_data` sınıf listesini `set(...)` ile kuruyor. Python'da string'lerden oluşan bir set'in sırası her süreçte değişiyor (hash randomization).
-   - Veri o sırayla birleştiriliyor, sonra seed 2016 ile karıştırılıyor. Karıştırmadan önceki sıra farklı olduğu için, aynı seed farklı bir bölme veriyor.
-   - Bunu sahte bir veri dosyasıyla denedik: iki farklı süreç iki farklı bölme parmak izi verdi (`54c27115e056` ve `1bf5e5673d36`).
-   - README "splits are reproducible" diyor; bu, `PYTHONHASHSEED` sabitlenmedikçe doğru değil.
-   - Etiket numaraları değişmiyor, çünkü `LabelEncoder` isimleri alfabetik sıralıyor.
-2. **Ölçekleme test verisini de görüyor:** Normalizasyon istatistikleri bölmeden önce bütün 220,000 çerçeve üzerinden hesaplanıyor. Etkisi muhtemelen küçük, ama bir sızıntı.
-- **Bizim çözümümüz:** Colab'daki sarmalayıcı `PYTHONHASHSEED`'i sabitliyor ve bölmenin parmak izini kaydediyor; bütün koşular aynı bölmeyi kullanıyor.
-
-**Okuma metni (EN)**
-
-> Reading the code, I found two problems. First, the split. The list of classes is built from a Python set, and its order changes every time Python starts. The data are joined in that order and then shuffled with a fixed seed, so each run of their script gets a different train and test split; I checked this on a test file. Second, the normalization statistics are computed on all the frames, test frames included, before the split. Neither changes the model, but both make a single run harder to repeat exactly.
-
-**Olası sorular**
-- *"Does this change their 63.24%?"* — Not by itself. It means their single number came from one particular split that cannot be recreated exactly. Our three runs of their code will show how much the number moves.
-
----
-
-## Slayt 21 — Ara slayt: Part 3
+## Slayt 17 — Ara slayt: Part 3
 
 **Okuma metni (EN)**
 
@@ -509,7 +415,7 @@ Makalenin Tablo 6'sı (10a):
 
 ---
 
-## Slayt 22 — Yeniden kurduk; onların kodu da doğruluyor
+## Slayt 18 — Yeniden kurduk; onların kodu da doğruluyor
 
 **Slaytta ne var, ne demek**
 - **Zaman çizelgesi:**
@@ -538,7 +444,7 @@ Makalenin Tablo 6'sı (10a):
 
 ---
 
-## Slayt 23 — "58 epoch" ne demek?
+## Slayt 19 — "58 epoch" ne demek?
 
 **Slaytta ne var, ne demek**
 - **61.75%:** Bizim makaleden kurduğumuz model, sabit 58 epoch, 3 koşu (±0.07). İki koşu son epoch'ta hâlâ iyileşiyordu.
@@ -555,20 +461,7 @@ Makalenin Tablo 6'sı (10a):
 
 ---
 
-## (Sonuçlar gelirse) — Onların kodu, bizim koşularımız
-
-**Slaytta ne var, ne demek**
-- Colab görevi `official_2016`: onların kodu, onların bölmesi, 3 farklı başlangıçla.
-- Ortalama ± sapma, her koşunun durduğu epoch, bizim eğitim eğrimiz.
-- Bu slayt sadece sonuç dosyası repoya geldiyse görünür.
-
-**Okuma metni (EN)**
-
-> And this is their own code, run by us on Colab, three times on one split. These are the numbers it gives.
-
----
-
-## Slayt 24 — Kendi tablolarının desteklemediği üç iddia
+## Slayt 20 — Kendi tablolarının desteklemediği üç iddia
 
 **Slaytta ne var, ne demek**
 1. **"Best at low SNR":**
@@ -585,7 +478,7 @@ Makalenin Tablo 6'sı (10a):
 
 ---
 
-## Slayt 25 — Makalenin söylemedikleri
+## Slayt 21 — Makalenin söylemedikleri
 
 **Slaytta ne var, ne demek**
 1. **Tek koşu:** Kod bunu doğruluyor.
@@ -602,7 +495,7 @@ Makalenin Tablo 6'sı (10a):
 
 ---
 
-## Slayt 26 — Her model için tek protokol
+## Slayt 22 — Her model için tek protokol
 
 **Slaytta ne var, ne demek**
 - **Deney:** Beş modeli aynı protokolle eğittik: aynı veri, aynı bölme, 3 seed.
@@ -617,11 +510,127 @@ Makalenin Tablo 6'sı (10a):
 
 ---
 
-## Slayt 27 — Özetle
+## Slayt 23 — Özetle
 
 **Okuma metni (EN)**
 
 > To sum up. ICRNNA is a CNN, then a bidirectional LSTM, then attention, then a small classifier, and the LSTM does most of the work. Its 63.24 percent is reproducible: we got 63.21 from the paper alone. Its lead over other models is about one point. For us, it is a solid backbone, not a clearly better one. Thank you.
+
+---
+
+## Yedek — Kodun ayrıntıları (slaytta yok)
+
+Moshe ayrıntı sorarsa diye: kodun içinde ne var, satır satır. Tam karşılaştırma `OFFICIAL_CODE.md`'de.
+
+### Ne yayımladılar?
+
+- **Depo adresi:** Depo adı "mproved-…" diye başlıyor; "Improved"ın baş harfi eksik, onların yazım hatası.
+- **İçinde olanlar:**
+  - `rml2016_10a.py` ve `rml2016_10b.py`: her veri seti için bir script.
+  - TensorFlow/Keras, MIT lisansı.
+  - Zenodo'da arşivli (10.5281/zenodo.21854712).
+- **İçinde olmayanlar:**
+  - Eğitilmiş ağırlıklar. Script `best_model.keras` dosyasını kendi bilgisayarına kaydediyor, ama depoda yok.
+  - Birden fazla koşu; script tek koşu yapıyor.
+- **Beş adım:** Script bir kez çalıştırıldığında sırayla şunları yapıyor:
+  1. pickle dosyasını okuyor;
+  2. normalize ediyor;
+  3. karıştırıp bölüyor;
+  4. eğitiyor;
+  5. test edip grafikleri çiziyor.
+- **Kimin hesabı:** Hesapta isim yok. README ve atıf dosyası makalenin beş yazarını veriyor. Aynı hesapta iki AMR deposu daha var (MCSBA ve FPGA üzerinde AMR).
+
+**Olası sorular**
+- *"How do you know it is really theirs?"* — The README and citation file name the five authors and the paper's DOI, and it is archived on Zenodo under their names. The account itself shows no name, so I can't prove it, but nothing suggests otherwise.
+- *"Why did they publish so late?"* — I don't know. The paper only said data are available on request.
+
+
+### Model, onların kodunda
+
+- **Kaynak:** `build_improved_model` fonksiyonunun satırları. Aşağıda batch normalization, dropout ve L2 argümanları olmadan.
+- **Satır satır:**
+  - `Conv1D(64, 3)` → 64 filtre, 3 örneklik. `padding='same'` uzunluğu korur.
+  - `Conv1D(128, 3)` → 128 filtre.
+  - `MaxPooling1D(2)` → 128 adım 64 olur.
+  - `Bidirectional(LSTM(128, return_sequences=True))` → çift yönlü LSTM. `return_sequences=True` her adımın çıktısını verir, sadece sonuncusunu değil.
+  - İkinci LSTM'in çıktısı `lstm_out` diye ayrıca saklanıyor; attention'a "value" olarak gidiyor.
+  - `attention(x, lstm_out)` → x, batch norm ve dropout'tan geçmiş hali (query); lstm_out ham hali (value).
+  - `Dense(128)`, `Dense(64)` → karar katmanları.
+  - `Dense(num_classes, activation='softmax')` → 11 olasılık.
+- **Ayrıca:** Girişte `Lambda(transpose)` 2 × 128'i 128 × 2'ye çeviriyor; Keras zaman eksenini önce istiyor.
+
+**Olası sorular**
+- *"Where is the L2 regularization?"* — As an argument on each Conv1D, LSTM and Dense layer: `kernel_regularizer=l2(1e-4)`. I left it out of the slide to fit.
+
+
+### Attention, onların kodunda
+
+
+`ImprovedAdditiveAttention.call()` satırları:
+
+1. `score = self.V(tanh(self.W1(query) + self.W2(value)))`
+   - W1 ve W2: 256 sayıyı 128'e indiren öğrenilen katmanlar (bias'sız).
+   - V: 128'i tek bir puana indiriyor.
+   - Her zaman adımı için bir puan.
+2. `score * self.scale`: Öğrenilen tek bir sayı, başlangıçta 1. Makalenin "if scaling is enabled" dediği şey bu.
+3. `softmax(score, axis=1)`: Zaman ekseni (64 adım) üzerinde; ağırlıkların toplamı 1.
+4. `dropout`: Eğitimde ağırlıkların %10'u rastgele sıfırlanıyor.
+5. `attention_weights * value`: Her adım kendi ağırlığıyla çarpılıyor.
+6. `reduce_sum(..., axis=1)`: 64 adım toplanıyor → 256 sayılık tek vektör.
+7. `layer_norm`: Sonuç vektörü normalize ediliyor.
+
+- **Alttaki kutu:** Klasik attention'da "query" başka bir yerden gelir (örneğin çeviride, üretilen kelimeden). Burada query ve value aynı LSTM çıktısının iki hali. Yani her adım kendi içeriğine göre puanlanıyor; bu bir "attention pooling".
+
+**Olası sorular**
+- *"Is the attention looking for relations between steps?"* — No. Each step's score depends only on that step. It decides how much each step counts in the average, not how steps relate to each other.
+
+
+### Eğitim, onların kodunda
+
+- **İlk `train_test_split`:** Verinin %30'unu ayırıyor; kalan %70 öğrenme. `random_state=2016` bölmeyi sabitlemeye çalışıyor (ama bkz. aşağıdaki "Koddaki iki sorun").
+- **İkinci `train_test_split`:** Ayrılan %30'u ikiye bölüyor: %15 doğrulama, %15 test.
+- **`Adam(learning_rate=0.001, clipnorm=1.0)`:**
+  - Adam optimizer.
+  - `clipnorm=1.0`: Her güncellemede gradyanın büyüklüğü 1 ile sınırlanıyor.
+  - Makalede yazmıyor.
+- **`ReduceLROnPlateau`:** Doğrulama kaybı 5 epoch iyileşmezse öğrenme oranı ×0.2 (en düşük 1e-6).
+- **`EarlyStopping`:** Doğrulama kaybı 6 epoch iyileşmezse durdur ve en iyi ağırlıklara dön.
+- **`fit(epochs=100, batch_size=32)`:** En fazla 100 epoch, 32'lik batch'ler.
+- **Mesaj:** Makaledeki "58 epoch" bu kuralın tetiklendiği yer, seçilmiş bir sayı değil.
+
+
+### Kodun makalede olmayan şeyleri söyledikleri
+
+
+| | makale | onların kodu |
+|---|---|---|
+| epoch | 58 | en fazla 100; doğrulama kaybı 6 epoch iyileşmezse dur |
+| optimizer | adı yok | Adam + gradient clipping |
+| girdi ölçekleme | "normalization" | zaman indeksi başına, bütün veri üzerinden |
+| pooling | belirsiz | bir max-pool, 2. konvolüsyondan sonra |
+| attention ölçeği | "if enabled" | öğrenilen, başlangıç 1 |
+| koşu sayısı | yazmıyor | bir koşu, bir bölme |
+| ağırlıklar | yok | hâlâ yok |
+
+- **"Zaman indeksi başına" normalizasyon:**
+  - Keras'ın `Normalization` katmanı 128 zaman noktasının her biri için ayrı bir ortalama ve varyans hesaplıyor.
+  - Bu hesap bütün çerçeveler ve hem I hem Q üzerinden yapılıyor.
+  - Bizim kodumuz ise her çerçeveyi kendi gücüne bölüyor.
+
+
+### Koddaki iki sorun
+
+1. **Bölme her çalıştırmada değişiyor:**
+   - `preprocess_data` sınıf listesini `set(...)` ile kuruyor. Python'da string'lerden oluşan bir set'in sırası her süreçte değişiyor (hash randomization).
+   - Veri o sırayla birleştiriliyor, sonra seed 2016 ile karıştırılıyor. Karıştırmadan önceki sıra farklı olduğu için, aynı seed farklı bir bölme veriyor.
+   - Bunu sahte bir veri dosyasıyla denedik: iki farklı süreç iki farklı bölme parmak izi verdi (`54c27115e056` ve `1bf5e5673d36`).
+   - README "splits are reproducible" diyor; bu, `PYTHONHASHSEED` sabitlenmedikçe doğru değil.
+   - Etiket numaraları değişmiyor, çünkü `LabelEncoder` isimleri alfabetik sıralıyor.
+2. **Ölçekleme test verisini de görüyor:** Normalizasyon istatistikleri bölmeden önce bütün 220,000 çerçeve üzerinden hesaplanıyor. Etkisi muhtemelen küçük, ama bir sızıntı.
+- **Bizim çözümümüz:** Colab'daki sarmalayıcı `PYTHONHASHSEED`'i sabitliyor ve bölmenin parmak izini kaydediyor; bütün koşular aynı bölmeyi kullanıyor.
+
+**Olası sorular**
+- *"Does this change their 63.24%?"* — Not by itself. It means their single number came from one particular split that cannot be recreated exactly. Our three runs of their code will show how much the number moves.
 
 ---
 

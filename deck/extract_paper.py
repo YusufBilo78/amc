@@ -84,7 +84,11 @@ def official_runs():
         return None
     d = json.loads(f.read_text())
     runs = d["per_seed"]
+    m0 = [r["confusions_by_snr"][r["snrs"].index(0)] for r in runs]      # 0 dB, every run
+    hit0 = sum(m[i][i] for m in m0 for i in range(len(m)))
+    all0 = sum(sum(row) for m in m0 for row in m)
     return {"n": len(runs), "mean": d["summary"]["mean_test_acc"], "std": d["summary"]["std_test_acc"],
+            "acc0": round(100 * hit0 / all0, 2),
             "accs": [r["test_acc"] for r in runs], "stopped": [r["stopped_epoch"] for r in runs],
             "best": [r["best_epoch"] for r in runs], "split_id": d.get("split_id")}
 
