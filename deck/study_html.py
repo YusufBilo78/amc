@@ -14,7 +14,7 @@ import markdown
 HERE = pathlib.Path(__file__).parent
 import sys
 
-# python deck/study_html.py [STUDY_x.md]  -> STUDY_x.html (default: STUDY_simple.md)
+# python deck/study_html.py [STUDY_x.md | READ_x.md]  -> .html next to it (default: STUDY_simple.md)
 SRC = HERE / (sys.argv[1] if len(sys.argv) > 1 else "STUDY_simple.md")
 OUT = SRC.with_suffix(".html")
 
@@ -55,6 +55,7 @@ td code{word-break:break-all}
 table{border-collapse:collapse;font-size:.88rem;min-width:100%}
 th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
 th{color:var(--muted);font-weight:600}
+.nw{white-space:nowrap}
 code{background:var(--chip);border-radius:4px;padding:1px 4px;font-size:.85em;overflow-wrap:anywhere}
 .intro{color:var(--muted);font-size:.95rem}
 .tools{display:flex;gap:8px;margin:10px 0}
@@ -74,8 +75,10 @@ def md(text):
     text = re.sub(r"^( +)(?=[-*] |\d+\. )", lambda m: m[1] * 2, text, flags=re.M)
     out = markdown.markdown(text, extensions=["tables"])
     out = out.replace("<table>", '<div class="table"><table>').replace("</table>", "</table></div>")
+    # short cells (numbers, dB levels) must not break mid-number on a phone
+    out = re.sub(r"<(td|th)>([^<]{1,14})</\1>", r'<\1 class="nw">\2</\1>', out)
     # the three sub-heads of every slide, shown as small labels
-    return re.sub(r"<p><strong>(Slaytta ne var, ne demek|Okuma metni \(EN\)|Olası sorular)</strong></p>",
+    return re.sub(r"<p><strong>(Slaytta ne var, ne demek|Okuma metni \(EN\)|Olası sorular|Ne diyor|Ne demek|Doğru mu\?|Moshe sorarsa \(EN\))</strong></p>",
                   r'<div class="tag">\1</div>', out)
 
 
@@ -88,8 +91,15 @@ def main():
     for i, ch in enumerate(chunks[1:]):
         head, _, body = ch.partition("\n")
         body = re.sub(r"\n---\s*$", "", body.strip())
-        m = re.match(r"Slayt (\d+) — (.+)", head)
-        key, label, name = (f"s{m[1]}", m[1], m[2]) if m else (f"x{i}", "★" if i == 0 else "?" if head.startswith("Sözlük") else "✓", head)
+        # "Slayt 3 — …" / "Bölüm 4.2 — …" get a numbered chip, "[x] …" chip x
+        m = re.match(r"(?:Slayt|Bölüm) ([\d.]+) — (.+)", head)
+        t = re.match(r"\[(.+?)\] (.+)", head)
+        if m:
+            key, label, name = f"s{m[1].replace('.', '-')}", m[1], m[2]
+        elif t:
+            key, label, name = f"x{i}", t[1], t[2]
+        else:
+            key, label, name = f"x{i}", "★" if i == 0 else "?" if head.startswith("Sözlük") else "✓", head
         chips.append(f'<a href="#{key}">{label}</a>')
         cards.append(f'<details id="{key}"{" open" if i == 0 else ""}><summary><span class="n">{label}</span>'
                      f'<span>{html.escape(name)}</span></summary><div class="body">{md(body)}</div></details>')
